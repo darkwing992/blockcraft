@@ -1,0 +1,9 @@
+{"latest":"1.5","launcher":"2.0",
+  "versions": [
+    {"id":"1.5","title":"Items \u0026 Beds Update","date":"2026-10-11","notes":"Detailed weapon and armor art, 3D held and dropped items, 2-block beds, launcher updates and old versions.","sha256":"ae4deb5ae09e7dd01ccf5f3b33981f3262937c4a60cea7921827516a021a6558"},
+    {"id":"1.4","title":"Villages Update","date":"2026-10-11","notes":"Furnaces, villages and villager trading, 8 biomes, farming, touch controls for Chromebooks.","sha256":"6981f3131e9f2cb25715ecbc0b9de50875b70ec53e37146fd78991402b61fb85"},
+    {"id":"1.3","title":"Home Update","date":"2026-10-11","notes":"Chests, beds and sleeping, armor, and save slots that are saved as world files.","sha256":"ee381fe966c633155e966f9203a8343d44866778247d03abfd17fa5531272b34"},
+    {"id":"1.2","title":"Water \u0026 Mobs Update","date":"2026-10-11","notes":"Flowing water and buckets, skeletons, creepers and spiders, hunger and sprinting.","sha256":"0440c18f1e180c0ea01f5caaf74cc2568533d0aac1b01a82c853ae204cbee13d"},
+    {"id":"1.1","title":"First Release","date":"2026-10-11","notes":"Infinite terrain, caves, mining and crafting, day and night, zombies and animals. One world, kept in the browser.","sha256":"9758e764327d38f424a56ff9b4e75eeeb91b1f21cc31f1b66361176729f1bad6"}
+  ]
+}
