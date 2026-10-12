@@ -100,6 +100,28 @@ THE END
   they heal the dragon. Beat it and an exit portal with the Dragon Egg appears.
   (The End is single player only.)
 
+ZOMBIE APOCALYPSE (version 2.7)
+  On the title screen click "Zombie Apocalypse". Pick a map - Dark Forest, Desert, Plains or Ruined City -
+  and a mode:
+  - Survival: zombies roam all the time and nights are worse. See how long you last.
+  - Waves: fight wave after wave. A supply crate drops after every wave, and every 5th wave
+    brings a Juggernaut. If everyone dies it's game over.
+  "Play With Friends" gives you a code; up to 4 friends join with it (5 players). Friends can also
+  type the code in Multiplayer > Join Friend.
+  Zombies: Walkers (slow), Runners (fast and screaming), Crawlers (low, fit under gaps),
+  Stalkers (almost invisible until they're right behind you), Bombers (run at you and blow up),
+  Juggernauts (huge, armored, smash through walls). Walkers and Juggernauts break blocks to reach you.
+  - L (or the Light button on phones, right stick click on a controller) = flashlight.
+  - Firecrackers: right-click to throw. Walkers, Runners and Crawlers run to them instead of you.
+  - Crossbow: hold right-click to load, right-click again to fire. Uses bolts first, then arrows.
+  - Ammo: Wooden Arrows (2 sticks = 3), Flame Arrows (arrow + coal, sets zombies on fire),
+    Bolts (iron ingot over a stick = 4), Arrows. Bows use the first arrows in your inventory.
+  - Ammo crates (green boxes) are hidden around every map and on every floor of the city.
+  - Fix weapons: put a damaged weapon or tool in the crafting grid with its material
+    (string for bows, iron for crossbows, planks / cobblestone / iron / diamond for tools).
+  - Also new: Bandages (paper + string), Canned Food, Barricades, Sandbags, Concrete.
+  Things you drop now show for everyone in multiplayer, and they can pick them up.
+
 ON A PHONE (IPHONE OR ANDROID)
   Put the game online for free with GitHub Pages (once): on github.com open your blockcraft
   repository > Settings > Pages > under "Branch" pick "main" and "/ (root)" > Save. After a minute

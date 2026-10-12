@@ -1,5 +1,6 @@
-{"latest":"2.6","launcher":"2.1",
+{"latest":"2.7","launcher":"2.1",
   "versions": [
+    {"id":"2.7","title":"Zombie Apocalypse","date":"2026-10-12","notes":"Zombie Apocalypse mode: 4 maps (forest, desert, plains, ruined city), survival or waves, up to 5 friends, 6 kinds of zombies, crossbows, flame arrows, bolts, firecrackers, ammo crates, weapon repair, flashlight. Dropped items now show for friends.","sha256":"62b318b34e643324f013f858d1595c911997864b87b040b031616d2260a4d6a9"},
     {"id":"2.6","title":"Controller Update","date":"2026-10-12","notes":"Play with an Xbox or PlayStation controller: Minecraft-style buttons, a cursor for menus and the inventory, and rumble.","sha256":"0dc41712b69af780708e257de43796016158c894d79e83382e168348b55cc295"},
     {"id":"2.5","title":"Phone Update","date":"2026-10-12","notes":"Plays on iPhone and Android: phone-sized controls and inventory, faster graphics on phones, chat and view buttons, add to home screen.","sha256":"4e17b4f795f27eeebb3124694745600ce1d404600108696c96d037a7f3bddbb7"},
     {"id":"2.4","title":"The End Update","date":"2026-10-12","notes":"The End and the Ender Dragon boss fight, blazes, eyes of ender and end portals. All mobs look much better: 3D shading, shadows, more detail and death animations.","sha256":"2f8e24755dd92c863778acecb7df1c71474753cee086bc270b450d59cbfd1579"},
