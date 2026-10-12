@@ -135,6 +135,16 @@
   .mpBox h3 { margin: 2px 0; color: #ffff55; text-shadow: 2px 2px 0 #3f3f00; }
   .mpBox .btn { width: 100%; max-width: 360px; }
   #mpStatus { min-height: 18px; font-size: 13px; color: #9f9; }
+  .mpRow { display: flex; gap: 8px; justify-content: center; }
+  .mpRow .btn { flex: 1; margin: 4px 0; }
+  .mpHint { font-size: 12px !important; color: #aaa !important; }
+  #signupScreen { display: none; background: rgba(14,14,14,.97); z-index: 6; }
+  #signupPanel { width: min(480px, 94vw); font-family: Consolas, monospace; text-align: center; }
+  #signupPanel h2 { margin: 0 0 6px; color: #ffff55; text-shadow: 2px 2px 0 #3f3f00; }
+  #signupPanel p { color: #ccc; font-size: 13px; line-height: 1.45; margin: 4px 0 10px; }
+  #signupPanel label { display: flex; justify-content: space-between; align-items: center; gap: 10px; margin: 8px auto; width: 380px; max-width: 100%; }
+  #signupPanel input { flex: 1; max-width: 220px; padding: 6px; font: 16px Consolas, monospace; background: #000; color: #fff; border: 2px solid #a0a0a0; }
+  #suMsg { min-height: 20px; color: #ffd75e; margin: 6px 0; font-size: 14px; }
   #mpPanel label { display: flex; justify-content: space-between; align-items: center; gap: 10px; margin: 8px auto; width: 360px; max-width: 100%; }
   #mpPanel input { flex: 1; max-width: 220px; padding: 6px; font: 16px Consolas, monospace; background: #000; color: #fff; border: 2px solid #a0a0a0; }
   #mpCode { text-transform: uppercase; letter-spacing: 3px; }
@@ -217,7 +227,9 @@
       <p>One world that is always online, for up to 100 players.</p>
       <label>Server <input id="mpServer" autocomplete="off" placeholder="server address"></label>
       <div id="mpStatus"></div>
-      <button class="btn" id="btnJoinServer">Join Server</button>
+      <label>Password <input id="mpPass" type="password" maxlength="64" autocomplete="current-password" placeholder="not needed if remembered"></label>
+      <div class="mpRow"><button class="btn" id="btnJoinServer">Log In &amp; Play</button><button class="btn" id="btnSignupOpen">Sign Up</button></div>
+      <p class="mpHint">New here? Click <b>Sign Up</b> to make your account. Your name is yours forever.</p>
     </div>
     <div class="mpBox">
       <h3>Friend's World</h3>
@@ -227,6 +239,21 @@
     </div>
     <div id="mpMsg"></div>
     <button class="btn" id="btnMpBack">Back</button>
+  </div>
+</div>
+<div id="signupScreen" class="overlay">
+  <div id="signupPanel">
+    <h2>Create Your Account</h2>
+    <p>Your name is saved on the big server forever. Nobody else can ever use it, and your items and spot are kept under it.
+      You can log in from any computer with your password.</p>
+    <label>Name <input id="suName" maxlength="16" autocomplete="username"></label>
+    <label>Password <input id="suPass" type="password" maxlength="64" autocomplete="new-password"></label>
+    <label>Password again <input id="suPass2" type="password" maxlength="64" autocomplete="new-password"></label>
+    <p class="mpHint">Names: letters, numbers, spaces, _ and - (up to 16). Passwords: at least 6 characters.
+      Don't use a password from another website, and remember it - it can't be reset.</p>
+    <div id="suMsg"></div>
+    <button class="btn" id="btnSignup">Create Account &amp; Play</button>
+    <button class="btn" id="btnSignupBack">Back</button>
   </div>
 </div>
 <div id="chatLog"></div>
@@ -278,7 +305,7 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 <script>
 'use strict';
-const GAME_VERSION='1.8';
+const GAME_VERSION='1.9';
 const DEFAULT_SERVER='wss://blockcraft-server.austinhodgins2014-e99.workers.dev/ws'; // the big server's address (set by "Deploy Big Server.bat")
 const MP={role:null,applying:false,seq:0,players:new Map(),conns:new Map(),outB:new Map(),remote(){return MP.role==='client'||MP.role==='net';}}; // multiplayer state (see the Multiplayer section)
 // =====================================================================
@@ -3393,7 +3420,7 @@ Object.assign(MP,{peer:null,conn:null,conns:new Map(),players:new Map(),code:nul
     });
   },
   // the big server: a WebSocket that speaks JSON
-  joinServer(url,name){
+  joinServer(url,name,opts={}){ // opts: {pass, signup}
     MP.name=setMpName(name);url=serverUrl(url);
     if(!url)return Promise.reject(new Error('Type the server address.'));
     let token='';try{token=localStorage.getItem('bc_token')||'';if(!token){token=Math.random().toString(36).slice(2)+Math.random().toString(36).slice(2);localStorage.setItem('bc_token',token);}}catch(e){token='t'+Date.now()+Math.random();}
@@ -3403,9 +3430,9 @@ Object.assign(MP,{peer:null,conn:null,conns:new Map(),players:new Map(),code:nul
       MP.conn=c;let done=false,welcome=null,got=0;
       const fail=m=>{if(done)return;done=true;if(MP.conn===c)MP.reset();else c.close();rej(new Error(m));};
       const finish=()=>{if(done)return;done=true;MP.role='net';try{localStorage.setItem('bc_server',url);}catch(e){}MP.enterRemoteWorld(welcome);res();};
-      ws.onopen=()=>{c.open=true;c.send({t:'hello',name:MP.name,token,v:1});};
+      ws.onopen=()=>{c.open=true;c.send({t:'hello',name:MP.name,token,v:2,pass:opts.pass||undefined,signup:!!opts.signup});};
       ws.onmessage=e=>{let d;try{d=JSON.parse(e.data);}catch(err){return;}
-        if(d.t==='deny')return fail(d.why);
+        if(d.t==='deny'){const e=new Error(d.why);e.code=d.code;if(!done){done=true;if(MP.conn===c)MP.reset();else c.close();rej(e);}return;}
         if(d.t==='welcome'){welcome=d;if(!d.parts)finish();return;}
         if(d.t==='mods'&&welcome&&!done){welcome.world.mods.push(...d.mods);if(++got>=welcome.parts)finish();return;}
         if(MP.role==='net')MP.onMessage(d,d.from||'server');};
@@ -3424,8 +3451,9 @@ Object.assign(MP,{peer:null,conn:null,conns:new Map(),players:new Map(),code:nul
     if(!y&&mode==='creative')[B.GRASS,B.DIRT,B.STONE,B.COBBLE,B.PLANKS,B.LOG,B.GLASS,B.BRICK,B.TORCH].forEach((id,i)=>inv[i]={id,count:64,dmg:0});
     invChanged();
     if(d.host)addRemote('host',d.host);
-    document.getElementById('mpScreen').style.display='none';
+    document.getElementById('mpScreen').style.display='none';document.getElementById('signupScreen').style.display='none';
     startPlaying();chatLine('Joined '+currentWorld.name+'. Press T to chat.','#ffff55');
+    if(MP.role==='net'&&d.account===false)chatLine('Tip: your name has no password yet. Leave, then click Sign Up to protect it.','#ffaa55');
     if(!d.host)chatLine('Players online: '+MP.online+'/100','#ffff55');
   },
   onMessage(d,from){
@@ -3551,12 +3579,37 @@ function openMpScreen(msg){
 }
 document.getElementById('mpServer').addEventListener('change',checkServer);
 document.getElementById('btnJoinServer').onclick=async()=>{
-  const msg=document.getElementById('mpMsg'),btn=document.getElementById('btnJoinServer');
-  if(btn.disabled)return;btn.disabled=true;msg.textContent='Connecting to the server...';
-  try{await MP.joinServer(document.getElementById('mpServer').value,document.getElementById('mpName').value);}
-  catch(e){msg.textContent='Could not join: '+(e.message||e);}
+  const msg=document.getElementById('mpMsg'),btn=document.getElementById('btnJoinServer'),pw=document.getElementById('mpPass');
+  if(btn.disabled)return;btn.disabled=true;msg.textContent='Logging in...';
+  try{await MP.joinServer(document.getElementById('mpServer').value,document.getElementById('mpName').value,{pass:pw.value});pw.value='';}
+  catch(e){msg.textContent=e.message||String(e);
+    if(e.code==='needpass'||e.code==='badpass')pw.focus();}
   btn.disabled=false;
 };
+document.getElementById('mpPass').addEventListener('keydown',e=>{if(e.code==='Enter')document.getElementById('btnJoinServer').click();});
+// ---- Sign Up page ----
+document.getElementById('btnSignupOpen').onclick=()=>{
+  document.getElementById('signupScreen').style.display='flex';
+  document.getElementById('suName').value=document.getElementById('mpName').value;
+  for(const id of ['suPass','suPass2'])document.getElementById(id).value='';
+  document.getElementById('suMsg').textContent='';document.getElementById('suName').focus();
+};
+document.getElementById('btnSignupBack').onclick=()=>{document.getElementById('signupScreen').style.display='none';};
+document.getElementById('btnSignup').onclick=async()=>{
+  const msg=document.getElementById('suMsg'),btn=document.getElementById('btnSignup');
+  const name=document.getElementById('suName').value.trim(),p1=document.getElementById('suPass').value,p2=document.getElementById('suPass2').value;
+  if(!/^[A-Za-z0-9_ \-]{1,16}$/.test(name)){msg.textContent='Pick a name with only letters, numbers, spaces, _ or - (up to 16).';return;}
+  if(p1.length<6){msg.textContent='Your password needs at least 6 characters.';return;}
+  if(p1!==p2){msg.textContent='The two passwords are different. Type them again.';return;}
+  if(btn.disabled)return;btn.disabled=true;msg.textContent='Creating your account...';
+  try{await MP.joinServer(document.getElementById('mpServer').value,name,{pass:p1,signup:true});
+    for(const id of ['suPass','suPass2'])document.getElementById(id).value='';
+    document.getElementById('signupScreen').style.display='none';
+    chatLine('Welcome, '+MP.name+'! Your account is made. The name '+MP.name+' is yours forever.','#55ff55');}
+  catch(e){msg.textContent=e.message||String(e);}
+  btn.disabled=false;
+};
+document.getElementById('suPass2').addEventListener('keydown',e=>{if(e.code==='Enter')document.getElementById('btnSignup').click();});
 document.getElementById('btnMulti').onclick=()=>{audioInit();openMpScreen('');};
 document.getElementById('btnMpBack').onclick=()=>document.getElementById('mpScreen').style.display='none';
 document.getElementById('btnJoin').onclick=async()=>{

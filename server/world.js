@@ -4,7 +4,7 @@
 // nearby mobs; the server stores the world (block changes, chests, inventories), keeps the
 // time of day, grows crops, and passes messages between players.
 export const MAX_PLAYERS = 100;
-export const SERVER_PROTO = 1;
+export const SERVER_PROTO = 2; // 2 = accounts with passwords (1 = old games, which can still log in on the computer they played on)
 const NEAR = 96;            // players/mobs farther away than this aren't sent to you
 const WHEAT = 46, WHEAT_YOUNG = 48, CHEST = 35;
 const NAME_RE = /^[A-Za-z0-9_ \-]{1,16}$/;
@@ -35,8 +35,18 @@ export class World {
     for (const [k, v] of await this.store.list('h:')) this.chests.set(k.slice(2), v);
     this.crops = new Map();
     for (const [k, v] of await this.store.list('r:')) this.crops.set(k.slice(2), v);
-    this.players = new Map();  // name -> { token, save }
-    for (const [k, v] of await this.store.list('p:')) this.players.set(k.slice(2), v);
+    // accounts, keyed by the lower-case name so "Sam" and "sam" are the same account:
+    // { name, hash, salt, tokens: [computers that are logged in], save, first }
+    this.players = new Map();
+    for (const [k, v] of await this.store.list('p:')) {
+      const name = v.name || k.slice(2), key = name.toLowerCase();
+      if (v.token) { v.tokens = [v.token]; delete v.token; }   // accounts from before passwords existed
+      v.name = name; v.tokens = v.tokens || [];
+      if (this.players.has(key)) continue;
+      this.players.set(key, v);
+      if (k.slice(2) !== key) { this.dirty.add(k); this.mark('p:', key); }
+    }
+    this.fails = new Map();    // lower-case name -> { n, until }: slows down password guessing
   }
 
   time() { return (this.info.t0 + (Date.now() - this.info.epoch) / 600000) % 1; }
@@ -74,7 +84,7 @@ export class World {
       else if (p === 'm:') v = this.meta.get(key);
       else if (p === 'h:') v = this.chests.get(key);
       else if (p === 'r:') v = this.crops.get(key);
-      else if (p === 'p:') v = this.players.get(key);
+      else if (p === 'p:') v = this.players.get(key);   // an old mixed-case key comes back undefined and is deleted
       if (v === undefined) await this.store.delete(k); else await this.store.put(k, v);
     }
   }
@@ -108,7 +118,7 @@ export class World {
     if (++c.msgN > 40) return;
     let d; try { d = JSON.parse(text); } catch (e) { return; }
     if (!d || typeof d.t !== 'string') return;
-    if (!c.name) { if (d.t === 'hello') await this.hello(c, d); return; }
+    if (!c.name) { if (d.t === 'hello' && !c.busy) { c.busy = true; try { await this.hello(c, d); } finally { c.busy = false; } } return; }
     switch (d.t) {
       case 'st': {
         if (Array.isArray(d.s) && d.s.length >= 10) c.st = d.s.map(Number);
@@ -142,7 +152,7 @@ export class World {
         this.broadcast({ t: 'chest', k: d.k, c: d.c.slice(0, 27) }, c);
         break;
       case 'me': {
-        const p = this.players.get(c.name); if (p && d.p && typeof d.p === 'object') { p.save = d.p; this.mark('p:', c.name); }
+        const p = this.players.get(c.key); if (p && d.p && typeof d.p === 'object') { p.save = d.p; this.mark('p:', c.key); }
         break;
       }
       case 'chat': {
@@ -167,32 +177,68 @@ export class World {
     await this.flush(false);
   }
 
+  // Sign up:  { t:'hello', signup:true, name, pass, token }  -> makes the account (the name is then taken forever)
+  // Log in:   { t:'hello', name, pass, token }                 -> checks the password and remembers this computer
+  //           { t:'hello', name, token }                       -> a computer that logged in before
   async hello(c, d) {
-    const deny = why => { this.out(c, { t: 'deny', why }); setTimeout(() => { try { c.close(); } catch (e) { } }, 300); };
-    if (d.v !== SERVER_PROTO) return deny('This server needs a newer BlockCraft. Update your game.');
-    const name = String(d.name || '').trim(), token = String(d.token || '');
+    const deny = (why, code) => { this.out(c, { t: 'deny', why, code }); setTimeout(() => { try { c.close(); } catch (e) { } }, 300); };
+    if (d.v !== SERVER_PROTO && d.v !== 1) return deny('This server needs a newer BlockCraft. Update your game.');
+    const name = String(d.name || '').trim(), token = String(d.token || ''), pass = typeof d.pass === 'string' ? d.pass : '';
     if (!NAME_RE.test(name)) return deny('Pick a name with only letters, numbers, spaces, _ or - (up to 16).');
-    if (token.length < 8) return deny('Bad login token.');
+    if (token.length < 8 || token.length > 64) return deny('Bad login token.');
     if (this.online() >= MAX_PLAYERS) return deny('The server is full (' + MAX_PLAYERS + '/' + MAX_PLAYERS + ' players). Try again later.');
-    let p = this.players.get(name);
-    if (p && p.token !== token) return deny('The name ' + name + ' belongs to another player. Pick a different name.');
-    for (const o of [...this.clients.values()]) if (o.name && o.name.toLowerCase() === name.toLowerCase()) {
-      if (!p) return deny('Someone called ' + name + ' is already playing.');
-      // the same player again (e.g. rejoined quickly): drop the old connection
+    const key = name.toLowerCase(), now = Date.now();
+    const f = this.fails.get(key);
+    if (f && f.until > now) return deny('Too many wrong passwords for ' + name + '. Wait a minute and try again.');
+    const failed = () => { const g = this.fails.get(key) || { n: 0, until: 0 }; g.n++; if (g.n >= 5) { g.n = 0; g.until = now + 60000; } this.fails.set(key, g); };
+    let p = this.players.get(key);
+    if (d.signup && d.v !== 1) {
+      if (pass.length < 6 || pass.length > 64) return deny('Your password must be 6 to 64 characters long.');
+      // a name is free, or it is an old name without a password that this same computer used before
+      if (p && (p.hash || !p.tokens.includes(token))) return deny('The name ' + p.name + ' is already taken. Pick a different name.', 'taken');
+      const salt = randomHex(16);
+      if (!p) { p = { name, save: null, first: now, tokens: [] }; this.players.set(key, p); }
+      p.salt = salt; p.iter = HASH_ITER; p.hash = await hashPass(pass, salt);
+      remember(p, token); this.mark('p:', key);
+    } else if (pass) {
+      if (!p) return deny('There is no account called ' + name + '. Click Sign Up to make one.', 'noacct');
+      if (!p.hash) {
+        if (!p.tokens.includes(token)) { failed(); return deny('The name ' + p.name + ' belongs to another player.'); }
+        return deny('This name has no password yet. Click Sign Up (on this computer) to give it one.', 'nopass');
+      }
+      if (await hashPass(pass, p.salt, p.iter || HASH_ITER) !== p.hash) { failed(); return deny('Wrong password for ' + p.name + '.', 'badpass'); }
+      this.fails.delete(key); remember(p, token); this.mark('p:', key);
+    } else {
+      if (!p) return deny(d.v === 1 ? 'Update BlockCraft to sign up for an account.' : 'There is no account called ' + name + '. Click Sign Up to make one.', 'noacct');
+      if (!p.tokens.includes(token)) return deny(p.hash ? 'Type your password to log in on this computer.' : 'The name ' + p.name + ' belongs to another player.', 'needpass');
+    }
+    for (const o of [...this.clients.values()]) if (o.key === key) {
+      // the same player again (e.g. rejoined quickly or from another computer): drop the old connection
       this.clients.delete(o.id); this.broadcast({ t: 'left', id: o.id }, o); try { o.close(); } catch (e) { }
     }
-    if (!p) { p = { token, save: null, first: Date.now() }; this.players.set(name, p); this.mark('p:', name); }
-    c.name = name;
+    c.name = p.name; c.key = key;
+    const name_ = p.name;
     // the world can be big, so block changes go in parts after the welcome
     const all = [...this.chunks].map(([k, m]) => { const [cx, cz] = k.split(',').map(Number); return [cx, cz, [...m].flat()]; });
     const parts = []; let cur = [], size = 0;
     for (const ch of all) { cur.push(ch); size += ch[2].length * 4 + 20; if (size > 300000) { parts.push(cur); cur = []; size = 0; } }
     if (cur.length) parts.push(cur);
-    this.out(c, { t: 'welcome', id: c.id, server: this.info.name, name, you: p.save, parts: parts.length, online: this.online(),
+    this.out(c, { t: 'welcome', id: c.id, server: this.info.name, name: name_, account: !!p.hash, you: p.save, parts: parts.length, online: this.online(),
       world: { seed: this.info.seed, name: this.info.name, mode: this.info.mode, mods: [], meta: [...this.meta], chests: [...this.chests], time: this.time(), spawn: null, clock: 0 } });
     for (const part of parts) this.out(c, { t: 'mods', mods: part });
-    this.broadcast({ t: 'chat', text: name + ' joined the game', color: '#ffff55' }, c);
+    this.broadcast({ t: 'chat', text: name_ + ' joined the game', color: '#ffff55' }, c);
   }
 }
+
+// passwords are never stored, only a salted PBKDF2 hash of them
+const HASH_ITER = 10000; // kept modest: Cloudflare's free plan allows ~10 ms of CPU per message
+async function hashPass(pass, salt, iter = HASH_ITER) {
+  const enc = new TextEncoder();
+  const k = await crypto.subtle.importKey('raw', enc.encode(pass), 'PBKDF2', false, ['deriveBits']);
+  const bits = await crypto.subtle.deriveBits({ name: 'PBKDF2', salt: enc.encode(salt), iterations: iter, hash: 'SHA-256' }, k, 256);
+  return [...new Uint8Array(bits)].map(b => b.toString(16).padStart(2, '0')).join('');
+}
+function randomHex(n) { return [...crypto.getRandomValues(new Uint8Array(n))].map(b => b.toString(16).padStart(2, '0')).join(''); }
+function remember(p, token) { p.tokens = p.tokens.filter(t => t !== token); p.tokens.push(token); if (p.tokens.length > 10) p.tokens.shift(); }
 
 function pairs(flat) { const out = []; for (let i = 0; i + 1 < flat.length; i += 2) out.push([flat[i], flat[i + 1]]); return out; }

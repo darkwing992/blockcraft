@@ -66,8 +66,11 @@ BIG SERVER (ALWAYS ONLINE, UP TO 100 PLAYERS)
     3. When it says Done, the game knows the server address. Run "Publish to GitHub.bat" so
        everyone's launcher gets it.
   To play: title screen > Multiplayer > Join Server.
-  - Your stuff is saved on the server under your name. Nobody else can use your name
-    (it is locked to the computer/browser you first played on).
+  - Accounts: click Sign Up, pick a name and a password. The name is yours forever and nobody
+    else can use it. Log in from any computer with your password; after that the computer
+    remembers you. Passwords can't be reset, so remember yours. The server only keeps a
+    scrambled (hashed) copy of it, never the password itself.
+  - Your stuff is saved on the server under your account.
   - Mobs near you are run by your game, so everyone near each other sees the same mobs.
   - Cloudflare's free plan has a daily limit. It is plenty for a group of friends; if lots of
     people play all day it may stop until the next day (their $5/month plan removes this).

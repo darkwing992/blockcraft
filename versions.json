@@ -1,5 +1,6 @@
-{"latest":"1.8","launcher":"2.1",
+{"latest":"1.9","launcher":"2.1",
   "versions": [
+    {"id":"1.9","title":"Accounts Update","date":"2026-10-12","notes":"Sign up on the big server with a name and password. Your name is yours forever and works from any computer.","sha256":"9afc093d70aca566dbd1027eb5c17d1074ca98e01981d7613134351c2f245220"},
     {"id":"1.8","title":"Rare Diamonds Update","date":"2026-10-12","notes":"Diamonds are about 5 times rarer, only deep down, and slower to mine. Villages give fewer diamonds.","sha256":"97a75d0d72562ed5881553b3782a353f478bbea95b43f2cb3e884ee3aa57cc4a"},
     {"id":"1.7","title":"Big Server Update","date":"2026-10-11","notes":"Join the big always-online server with up to 100 players, or a friend\u0027s world with a code.","sha256":"aa960afdd7a79687b2a0057dafa5063e5d3a99dd0c20d6f51fb12d8734a46ea7"},
     {"id":"1.6","title":"Multiplayer Update","date":"2026-10-11","notes":"Play with friends over the internet using a join code. Chat, shared building, chests and mobs.","sha256":"d262b0107e6dcb471d8c9ad801a2215f402a21a9123ec8e97ccbf0aa51c737c8"},
