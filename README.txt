@@ -43,6 +43,19 @@ UPDATES (GITHUB)
   The launcher never replaces BlockCraft.exe by itself. If there is a new launcher, a yellow
   "New launcher available" link appears at the bottom; it opens your GitHub page.
 
+MULTIPLAYER (PLAY WITH FRIENDS)
+  To host: open your world, press Esc and click "Open to Friends". You get a join code
+  (like 3ZS2F). Tell your friends the code. Keep your game open while they play.
+  To join: on the title screen click "Multiplayer", type your name and the code, and click Join.
+  Works over the internet, no setup needed. Friends can use BlockCraft.exe, or index.html in
+  Chrome/Edge (also on a Chromebook).
+  - Press T (or Enter) to chat.
+  - The host's game runs the world and saves it, including each friend's inventory,
+    so friends get their stuff back when they join again.
+  - Mobs live around the host. Only the host can sleep through the night.
+  - Everyone needs the same version of BlockCraft.
+  - It uses the free PeerJS service to connect. Some school or work networks block it.
+
 CONTROLS
   WASD move, mouse look (or arrow keys), Space jump/swim
   Double-tap W (or hold Shift) sprint, C sneak
@@ -50,6 +63,7 @@ CONTROLS
   Right click: place block, open chest, sleep in bed, equip armor, use bucket
   Hold right click: eat food / draw bow
   E inventory & crafting, Q drop item, 1-9 / scroll select, F fly (creative), F3 debug, Esc pause
+  T or Enter: chat (in multiplayer)
 
 ON A CHROMEBOOK
   Chromebooks can't run .bat files. Use one of these instead:

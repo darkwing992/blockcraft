@@ -126,6 +126,22 @@
   #hunger.low img:nth-child(odd) { animation-delay: .15s; }
   @keyframes shake { 50% { transform: translateY(-2px); } }
   #blockname { bottom: 96px !important; }
+  #mpScreen { display: none; background: rgba(14,14,14,.96); z-index: 5; }
+  #mpPanel { width: min(520px, 94vw); font-family: Consolas, monospace; text-align: center; }
+  #mpPanel h2 { margin: 0 0 6px; text-shadow: 2px 2px 0 #333; }
+  #mpPanel p { color: #ccc; font-size: 14px; line-height: 1.5; }
+  #mpPanel label { display: flex; justify-content: space-between; align-items: center; gap: 10px; margin: 8px auto; width: 360px; max-width: 100%; }
+  #mpPanel input { flex: 1; max-width: 220px; padding: 6px; font: 16px Consolas, monospace; background: #000; color: #fff; border: 2px solid #a0a0a0; }
+  #mpCode { text-transform: uppercase; letter-spacing: 3px; }
+  #mpMsg { min-height: 20px; color: #ffd75e; margin: 8px 0; font-size: 14px; }
+  #mpInfo { font-family: Consolas, monospace; color: #ffff55; text-align: center; margin-bottom: 6px; text-shadow: 2px 2px 0 #3f3f00; max-width: 380px; }
+  #mpInfo b { font-size: 26px; letter-spacing: 4px; color: #fff; }
+  #chatLog { position: fixed; left: 8px; bottom: 120px; width: min(460px, 70vw); font: 15px Consolas, monospace; color: #fff; pointer-events: none; }
+  #chatLog .cl { background: rgba(0,0,0,.4); padding: 1px 6px; text-shadow: 1px 1px 0 #000; transition: opacity 1s; overflow-wrap: anywhere; }
+  #chatLog .cl.old { opacity: 0; }
+  #chatLog.open .cl { opacity: 1; }
+  #chatInput { display: none; position: fixed; left: 8px; bottom: 92px; width: min(460px, 70vw); padding: 6px; font: 15px Consolas, monospace; background: rgba(0,0,0,.7); color: #fff; border: 2px solid #aaa; }
+  body.title #chatLog { display: none; }
   #loading { margin-top: 8px; font-family: Consolas, monospace; color: #aaa; height: 18px; }
   @media (max-width: 520px) { .btn, .settings { width: 86vw; } .overlay h1 { font-size: 40px; } .slot { width: 36px; height: 36px; } .slot img { width: 28px; height: 28px; } }
 </style>
@@ -159,11 +175,13 @@
 <div id="menu" class="overlay">
   <h1>BLOCKCRAFT</h1>
   <div class="sub" id="splash">Now with infinite worlds!</div>
-  <div id="titleBtns" class="col"><button class="btn" id="btnSingle">Singleplayer</button></div>
+  <div id="titleBtns" class="col"><button class="btn" id="btnSingle">Singleplayer</button><button class="btn" id="btnMulti">Multiplayer</button></div>
   <div id="verLabel" style="position:absolute;left:10px;bottom:8px;color:#ddd;font:14px monospace;text-shadow:2px 2px #000;pointer-events:none"></div>
   <div id="pauseBtns" class="col">
     <div id="menuWorld"></div>
+    <div id="mpInfo"></div>
     <button class="btn" id="btnPlay">Back to Game</button>
+    <button class="btn" id="btnHost">Open to Friends</button>
     <button class="btn" id="btnMode">Game Mode: Survival</button>
     <button class="btn" id="btnQuit">Save &amp; Quit to Title</button>
   </div>
@@ -184,6 +202,21 @@
     1-9 / scroll select &middot; E inventory &amp; crafting &middot; F fly (creative) &middot; F3 or ` debug &middot; Esc pause<br>Touchscreen? Just tap the screen - on-screen controls appear.
   </div>
 </div>
+
+<div id="mpScreen" class="overlay">
+  <div id="mpPanel">
+    <h2>Multiplayer</h2>
+    <p>Play with friends over the internet. One person opens their world: in their game, press <b>Esc</b> and click <b>Open to Friends</b>.
+      They get a join code. Type that code here.</p>
+    <label>Your name <input id="mpName" maxlength="16" autocomplete="off"></label>
+    <label>Join code <input id="mpCode" maxlength="8" autocomplete="off" placeholder="ABCDE"></label>
+    <div id="mpMsg"></div>
+    <button class="btn" id="btnJoin">Join World</button>
+    <button class="btn" id="btnMpBack">Back</button>
+  </div>
+</div>
+<div id="chatLog"></div>
+<input id="chatInput" maxlength="120" autocomplete="off" placeholder="Say something... (Enter to send, Esc to cancel)">
 
 <div id="worlds" class="overlay">
   <div id="worldsPanel">
@@ -231,7 +264,8 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 <script>
 'use strict';
-const GAME_VERSION='1.5';
+const GAME_VERSION='1.6';
+const MP={role:null,applying:false,seq:0,players:new Map(),conns:new Map(),outB:new Map()}; // multiplayer state (see the Multiplayer section)
 // =====================================================================
 //  Random / noise
 // =====================================================================
@@ -1016,12 +1050,13 @@ function setBlockRaw(x,y,z,id){
   if(y<0||y>=H)return;
   const cx=x>>4,cz=z>>4,lx=x&15,lz=z&15;const c=chunks.get(ckey(cx,cz));if(!c)return;
   const i=bidx(lx,y,lz);const old=c.data[i];if(old===id)return;c.data[i]=id;if(y>=c.maxY)c.maxY=Math.min(H-1,y+1);
+  if(MP.role&&(MP.role==='host'||!MP.applying))MP.noteBlock(x,y,z);
   scheduleWater(x,y,z);
-  if(DEF[old].special){if(old===B.CHEST&&typeof dropChest==='function')dropChest(x,y,z);
+  if(DEF[old].special){if(old===B.CHEST){if(MP.applying)chests.delete(wk(x,y,z));else if(typeof dropChest==='function')dropChest(x,y,z);}
     const m=blockMeta.get(wk(x,y,z))||'';blockMeta.delete(wk(x,y,z));saveDirty=true;
     if(old===B.BED&&m.length===3){const o=bedPartner(x,y,z,m);if(getBlock(o[0],o[1],o[2])===B.BED&&id!==B.BED)setBlockRaw(o[0],o[1],o[2],0);}}
   const furn=t=>t===B.FURNACE||t===B.FURNACE_LIT;
-  if(furn(old)&&!furn(id)){if(typeof dropFurnace==='function')dropFurnace(x,y,z);blockMeta.delete(wk(x,y,z));}
+  if(furn(old)&&!furn(id)){if(!MP.applying&&typeof dropFurnace==='function')dropFurnace(x,y,z);blockMeta.delete(wk(x,y,z));}
   if(old===B.WHEAT_YOUNG&&typeof crops!=='undefined')crops.delete(wk(x,y,z));
   const k=ckey(cx,cz);let mk=mods.get(k);if(!mk){mk={cx,cz,m:new Map()};mods.set(k,mk);}mk.m.set(i,id);
   saveDirty=true;
@@ -1093,6 +1128,7 @@ function waterTick(x,y,z){
 }
 let waterT=0;
 function updateWater(dt){
+  if(MP.role==='client'){waterQ.clear();return;} // the host runs the water
   waterT+=dt;if(waterT<0.25)return;waterT=0;
   if(!waterQ.size)return;
   const q=waterQ;waterQ=new Map();let n=0;
@@ -1941,12 +1977,13 @@ function dropHeld(all){
 const arrows=[];
 const arrowGeo=new THREE.BoxGeometry(0.05,0.05,0.6);
 const arrowTipGeo=new THREE.BoxGeometry(0.08,0.08,0.1);
-function shootArrow(pos,vel,owner,dmg){
+function shootArrow(pos,vel,owner,dmg,hurtsPlayers){
+  if(owner!=='net')MP.fx({k:'arrow',p:[pos.x,pos.y,pos.z],v:[vel.x,vel.y,vel.z],d:dmg,h:owner==='player'?0:1});
   const g=new THREE.Group();
   const m1=new THREE.MeshBasicMaterial({color:0x8a6a40}),m2=new THREE.MeshBasicMaterial({color:0xbbbbbb});
   const shaft=new THREE.Mesh(arrowGeo,m1);g.add(shaft);const tip=new THREE.Mesh(arrowTipGeo,m2);tip.position.z=0.32;g.add(tip);
   const fl=new THREE.Mesh(new THREE.BoxGeometry(0.16,0.02,0.14),m2);fl.position.z=-0.26;g.add(fl);
-  scene.add(g);arrows.push({pos:pos.clone(),vel:vel.clone(),owner,dmg,g,mats:[m1,m2],stuck:false,age:0});
+  scene.add(g);arrows.push({pos:pos.clone(),vel:vel.clone(),owner,dmg,g,mats:[m1,m2],stuck:false,age:0,hp:owner==='net'?!!hurtsPlayers:owner!=='player'});
 }
 function removeArrow(i){const a=arrows[i];scene.remove(a.g);a.mats.forEach(m=>m.dispose());a.g.children[2].geometry.dispose();arrows.splice(i,1);}
 function updateArrows(dt){
@@ -1964,10 +2001,10 @@ function updateArrows(dt){
         if(isSolid(Math.floor(nx),Math.floor(ny),Math.floor(nz))){a.pos.set(nx,ny,nz);a.stuck=true;a.age=0;sfxAt('arrowhit',nx,ny,nz);break;}
         a.pos.set(nx,ny,nz);
         // hit player
-        if(a.owner!=='player'){const p=player.pos;
+        if(a.hp){const p=player.pos;
           if(!player.dead&&nx>p.x-PW-0.1&&nx<p.x+PW+0.1&&nz>p.z-PW-0.1&&nz<p.z+PW+0.1&&ny>p.y&&ny<p.y+PH){damagePlayer(a.dmg,{x:nx-a.vel.x,z:nz-a.vel.z},false,2.5);removeArrow(i);continue outer;}}
         // hit mobs
-        for(const m of mobs){if(m===a.owner)continue;
+        if(a.owner!=='net')for(const m of mobs){if(m===a.owner)continue;
           if(nx>m.pos.x-m.w-0.1&&nx<m.pos.x+m.w+0.1&&nz>m.pos.z-m.w-0.1&&nz<m.pos.z+m.w+0.1&&ny>m.pos.y&&ny<m.pos.y+m.h){
             hurtMob(m,a.dmg,a.vel.x,a.vel.z,a.owner==='player');removeArrow(i);continue outer;}}
       }
@@ -1999,11 +2036,12 @@ function updatePrimed(dt){
     if(t.fuse<=0){scene.remove(t.mesh);t.mesh.geometry.dispose();t.mesh.material.dispose();primed.splice(i,1);explode(t.pos.x,t.pos.y+0.5,t.pos.z,4);}
   }
 }
-function explode(x,y,z,r){
+function explode(x,y,z,r,fromNet){
+  if(!fromNet)MP.fx({k:'boom',x,y,z,r});
   sfxAt('boom',x,y,z,0,80);
   emit(x,y,z,[0.95,0.95,0.95],70,r*1.2,3,1.4,6,-1.5);
   emit(x,y,z,[1,0.6,0.15],40,r,2,0.6,8,0,true);
-  const R=Math.ceil(r);
+  const R=fromNet?-1:Math.ceil(r); // blocks broken by someone else's explosion arrive as block changes
   for(let dx=-R;dx<=R;dx++)for(let dy=-R;dy<=R;dy++)for(let dz=-R;dz<=R;dz++){
     const d=Math.hypot(dx,dy,dz);if(d>r+(Math.random()-0.5)*1.2)continue;
     const X=Math.floor(x+dx),Y=Math.floor(y+dy),Z=Math.floor(z+dz);const id=getBlock(X,Y,Z);
@@ -2018,7 +2056,7 @@ function explode(x,y,z,r){
   hit(player.pos.x,player.pos.y+0.9,player.pos.z,(f,nx,ny,nz)=>{
     if(mode==='survival')damagePlayer(Math.round(f*f*r*7),null,true,0,true);
     player.vel.x+=nx*f*14;player.vel.y+=Math.max(ny,0.3)*f*12;player.vel.z+=nz*f*14;});
-  for(const m of [...mobs])hit(m.pos.x,m.pos.y+m.h/2,m.pos.z,(f,nx,ny,nz)=>{m.vel.x+=nx*f*14;m.vel.y+=Math.max(ny,0.3)*f*10;m.vel.z+=nz*f*14;hurtMob(m,Math.round(f*f*r*7),0,0,false);});
+  for(const m of [...mobs])if(!m.puppet)hit(m.pos.x,m.pos.y+m.h/2,m.pos.z,(f,nx,ny,nz)=>{m.vel.x+=nx*f*14;m.vel.y+=Math.max(ny,0.3)*f*10;m.vel.z+=nz*f*14;hurtMob(m,Math.round(f*f*r*7),0,0,false);});
   for(const d of drops)hit(d.pos.x,d.pos.y,d.pos.z,(f,nx,ny,nz)=>{d.vel.x+=nx*f*10;d.vel.y+=f*8;d.vel.z+=nz*f*10;});
   hurtTilt=Math.max(hurtTilt,0.6);
 }
@@ -2175,7 +2213,7 @@ function spawnMob(type,x,y,z,opts){
   const D=MOBS[type],model=D.build(opts);
   const m={type,model,pos:new THREE.Vector3(x,y,z),vel:new THREE.Vector3(),yaw:Math.random()*6.28,hp:D.hp,w:D.w,h:D.h,
     onGround:false,hitWall:false,walk:0,wanderT:0,wdir:null,hurtT:0,attackCd:1,fleeT:0,angryT:0,fuse:0,strafe:1,
-    soundT:3+Math.random()*12,mats:[],burnT:0,flap:0};
+    soundT:3+Math.random()*12,mats:[],burnT:0,flap:0,nid:++MP.seq};
   model.g.traverse(o=>{if(o.material)(Array.isArray(o.material)?o.material:[o.material]).forEach(mt=>m.mats.push(mt));});
   if(opts)Object.assign(m,opts);
   scene.add(model.g);mobs.push(m);return m;
@@ -2211,6 +2249,7 @@ function mobRay(maxD){
 }
 function hurtMob(m,dmg,kx,kz,byPlayer){
   if(!mobs.includes(m)||dmg<=0)return;
+  if(m.puppet){if(byPlayer){MP.send({t:'hit',i:m.nid,n:dmg,kx,kz});m.hurtT=0.35;sfxAt('mobhurt',m.pos.x,m.pos.y,m.pos.z);}return;} // the host owns this mob
   m.hp-=dmg;m.hurtT=0.35;
   const l=Math.hypot(kx,kz);if(l){m.vel.x=kx/l*6;m.vel.z=kz/l*6;m.vel.y=Math.max(m.vel.y,4.5);}
   const D=MOBS[m.type];
@@ -2232,12 +2271,13 @@ function attackMob(m){
 }
 function killMob(m){
   emit(m.pos.x,m.pos.y+m.h/2,m.pos.z,[0.85,0.85,0.85],25,m.w*2,3,1);
-  if(mode==='survival')for(const [id,n] of MOBS[m.type].drops())if(id&&n)spawnDrop(id,n,m.pos.x,m.pos.y+0.5,m.pos.z);
+  if(m.lastHitBy)MP.sendTo(m.lastHitBy,{t:'loot',x:m.pos.x,y:m.pos.y+0.5,z:m.pos.z,items:MOBS[m.type].drops().filter(([id,n])=>id&&n)});
+  else if(mode==='survival')for(const [id,n] of MOBS[m.type].drops())if(id&&n)spawnDrop(id,n,m.pos.x,m.pos.y+0.5,m.pos.z);
   removeMob(m);
 }
-function skeletonShoot(m){
+function skeletonShoot(m,tp=player.pos){
   const o=new THREE.Vector3(m.pos.x,m.pos.y+1.5,m.pos.z);
-  const tx=player.pos.x,ty=player.pos.y+1.2,tz=player.pos.z;
+  const tx=tp.x,ty=tp.y+1.2,tz=tp.z;
   const hd=Math.hypot(tx-o.x,tz-o.z),speed=24,t=hd/speed;
   const v=new THREE.Vector3(tx-o.x,ty-o.y+0.5*20*t*t,tz-o.z).normalize();
   const spread=0.05+Math.min(0.08,hd*0.004);
@@ -2246,36 +2286,47 @@ function skeletonShoot(m){
   o.addScaledVector(v,0.6/speed);
   shootArrow(o,v,m,3);sfxAt('bow',o.x,o.y,o.z);
 }
+// who a mob cares about: the nearest player it can attack (the host's friends count too), else the nearest player
+function mobTarget(p){
+  const me={pos:player.pos,id:null,hunt:mode==='survival'&&!player.dead,eye:camera.position};
+  let best=null,bd=1e9,near=Math.hypot(player.pos.x-p.x,player.pos.z-p.z);
+  if(me.hunt){best=me;bd=near;}
+  if(MP.role==='host')for(const rp of MP.players.values()){const d=Math.hypot(rp.tp.x-p.x,rp.tp.z-p.z);near=Math.min(near,d);
+    if(rp.mode==='survival'&&!rp.dead&&d<bd){bd=d;best={pos:rp.tp,id:rp.id,hunt:true,eye:new THREE.Vector3(rp.tp.x,rp.tp.y+1.62,rp.tp.z)};}}
+  if(!best||bd>40){best=me;best.hunt=false;}
+  best.near=near;return best;
+}
+function hitTarget(tg,n,src){if(tg.id)MP.sendTo(tg.id,{t:'hurt',n,x:src.x,z:src.z});else damagePlayer(n,src);}
 function updateMobs(dt){
-  const pp=player.pos;
   for(let i=mobs.length-1;i>=0;i--){
-    const m=mobs[i],D=MOBS[m.type],p=m.pos,v=m.vel;
+    const m=mobs[i];if(m.puppet)continue;
+    const D=MOBS[m.type],p=m.pos,v=m.vel,tg=mobTarget(p),pp=tg.pos;
     const dx=pp.x-p.x,dz=pp.z-p.z,dist=Math.hypot(dx,dz),dy=pp.y-p.y;
-    if(dist>(D.hostile?72:110)||p.y<-20){removeMob(m);continue;}
+    if(tg.near>(D.hostile?72:110)||p.y<-20){removeMob(m);continue;}
     if(D.hostile&&!mobsHostile){removeMob(m);continue;}
     m.hurtT-=dt;m.attackCd-=dt;m.fleeT-=dt;m.angryT-=dt;
     let dirx=0,dirz=0,speed=0,hunting=false;
     const nx=dx/(dist||1),nz=dz/(dist||1);
-    if(D.hostile&&mode==='survival'&&!player.dead&&dist<(D.ai==='ranged'?20:24)&&Math.abs(dy)<12){
+    if(D.hostile&&tg.hunt&&dist<(D.ai==='ranged'?20:24)&&Math.abs(dy)<12){
       hunting=D.ai!=='spider'||m.angryT>0||lightAt(p.x,p.y+0.5,p.z)<0.45;
     }
     if(hunting){
       switch(D.ai){
         case 'melee':
           dirx=nx;dirz=nz;speed=dist>1.1?D.speed:0;
-          if(dist<1.4&&Math.abs(dy)<1.6&&m.attackCd<=0){damagePlayer(D.dmg,p);m.attackCd=1;}
+          if(dist<1.4&&Math.abs(dy)<1.6&&m.attackCd<=0){hitTarget(tg,D.dmg,p);m.attackCd=1;}
           break;
         case 'spider':
           dirx=nx;dirz=nz;speed=dist>1.2?D.speed:0;
           if(dist<4.5&&dist>1.6&&m.onGround&&m.attackCd<=0&&Math.random()<dt*2.5){v.x=nx*7;v.z=nz*7;v.y=6;m.attackCd=0.8;}
-          if(dist<1.6&&Math.abs(dy)<1.5&&m.attackCd<=0){damagePlayer(D.dmg,p);m.attackCd=1;}
+          if(dist<1.6&&Math.abs(dy)<1.5&&m.attackCd<=0){hitTarget(tg,D.dmg,p);m.attackCd=1;}
           break;
         case 'ranged':{
-          const see=los({x:p.x,y:p.y+1.6,z:p.z},camera.position);
+          const see=los({x:p.x,y:p.y+1.6,z:p.z},tg.eye);
           if(dist<5){dirx=-nx;dirz=-nz;speed=D.speed;}
           else if(dist>11||!see){dirx=nx;dirz=nz;speed=D.speed;}
           else{if(Math.random()<dt*0.4)m.strafe*=-1;dirx=-nz*m.strafe;dirz=nx*m.strafe;speed=1.0;}
-          if(see&&dist<16&&m.attackCd<=0){skeletonShoot(m);m.attackCd=1.8+Math.random()*1.4;}
+          if(see&&dist<16&&m.attackCd<=0){skeletonShoot(m,pp);m.attackCd=1.8+Math.random()*1.4;}
           break;}
         case 'creeper':{
           dirx=nx;dirz=nz;speed=dist>1.8?D.speed:0;
@@ -2314,7 +2365,11 @@ function updateMobs(dt){
         if(m.burnT>1){m.burnT=0;m.hp-=2;m.hurtT=0.2;if(m.hp<=0){killMob(m);continue;}}}}
     // ambient sounds
     m.soundT-=dt;if(m.soundT<=0){m.soundT=7+Math.random()*14;if(D.sound)sfxAt(D.sound,p.x,p.y,p.z,0,22);}
-    // animate
+    animMob(m,dt,hunting?clamp(-Math.atan2(dy+0.1,dist),-0.6,0.6)*0.5:0);
+  }
+}
+function animMob(m,dt,headX){
+    const v=m.vel,p=m.pos;
     const hs=Math.hypot(v.x,v.z);m.walk+=hs*dt*3.2;const sw=Math.sin(m.walk)*Math.min(1,hs)*0.7;
     const L=m.model.legs;
     if(m.model.legType==='quad'){L[0].rotation.x=sw;L[3].rotation.x=sw;L[1].rotation.x=-sw;L[2].rotation.x=-sw;}
@@ -2322,12 +2377,11 @@ function updateMobs(dt){
     else L.forEach((l,j)=>{l.rotation.y=l.userData.base+Math.sin(m.walk*1.5+j*1.3)*0.3*Math.min(1,hs);});
     if(m.model.arms.length){m.model.arms[0].rotation.x=-Math.PI/2+sw*0.2;m.model.arms[1].rotation.x=-Math.PI/2-sw*0.2;}
     if(m.model.wings){m.flap+=dt*(m.onGround?0:30);const f=m.onGround?0:Math.abs(Math.sin(m.flap))*1.2;m.model.wings[0].rotation.z=-f;m.model.wings[1].rotation.z=f;}
-    m.model.head.rotation.x=hunting?clamp(-Math.atan2(dy+0.1,dist),-0.6,0.6)*0.5:0;
+    m.model.head.rotation.x=headX;
     m.model.g.position.copy(p);m.model.g.rotation.y=m.yaw;
     const sc=1+Math.min(1,m.fuse/1.5)*0.2;m.model.g.scale.set(sc,sc,sc);
     const l=lightAt(p.x,p.y+m.h*0.6,p.z),flash=m.fuse>0&&Math.floor(m.fuse*8)%2===0;
     for(const mt of m.mats){if(flash)mt.color.setScalar(2);else if(m.hurtT>0)mt.color.setRGB(l,l*0.35,l*0.35);else mt.color.setScalar(l);}
-  }
 }
 let spawnT=2;
 function updateSpawner(dt){
@@ -2500,6 +2554,7 @@ function mobRayHit(){const m=mobRay(4);return !!(m&&target&&m.t<target.t);}
 let sleeping=null;
 function trySleep(x,y,z){
   bedPos=[x,y,z];saveDirty=true;
+  if(MP.role==='client'){toast('Respawn point set (only the host can sleep through the night)');return;}
   if(daylight>0.45){toast('Respawn point set (you can only sleep at night)');return;}
   for(const m of mobs)if(MOBS[m.type].hostile&&Math.hypot(m.pos.x-x-0.5,m.pos.y-y,m.pos.z-z-0.5)<8){toast('You may not rest now, there are monsters nearby');return;}
   sleeping={t:0,x,y,z,done:false};player.vel.set(0,0,0);useHold=null;mouseHeld[0]=mouseHeld[2]=false;
@@ -2725,6 +2780,7 @@ function openInventory(){invOpen=true;invEl.style.display='flex';locked=false;us
   if(document.pointerLockElement)document.exitPointerLock();invChanged();}
 document.getElementById('invClose').onclick=()=>{closeInventory();lock();};
 function closeInventory(){invOpen=false;invEl.style.display='none';
+  if(openChest&&chestPos&&MP.role)MP.send({t:'chest',k:wk(...chestPos),c:openChest});
   if(openChest){openChest=null;if(chestPos)sfxAt('chestclose',chestPos[0],chestPos[1],chestPos[2]);chestPos=null;}
   openFurnace=null;furnacePos=null;tradeMob=null;
   if(cursor){const left=addItem(cursor.id,cursor.count,cursor.dmg);if(left)spawnDrop(cursor.id,left,player.pos.x,player.pos.y+1.4,player.pos.z);cursor=null;}invChanged();}
@@ -2740,6 +2796,14 @@ function updateMenuButtons(){
   document.getElementById('titleBtns').style.display=titleMode?'flex':'none';
   document.getElementById('pauseBtns').style.display=titleMode?'none':'flex';
   document.getElementById('menuWorld').textContent=titleMode||!currentWorld?'':'World: '+currentWorld.name;
+  const info=document.getElementById('mpInfo'),names=[...MP.players.values()].map(p=>p.name);
+  document.getElementById('btnHost').style.display=!titleMode&&!MP.role?'':'none';
+  document.getElementById('btnQuit').textContent=MP.role==='client'?'Leave World':'Save & Quit to Title';
+  if(MP.role==='host')info.innerHTML='Friends can join with this code:<br><b></b><br><span></span>';
+  else if(MP.role==='client')info.innerHTML='Playing with friends<br><span></span>';
+  else info.innerHTML='';
+  if(MP.role==='host')info.querySelector('b').textContent=MP.code;
+  if(MP.role)info.querySelector('span').textContent=names.length?'Players: '+[MP.name,...names].join(', '):'Waiting for friends...';
 }
 function lock(){
   audioInit();
@@ -2754,7 +2818,7 @@ document.addEventListener('pointerlockerror',()=>enterFree());
 document.addEventListener('pointerlockchange',()=>{
   const l=document.pointerLockElement===canvas;
   if(l){freeMode=false;locked=true;menu.style.display='none';ignoreMoves=2;}
-  else if(!invOpen&&!freeMode&&!player.dead&&!titleMode)showPause();
+  else if(!invOpen&&!freeMode&&!player.dead&&!titleMode&&!chatOpen)showPause();
 });
 document.getElementById('btnPlay').onclick=()=>lock();
 document.getElementById('btnSingle').onclick=()=>{audioInit();showWorlds();};
@@ -2867,6 +2931,8 @@ document.addEventListener('contextmenu',e=>e.preventDefault());
 document.addEventListener('wheel',e=>{if(!locked)return;selectSlot(selected+(e.deltaY>0?1:-1));},{passive:true});
 let showDebug=false;
 document.addEventListener('keydown',e=>{
+  if(chatOpen){if(e.code==='Enter'){e.preventDefault();closeChat(true);}else if(e.code==='Escape'){e.preventDefault();closeChat(false);}return;}
+  const ae=document.activeElement;if(ae&&ae.tagName==='INPUT'&&ae.type!=='range'&&ae.type!=='checkbox')return; // typing in a text box
   if(e.code==="F3"||e.code==="Backquote"){e.preventDefault();showDebug=!showDebug;document.getElementById('debug').style.display=showDebug?'block':'none';return;}
   if(player.dead)return;
   if(e.code==='KeyE'){
@@ -2877,6 +2943,7 @@ document.addEventListener('keydown',e=>{
   if(e.code==='Escape'&&invOpen){closeInventory();showPause();return;}
   if(e.code==='Escape'&&freeMode){showPause();return;}
   if(!locked)return;
+  if(MP.role&&(e.code==='KeyT'||e.code==='Enter'||e.code==='Slash')){e.preventDefault();openChat();return;}
   if(['Space','ArrowUp','ArrowDown','Tab'].includes(e.code)||(e.ctrlKey&&e.code!=='KeyW'))e.preventDefault();
   if(e.code==='Space'&&!e.repeat&&mode==='creative'){const now=performance.now();if(now-lastSpace<300){player.flying=!player.flying;player.vel.y=0;}lastSpace=now;}
   if(e.code==='KeyW'&&!e.repeat){const now=performance.now();if(now-lastWTap<300)sprintTap=true;lastWTap=now;}
@@ -2953,13 +3020,13 @@ const newId=(name='World')=>(String(name).replace(/[^A-Za-z0-9]+/g,'_').replace(
 function serializeWorld(){
   const m=[];for(const mk of mods.values()){const arr=[];for(const [i,id] of mk.m)arr.push(i,id);m.push([mk.cx,mk.cz,arr]);}
   return {v:3,name:currentWorld.name,created:currentWorld.created,seed:SEED,mods:m,time:dayTime,inv,armor,selected,spawn:spawnPoint,bed:bedPos,mode,hp,food,sat,
-    chests:[...chests],meta:[...blockMeta],furnaces:[...furnaces],crops:[...crops],clock:worldClock,
+    chests:[...chests],meta:[...blockMeta],furnaces:[...furnaces],crops:[...crops],clock:worldClock,players:[...savedPlayers],
     player:{x:player.pos.x,y:player.pos.y,z:player.pos.z,yaw:player.yaw,pitch:player.pitch,flying:player.flying}};
 }
 const worldInfo=()=>({id:currentWorld.id,name:currentWorld.name,mode,seed:SEED,created:currentWorld.created,lastPlayed:Date.now()});
 let saving=false;
 async function save(){
-  if(!currentWorld||saving)return;saving=true;
+  if(!currentWorld||saving||MP.role==='client')return; // a friend's world is saved by the hostsaving=true;
   try{await Store.save(currentWorld.id,serializeWorld(),worldInfo());saveDirty=false;}
   catch(e){console.warn('save failed',e);toast('Could not save: '+(e.message||e));}
   saving=false;
@@ -2995,6 +3062,7 @@ function applyWorld(s,id){
   for(const [k,v] of s.meta||[])blockMeta.set(k,v);
   for(const [k,v] of s.furnaces||[])furnaces.set(k,v);
   for(const [k,v] of s.crops||[])crops.set(k,v);
+  savedPlayers.clear();for(const [k,v] of s.players||[])savedPlayers.set(k,v);
   worldClock=s.clock||0;
   bedPos=s.bed||null;
   const p=s.player;player.pos.set(p.x,p.y,p.z);player.yaw=p.yaw||0;player.pitch=p.pitch||0;player.flying=!!p.flying&&mode==='creative';player.spawned=false;
@@ -3017,7 +3085,9 @@ function enterTitle(){
   player.pos.set(spawnPoint[0],top+6,spawnPoint[2]);player.spawned=true;player.pitch=-0.18;dayTime=0.27;
   menu.style.display='flex';worldsEl.style.display='none';updateMenuButtons();invChanged();
 }
-async function quitToTitle(){await save();if(document.pointerLockElement)document.exitPointerLock();enterTitle();}
+async function quitToTitle(){
+  if(MP.role==='client'){MP.leave();if(document.pointerLockElement)document.exitPointerLock();enterTitle();return;}
+  await save();if(MP.role==='host'){MP.sysChat('The host closed the world');setTimeout(()=>MP.reset(),300);}if(document.pointerLockElement)document.exitPointerLock();enterTitle();}
 // move old single-save worlds (from earlier versions) into a save slot
 async function migrateOld(){
   try{const old=localStorage.getItem('blockcraft_world');if(!old||localStorage.getItem('bc_migrated'))return;
@@ -3028,7 +3098,8 @@ async function migrateOld(){
 setInterval(()=>{if(currentWorld&&!titleMode&&(saveDirty||locked))save();},15000);
 document.addEventListener('visibilitychange',()=>{if(document.hidden&&currentWorld)save();});
 window.addEventListener('beforeunload',()=>{
-  if(!currentWorld)return;const ds=JSON.stringify(serializeWorld()),is=JSON.stringify(worldInfo()),id=encodeURIComponent(currentWorld.id);
+  if(MP.role==='client')MP.sendMe();
+  if(!currentWorld||MP.role==='client')return;const ds=JSON.stringify(serializeWorld()),is=JSON.stringify(worldInfo()),id=encodeURIComponent(currentWorld.id);
   if(Store.kind==='browser'){try{localStorage.setItem('bc_world_'+currentWorld.id,ds);localStorage.setItem('bc_info_'+currentWorld.id,is);}catch(e){}}
   else if(Store.kind==='server'&&navigator.sendBeacon){navigator.sendBeacon(`api/save?slot=${id}&kind=data`,new Blob([ds],{type:'application/json'}));
     navigator.sendBeacon(`api/save?slot=${id}&kind=info`,new Blob([is],{type:'application/json'}));}
@@ -3113,6 +3184,314 @@ enterTitle();
 
 let last=performance.now(),fpsAcc=0,fpsN=0,fps=0,lastEyeWater=false;
 const debugEl=document.getElementById('debug'),uwEl=document.getElementById('underwater'),loadEl=document.getElementById('loading');
+// =====================================================================
+//  Multiplayer: the host's game is the server. Friends connect over the internet with a
+//  short join code (WebRTC through the free PeerJS service, loaded only when needed).
+//  The host owns the world, mobs, water and crops and saves everything, including each
+//  friend's inventory. Messages are small objects: blocks, player states, mob snapshots, chat.
+// =====================================================================
+const MP_PREFIX='blockcraft-mp1-',MP_PROTO=1,CODE_CHARS='ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+const savedPlayers=new Map(); // host: friend name -> their inventory/position, saved with the world
+const chatLog=document.getElementById('chatLog'),chatInput=document.getElementById('chatInput');
+let chatOpen=false;
+function loadPeer(){
+  if(window.Peer)return Promise.resolve();
+  return new Promise((res,rej)=>{const s=document.createElement('script');s.src='https://cdnjs.cloudflare.com/ajax/libs/peerjs/1.5.4/peerjs.min.js';
+    s.onload=()=>res();s.onerror=()=>rej(new Error('Could not load multiplayer. Are you online?'));document.head.appendChild(s);});
+}
+function mpName(){let n='';try{n=localStorage.getItem('bc_name')||'';}catch(e){}return n||('Player'+(100+Math.floor(Math.random()*900)));}
+function setMpName(n){n=(n||'').replace(/[^\w \-]/g,'').trim().slice(0,16);if(!n)n=mpName();try{localStorage.setItem('bc_name',n);}catch(e){}MP.name=n;return n;}
+
+// ---- remote player models ----
+function nameTag(text){
+  const c=document.createElement('canvas'),x=c.getContext('2d');x.font='bold 28px Consolas, monospace';
+  const w=Math.ceil(x.measureText(text).width)+16;c.width=w;c.height=40;
+  x.font='bold 28px Consolas, monospace';x.fillStyle='rgba(0,0,0,.45)';x.fillRect(0,0,w,40);x.fillStyle='#fff';x.textBaseline='middle';x.fillText(text,8,21);
+  const t=new THREE.CanvasTexture(c);t.minFilter=THREE.LinearFilter;
+  const s=new THREE.Sprite(new THREE.SpriteMaterial({map:t,depthTest:false,transparent:true}));s.scale.set(w/40*0.3,0.3,1);s.renderOrder=998;return s;
+}
+function buildPlayerModel(name){
+  let h=7;for(const ch of name)h=(h*31+ch.charCodeAt(0))>>>0;
+  const sc=new THREE.Color().setHSL((h%360)/360,0.6,0.45),shirt=[sc.r*255|0,sc.g*255|0,sc.b*255|0];
+  const SK=[[196,146,110],[150,104,72],[226,180,146],[110,76,52]][(h>>4)&3],HR=[[70,45,25],[30,24,20],[200,160,80],[120,60,30]][(h>>8)&3];
+  const css=c=>`rgb(${c[0]},${c[1]},${c[2]})`;
+  const faceT=skinTex(8,8,SK,8,x=>{x.fillStyle=css(HR);x.fillRect(0,0,8,2);x.fillRect(0,2,1,1);x.fillRect(7,2,1,1);
+    x.fillStyle='#fff';x.fillRect(1,4,2,1);x.fillRect(5,4,2,1);x.fillStyle='#3050c0';x.fillRect(2,4,1,1);x.fillRect(5,4,1,1);x.fillStyle='#7a4a3a';x.fillRect(3,6,2,1);});
+  const sideT=skinTex(8,8,SK,8,x=>{x.fillStyle=css(HR);x.fillRect(0,0,8,3);}),hairT=skinTex(8,8,HR,12),skinT=skinTex(8,8,SK,8);
+  const shirtT=skinTex(8,8,shirt,14),armT=skinTex(8,8,SK,8,x=>{x.fillStyle=css(shirt);x.fillRect(0,0,8,3);});
+  const pantsT=skinTex(8,8,[48,58,140],14,x=>{x.fillStyle='#3a3a3a';x.fillRect(0,6,8,2);});
+  const g=new THREE.Group();
+  const legs=[limb(0.24,0.72,0.24,pantsT,-0.125,0.72,0),limb(0.24,0.72,0.24,pantsT,0.125,0.72,0)];legs.forEach(l=>g.add(l));
+  const body=box(0.5,0.72,0.26,shirtT);body.position.y=1.08;g.add(body);
+  const arms=[limb(0.22,0.72,0.22,armT,-0.36,1.44,0),limb(0.22,0.72,0.22,armT,0.36,1.44,0)];arms.forEach(a=>g.add(a));
+  const head=box(0.5,0.5,0.5,[sideT,sideT,hairT,skinT,faceT,hairT]);head.position.y=1.7;g.add(head);
+  return {g,legs,head,arms};
+}
+function addRemote(id,name){
+  const model=buildPlayerModel(name),tag=nameTag(name);tag.position.y=2.2;model.g.add(tag);scene.add(model.g);
+  const rp={id,name,model,tag,pos:new THREE.Vector3(),tp:new THREE.Vector3(),yaw:0,tyaw:0,pitch:0,held:0,heldId:-1,heldMesh:null,
+    mode:'survival',dead:false,sneak:false,swingT:0,walk:0,fresh:true,mats:[]};
+  model.g.traverse(o=>{if(o.material&&o!==tag)rp.mats.push(...[].concat(o.material));});
+  MP.players.set(id,rp);return rp;
+}
+function removeRemote(id){
+  const rp=MP.players.get(id);if(!rp)return;MP.players.delete(id);scene.remove(rp.model.g);
+  rp.model.g.traverse(o=>{if(o.geometry&&o!==rp.heldMesh)o.geometry.dispose();
+    if(o.material&&o!==rp.heldMesh)for(const mt of [].concat(o.material)){if(mt.map)mt.map.dispose();mt.dispose();}});
+  if(rp.heldMesh)rp.heldMesh.material.dispose();
+}
+function setRemoteState(rp,s){ // s = [x,y,z,yaw,pitch,held,creative,dead,swing,sneak]
+  rp.tp.set(s[0],s[1],s[2]);rp.tyaw=s[3];rp.pitch=s[4];rp.held=s[5]|0;rp.mode=s[6]?'creative':'survival';rp.dead=!!s[7];
+  if(s[8])rp.swingT=1;rp.sw=s[8]?1:0;rp.sneak=!!s[9];if(rp.fresh){rp.fresh=false;rp.pos.copy(rp.tp);rp.yaw=rp.tyaw;}
+}
+function updateRemotes(dt){
+  for(const rp of MP.players.values()){
+    const px=rp.pos.x,pz=rp.pos.z,M=rp.model;
+    rp.pos.lerp(rp.tp,Math.min(1,dt*12));
+    let d=rp.tyaw-rp.yaw;d=Math.atan2(Math.sin(d),Math.cos(d));rp.yaw+=d*Math.min(1,dt*12);
+    const sp=Math.hypot(rp.pos.x-px,rp.pos.z-pz)/Math.max(dt,1e-3);rp.walk+=sp*dt*2.6;
+    const sw=Math.sin(rp.walk)*Math.min(1,sp/3)*0.8;rp.swingT=Math.max(0,rp.swingT-dt*4);
+    M.legs[0].rotation.x=sw;M.legs[1].rotation.x=-sw;M.arms[1].rotation.x=sw*0.8;
+    M.arms[0].rotation.x=-sw*0.8-Math.sin(rp.swingT*Math.PI)*1.3-(rp.held?0.25:0);
+    M.head.rotation.x=clamp(-rp.pitch,-1.2,1.2);
+    M.g.position.set(rp.pos.x,rp.pos.y-(rp.sneak?0.12:0),rp.pos.z);M.g.rotation.y=rp.yaw+Math.PI;M.g.visible=!rp.dead;
+    if(rp.held!==rp.heldId){
+      if(rp.heldMesh){M.arms[0].remove(rp.heldMesh);rp.heldMesh.material.dispose();rp.heldMesh=null;}
+      rp.heldId=rp.held;const id=rp.held;
+      if(id&&(id>=100?ITEM[id]:DEF[id])){
+        let mesh;
+        if(isFlat(id)){mesh=new THREE.Mesh(extrudeGeo(id),new THREE.MeshBasicMaterial({map:flatTex(id),vertexColors:true,alphaTest:0.5,side:THREE.DoubleSide}));
+          mesh.scale.setScalar(0.85);mesh.position.set(0,-0.72,0.28);mesh.rotation.set(0,-Math.PI/2,Math.PI/4);}
+        else{if(!blockGeoCache[id])blockGeoCache[id]=blockGeo(id,0.25);
+          mesh=new THREE.Mesh(blockGeoCache[id],new THREE.MeshBasicMaterial({map:atlasTex,vertexColors:true,alphaTest:0.5}));mesh.position.set(0,-0.74,0.12);}
+        M.arms[0].add(mesh);rp.heldMesh=mesh;}
+    }
+    const l=lightAt(rp.pos.x,rp.pos.y+1.2,rp.pos.z);for(const mt of rp.mats)mt.color.setScalar(l);if(rp.heldMesh)rp.heldMesh.material.color.setScalar(l);
+  }
+}
+
+// ---- mob puppets (what friends see of the host's mobs) ----
+const MOB_TYPES=Object.keys(MOBS),PROF_KEYS=Object.keys(PROFS);
+function snapshotMobs(){
+  const out=[];
+  for(const m of mobs)if(!m.puppet)out.push([m.nid,MOB_TYPES.indexOf(m.type),+m.pos.x.toFixed(2),+m.pos.y.toFixed(2),+m.pos.z.toFixed(2),+m.yaw.toFixed(2),
+    m.hurtT>0?1:0,+(m.fuse||0).toFixed(2),m.prof?PROF_KEYS.indexOf(m.prof):-1]);
+  return out;
+}
+function applyMobSnapshot(list){
+  const seen=new Set();
+  for(const s of list){
+    const [nid,ti,x,y,z,yaw,hurt,fuse,pi]=s;seen.add(nid);
+    let m=mobs.find(o=>o.puppet&&o.nid===nid);
+    if(!m){const type=MOB_TYPES[ti];if(!type)continue;m=spawnMob(type,x,y,z,{puppet:true,nid,prof:pi>=0?PROF_KEYS[pi]:undefined});m.yaw=yaw;m.tp=new THREE.Vector3(x,y,z);}
+    m.tp.set(x,y,z);m.tyaw=yaw;if(hurt&&m.hurtT<=0)m.hurtT=0.3;m.fuse=fuse;
+  }
+  for(const m of [...mobs])if(m.puppet&&!seen.has(m.nid))removeMob(m);
+}
+function updatePuppets(dt){
+  for(const m of mobs){if(!m.puppet)continue;
+    const px=m.pos.x,py=m.pos.y,pz=m.pos.z;m.pos.lerp(m.tp,Math.min(1,dt*10));
+    if(m.tyaw!==undefined){let d=m.tyaw-m.yaw;d=Math.atan2(Math.sin(d),Math.cos(d));m.yaw+=d*Math.min(1,dt*10);}
+    m.vel.set((m.pos.x-px)/Math.max(dt,1e-3),(m.pos.y-py)/Math.max(dt,1e-3),(m.pos.z-pz)/Math.max(dt,1e-3));
+    m.onGround=Math.abs(m.vel.y)<0.5;m.hurtT-=dt;animMob(m,dt,0);}
+}
+
+// ---- the connection ----
+const MP_SEND_RATE=0.1;
+Object.assign(MP,{peer:null,conn:null,conns:new Map(),players:new Map(),code:null,hostName:'',outB:new Map(),tickT:0,blockT:0,meT:0,far:false,leaving:false,
+  // send to the host (client) or to every friend (host), optionally skipping one connection
+  send(msg,except){
+    if(MP.role==='client'){if(MP.conn&&MP.conn.open)try{MP.conn.send(msg);}catch(e){}}
+    else if(MP.role==='host')for(const [id,c] of MP.conns)if(id!==except&&c.open)try{c.send(msg);}catch(e){}
+  },
+  sendTo(id,msg){const c=MP.conns.get(id);if(c&&c.open)try{c.send(msg);}catch(e){}},
+  noteBlock(x,y,z){MP.outB.set(wk(x,y,z),[x,y,z]);},
+  fx(msg){if(MP.role)MP.send(Object.assign({t:'fx'},msg));},
+  async host(){
+    if(MP.role||!currentWorld)return;
+    MP.name=setMpName(mpName());toast('Opening your world to friends...');
+    await loadPeer();
+    let peer=null;
+    for(let tries=0;tries<5&&!peer;tries++){
+      let code='';for(let i=0;i<5;i++)code+=CODE_CHARS[Math.floor(Math.random()*CODE_CHARS.length)];
+      peer=await new Promise(res=>{const p=new Peer(MP_PREFIX+code);let done=false;
+        p.on('open',()=>{done=true;MP.code=code;res(p);});
+        p.on('error',e=>{if(!done){done=true;p.destroy();res(e.type==='unavailable-id'?null:(MP.err=e,false));}});
+        setTimeout(()=>{if(!done){done=true;p.destroy();MP.err=new Error('the multiplayer service did not answer');res(false);}},15000);});
+      if(peer===false)break;
+    }
+    if(!peer){toast('Could not open to friends: '+((MP.err&&(MP.err.message||MP.err.type))||'unknown error'));return;}
+    MP.peer=peer;MP.role='host';MP.conns.clear();
+    peer.on('connection',c=>MP.onConnection(c));
+    peer.on('disconnected',()=>{if(MP.role==='host'&&!peer.destroyed)try{peer.reconnect();}catch(e){}});
+    peer.on('error',e=>console.warn('peer error',e.type,e));
+    chatLine('Your world is open! Friends can join with the code '+MP.code,'#ffff55');
+    updateMenuButtons();
+  },
+  onConnection(c){
+    c.on('data',d=>{
+      if(d&&d.t==='hello'){
+        if(d.v!==MP_PROTO){c.send({t:'deny',why:'Your BlockCraft is a different version than the host\'s. Update to '+GAME_VERSION+'.'});setTimeout(()=>c.close(),500);return;}
+        let name=(d.name||'Player').replace(/[^\w \-]/g,'').slice(0,16)||'Player';
+        const taken=n=>n===MP.name||[...MP.players.values()].some(p=>p.name===n);
+        if(taken(name)){let k=2;while(taken(name+k))k++;name=name+k;}
+        MP.conns.set(c.peer,c);c.bcName=name;
+        const s=serializeWorld(),you=savedPlayers.get(name)||null;
+        c.send({t:'welcome',id:c.peer,host:MP.name,name,you,at:[player.pos.x+0.7,player.pos.y,player.pos.z+0.7],
+          world:{seed:s.seed,name:s.name,mode:s.mode,mods:s.mods,meta:s.meta,chests:s.chests,time:s.time,spawn:s.spawn,clock:s.clock}});
+        addRemote(c.peer,name);
+        MP.send({t:'join',id:c.peer,name},c.peer);
+        MP.sysChat(name+' joined the game');updateMenuButtons();
+        return;
+      }
+      if(MP.conns.get(c.peer)===c)MP.onMessage(d,c.peer);
+    });
+    const gone=()=>{if(MP.conns.get(c.peer)!==c)return;MP.conns.delete(c.peer);removeRemote(c.peer);
+      MP.send({t:'left',id:c.peer});MP.sysChat((c.bcName||'A player')+' left the game');updateMenuButtons();};
+    c.on('close',gone);c.on('error',gone);
+  },
+  async join(code,name){
+    code=(code||'').toUpperCase().replace(/[^A-Z0-9]/g,'');
+    if(code.length<4)throw new Error('Type the join code your friend sees in their pause menu.');
+    MP.name=setMpName(name);
+    await loadPeer();
+    const peer=await new Promise((res,rej)=>{const p=new Peer();p.on('open',()=>res(p));p.on('error',e=>rej(e));
+      setTimeout(()=>rej(new Error('the multiplayer service did not answer')),15000);});
+    MP.peer=peer;
+    return new Promise((res,rej)=>{
+      let done=false;const fail=m=>{if(done)return;done=true;MP.reset();rej(new Error(m));};
+      peer.on('error',e=>fail(e.type==='peer-unavailable'?'No world with that code. Check the code, and that your friend is still playing.':(e.message||e.type)));
+      const c=peer.connect(MP_PREFIX+code,{reliable:true});MP.conn=c;
+      c.on('open',()=>c.send({t:'hello',name:MP.name,v:MP_PROTO}));
+      c.on('data',d=>{
+        if(d.t==='deny')return fail(d.why);
+        if(d.t==='welcome'){if(done)return;done=true;MP.role='client';MP.code=code;MP.enterRemoteWorld(d);res();return;}
+        if(MP.role==='client')MP.onMessage(d,'host');
+      });
+      c.on('close',()=>{if(!done)return fail('The connection closed.');MP.lost();});
+      setTimeout(()=>fail('Could not reach that world. Your friend\'s network may be blocking it.'),20000);
+    });
+  },
+  enterRemoteWorld(d){
+    const w=d.world,y=d.you;MP.hostName=d.host;MP.name=d.name;MP.selfId=d.id;
+    const s={v:3,name:w.name,seed:w.seed,mods:w.mods,meta:w.meta,chests:w.chests,time:w.time,spawn:w.spawn,clock:w.clock,mode:w.mode,
+      inv:y?y.inv:[],armor:y?y.armor:[],hp:y?y.hp:20,food:y?y.food:20,sat:y?y.sat:5,bed:y?y.bed:null,
+      player:y&&y.player?y.player:{x:d.at[0],y:d.at[1],z:d.at[2],yaw:0,pitch:0}};
+    const role=MP.role;applyWorld(s,null);MP.role=role;
+    currentWorld.name=d.host+'\'s world';
+    if(!y&&mode==='creative')[B.GRASS,B.DIRT,B.STONE,B.COBBLE,B.PLANKS,B.LOG,B.GLASS,B.BRICK,B.TORCH].forEach((id,i)=>inv[i]={id,count:64,dmg:0});
+    invChanged();
+    addRemote('host',d.host);
+    document.getElementById('mpScreen').style.display='none';
+    startPlaying();chatLine('Joined '+d.host+'\'s world. Press T to chat.','#ffff55');
+  },
+  onMessage(d,from){
+    switch(d.t){
+      case 'st':{const rp=MP.players.get(from);if(rp)setRemoteState(rp,d.s);break;}
+      case 'b':MP.applyBlocks(d.l);break;
+      case 'tick':{
+        dayTime=d.time;
+        for(const e of d.pl){if(e[0]===MP.selfId)continue;let rp=MP.players.get(e[0]);if(!rp)rp=addRemote(e[0],e[1]);setRemoteState(rp,e.slice(2));}
+        const hp_=MP.players.get('host');
+        const far=hp_&&Math.hypot(hp_.tp.x-player.pos.x,hp_.tp.z-player.pos.z)>Math.max(80,(renderDist-1)*16);
+        if(far!==MP.far){MP.far=far;for(const m of [...mobs])if(!!m.puppet===far)removeMob(m);}
+        if(!MP.far)applyMobSnapshot(d.mobs);
+        break;}
+      case 'join':if(MP.role==='client'&&!MP.players.has(d.id))addRemote(d.id,d.name);break;
+      case 'left':removeRemote(d.id);break;
+      case 'chat':chatLine(d.text,d.color);if(MP.role==='host')MP.send(d,from);break;
+      case 'chest':chests.set(d.k,d.c);if(MP.role==='host'){MP.send(d,from);saveDirty=true;}break;
+      case 'me':{const c=MP.conns.get(from);if(c&&c.bcName){savedPlayers.set(c.bcName,d.p);saveDirty=true;}break;}
+      case 'hurt':damagePlayer(d.n,{x:d.x,z:d.z});break;
+      case 'loot':if(mode==='survival')for(const [id,n] of d.items)spawnDrop(id,n,d.x,d.y,d.z);break;
+      case 'hit':{const m=mobs.find(o=>!o.puppet&&o.nid===d.i);if(m){m.lastHitBy=from;hurtMob(m,d.n,d.kx,d.kz,true);m.lastHitBy=null;}break;}
+      case 'fx':
+        if(d.k==='boom')explode(d.x,d.y,d.z,d.r,true);
+        else if(d.k==='arrow')shootArrow(new THREE.Vector3(...d.p),new THREE.Vector3(...d.v),'net',d.d,d.h);
+        if(MP.role==='host')MP.send(d,from);
+        break;
+    }
+  },
+  applyBlocks(list){
+    MP.applying=true;
+    for(const [x,y,z,id,meta] of list){
+      const k=wk(x,y,z);if(meta)blockMeta.set(k,meta);
+      const c=chunks.get(ckey(x>>4,z>>4));
+      if(c)setBlockRaw(x,y,z,id);
+      else{const ck=ckey(x>>4,z>>4);let mk=mods.get(ck);if(!mk){mk={cx:x>>4,cz:z>>4,m:new Map()};mods.set(ck,mk);}mk.m.set(bidx(x&15,y,z&15),id);
+        if(MP.role==='host')MP.noteBlock(x,y,z);}
+      if(MP.role==='host'&&id===B.WHEAT_YOUNG&&!crops.has(k))crops.set(k,worldClock+60+Math.random()*120);
+    }
+    MP.applying=false;flushBlocks();saveDirty=true;
+  },
+  myState(){const s=inv[selected];
+    return [+player.pos.x.toFixed(2),+player.pos.y.toFixed(2),+player.pos.z.toFixed(2),+player.yaw.toFixed(2),+player.pitch.toFixed(2),
+      s?s.id:0,mode==='creative'?1:0,player.dead?1:0,swing>0.8?1:0,sneaking?1:0];},
+  update(dt){
+    updateRemotes(dt);if(MP.role==='client')updatePuppets(dt);
+    MP.blockT-=dt;
+    if(MP.blockT<=0&&MP.outB.size){MP.blockT=0.05;const l=[];
+      for(const [k,[x,y,z]] of MP.outB){let id=getBlock(x,y,z);const c=chunks.get(ckey(x>>4,z>>4));
+        if(!c){const mk=mods.get(ckey(x>>4,z>>4));const v=mk&&mk.m.get(bidx(x&15,y,z&15));if(v===undefined)continue;id=v;}
+        l.push([x,y,z,id,blockMeta.get(k)||0]);}
+      MP.outB.clear();if(l.length)MP.send({t:'b',l});}
+    MP.tickT-=dt;
+    if(MP.tickT<=0){MP.tickT=MP_SEND_RATE;
+      if(MP.role==='host'){
+        const pl=[['host',MP.name,...MP.myState()]];
+        for(const rp of MP.players.values())pl.push([rp.id,rp.name,rp.tp.x,rp.tp.y,rp.tp.z,rp.tyaw,rp.pitch,rp.held,rp.mode==='creative'?1:0,rp.dead?1:0,rp.sw|0,rp.sneak?1:0]);
+        MP.send({t:'tick',time:dayTime,pl,mobs:snapshotMobs()});
+      }else MP.send({t:'st',s:MP.myState()});
+    }
+    if(MP.role==='client'){MP.meT-=dt;if(MP.meT<=0){MP.meT=5;MP.sendMe();}}
+  },
+  sendMe(){if(titleMode)return; // a copy, because leaving clears the inventory right after this
+    MP.send({t:'me',p:JSON.parse(JSON.stringify({inv,armor,hp,food,sat,bed:bedPos,player:{x:player.pos.x,y:player.pos.y,z:player.pos.z,yaw:player.yaw,pitch:player.pitch}}))});},
+  sysChat(text){chatLine(text,'#ffff55');MP.send({t:'chat',text,color:'#ffff55'});},
+  chat(text){const line='<'+MP.name+'> '+text;chatLine(line);MP.send({t:'chat',text:line});},
+  lost(){if(MP.leaving||MP.role!=='client')return;MP.reset();enterTitle();openMpScreen('The connection to the host was lost (they may have closed their world).');},
+  leave(){if(MP.role==='client'){MP.sendMe();MP.leaving=true;setTimeout(()=>{MP.reset();},300);}},
+  reset(){
+    try{if(MP.conn)MP.conn.close();}catch(e){}try{if(MP.peer)MP.peer.destroy();}catch(e){}
+    for(const id of [...MP.players.keys()])removeRemote(id);
+    for(const m of [...mobs])if(m.puppet)removeMob(m);
+    Object.assign(MP,{role:null,peer:null,conn:null,code:null,far:false,leaving:false,applying:false});MP.conns.clear();MP.outB.clear();
+    updateMenuButtons();
+  },
+});
+
+// ---- chat box ----
+function chatLine(text,color){
+  const el=document.createElement('div');el.className='cl';el.textContent=text;if(color)el.style.color=color;chatLog.appendChild(el);
+  while(chatLog.children.length>14)chatLog.firstChild.remove();setTimeout(()=>el.classList.add('old'),10000);
+}
+function openChat(){
+  chatOpen=true;locked=false;for(const k in keys)keys[k]=false;mouseHeld[0]=mouseHeld[2]=false;
+  chatLog.classList.add('open');chatInput.style.display='block';chatInput.value='';
+  if(document.pointerLockElement)document.exitPointerLock();setTimeout(()=>chatInput.focus(),0);
+}
+function closeChat(send){
+  const t=chatInput.value.trim();if(send&&t)MP.chat(t);
+  chatOpen=false;chatInput.style.display='none';chatInput.blur();chatLog.classList.remove('open');lock();
+}
+
+// ---- multiplayer screen ----
+function openMpScreen(msg){
+  const el=document.getElementById('mpScreen');el.style.display='flex';
+  document.getElementById('mpName').value=mpName();document.getElementById('mpMsg').textContent=msg||'';
+}
+document.getElementById('btnMulti').onclick=()=>{audioInit();openMpScreen('');};
+document.getElementById('btnMpBack').onclick=()=>document.getElementById('mpScreen').style.display='none';
+document.getElementById('btnJoin').onclick=async()=>{
+  const msg=document.getElementById('mpMsg'),btn=document.getElementById('btnJoin');
+  if(btn.disabled)return;btn.disabled=true;msg.textContent='Connecting...';
+  try{await MP.join(document.getElementById('mpCode').value,document.getElementById('mpName').value);}
+  catch(e){msg.textContent='Could not join: '+(e.message||e);}
+  btn.disabled=false;
+};
+document.getElementById('mpCode').addEventListener('keydown',e=>{if(e.code==='Enter')document.getElementById('btnJoin').click();});
+document.getElementById('btnHost').onclick=()=>MP.host();
+
 function frame(now){
   requestAnimationFrame(frame);
   let dt=(now-last)/1000;last=now;if(dt>0.1)dt=0.1;if(dt<0)dt=0;
@@ -3125,6 +3504,7 @@ function frame(now){
   const active=!titleMode&&player.spawned&&!player.dead&&(locked||invOpen);
   if(titleMode){player.yaw+=dt*0.035;dayTime=0.27;}
   if(sleeping)updateSleep(dt);
+  const mpSim=MP.role==='host'&&!titleMode&&player.spawned; // the host's world keeps running while the host is paused
   if(active){
     if(!sleeping)updatePlayer(dt);
     dayTime=(dayTime+dt/600)%1;
@@ -3145,11 +3525,14 @@ function frame(now){
     updateMining(dt);
     updateUse(dt);
     if(locked&&mouseHeld[2]&&!useHold){mouseTimer[2]-=dt;if(mouseTimer[2]<=0){mouseTimer[2]=0.22;useItem();}}
-    updateHealth(dt,eyeWater);
-    updateMobs(dt);updateSpawner(dt);
-    updateArrows(dt);updatePrimed(dt);
-    updateFurnaces(dt);updateCrops(dt);autoTune(dt);
+    updateHealth(dt,eyeWater);autoTune(dt);
+  }else if(mpSim)dayTime=(dayTime+dt/600)%1;
+  if(active||mpSim){
+    if(MP.role!=='client'||MP.far){updateMobs(dt);updateSpawner(dt);}
+    updateArrows(dt);updatePrimed(dt);updateFurnaces(dt);
+    if(MP.role!=='client')updateCrops(dt);
   }
+  if(MP.role)MP.update(dt);
   updateWater(dt);
   updateDrops(dt);
   updateMusic(dt);
