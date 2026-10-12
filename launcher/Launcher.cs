@@ -26,14 +26,14 @@ using System.Windows.Forms;
 [assembly: AssemblyTitle("BlockCraft Launcher")]
 [assembly: AssemblyProduct("BlockCraft")]
 [assembly: AssemblyDescription("Launcher and save server for BlockCraft")]
-[assembly: AssemblyVersion("2.2.0.0")]
-[assembly: AssemblyFileVersion("2.2.0.0")]
+[assembly: AssemblyVersion("2.4.0.0")]
+[assembly: AssemblyFileVersion("2.4.0.0")]
 
 namespace BlockCraft
 {
     static class Program
     {
-        public const string LauncherVersion = "2.2";
+        public const string LauncherVersion = "2.4";
 
         [STAThread]
         static int Main(string[] args)
@@ -63,6 +63,7 @@ namespace BlockCraft
                     f.Location = new Point(-4000, -4000);
                     f.ShowInTaskbar = false;
                     f.Show();
+                    if (args.Length >= 3) f.ShowPage(int.Parse(args[2]));
                     Application.DoEvents();
                     using (var bmp = new Bitmap(f.Width, f.Height))
                     {
@@ -298,7 +299,7 @@ namespace BlockCraft
         public int Port;
         public string Root;
         public string Saves;
-        public event Action Saved;
+        public event Action Saved, SkinChanged;
         readonly object fileLock = new object();
 
         public bool Start(int firstPort)
@@ -414,6 +415,26 @@ namespace BlockCraft
                     }
                     sb.Append(']');
                     SendText(ctx, 200, "application/json", sb.ToString());
+                }
+                else if (path == "/api/skin")
+                {
+                    // your skin: "preset:<name>" or a Minecraft skin PNG as a data: URL; shared by the launcher and every game version
+                    string file = Path.Combine(Saves, "skin.txt");
+                    if (req.HttpMethod == "POST")
+                    {
+                        string body;
+                        using (var reader = new StreamReader(req.InputStream, Utf8)) body = reader.ReadToEnd().Trim();
+                        if (body != "" && !SkinArt.Valid(body)) { SendText(ctx, 400, "text/plain", "not a skin"); return; }
+                        lock (fileLock) { if (body == "") { if (File.Exists(file)) File.Delete(file); } else File.WriteAllText(file, body, Utf8); }
+                        SendText(ctx, 200, "application/json", "{\"ok\":true}");
+                        var h = SkinChanged; if (h != null) h();
+                    }
+                    else
+                    {
+                        string s = "";
+                        lock (fileLock) { if (File.Exists(file)) s = File.ReadAllText(file, Utf8).Trim(); }
+                        SendText(ctx, 200, "text/plain; charset=utf-8", s);
+                    }
                 }
                 else if (path == "/api/save")
                 {
@@ -647,7 +668,7 @@ namespace BlockCraft
     // the big picture at the top: a sunset scene with your player
     class HeroPanel : Control
     {
-        public string Title = "BlockCraft", Sub = "Choose a version and play";
+        public string Title = "BlockCraft", Sub = "Choose a version and play"; public Bitmap Skin; public bool SkinSlim;
         public HeroPanel() { DoubleBuffered = true; SetStyle(ControlStyles.ResizeRedraw, true); }
         protected override void OnPaint(PaintEventArgs e)
         {
@@ -657,7 +678,7 @@ namespace BlockCraft
             {
                 var st = g.Save(); g.SetClip(clip);
                 g.SmoothingMode = SmoothingMode.None; Art.Sunset(g, ClientRectangle);
-                Art.Player(g, Width / 2 - 48, Height - 70 - 192 + 6, 6);
+                if (Skin != null) SkinArt.DrawFront(g, Skin, SkinSlim, Width / 2 - 48, Height - 70 - 192 + 6, 6); else Art.Player(g, Width / 2 - 48, Height - 70 - 192 + 6, 6);
                 g.Restore(st); g.SmoothingMode = SmoothingMode.AntiAlias;
                 using (var pen = new Pen(UI.CardBorder, 2)) g.DrawPath(pen, clip);
             }
@@ -725,16 +746,171 @@ namespace BlockCraft
     // the blue banner at the top of the minigames panel
     class BannerPanel : Control
     {
-        public string Caption = "MINIGAMES";
+        public string Caption = "MINIGAMES"; public Color Top1 = Color.FromArgb(60, 150, 240), Bottom1 = Color.FromArgb(30, 100, 210);
         public BannerPanel() { DoubleBuffered = true; SetStyle(ControlStyles.ResizeRedraw, true); }
         protected override void OnPaint(PaintEventArgs e)
         {
             var g = e.Graphics; g.SmoothingMode = SmoothingMode.AntiAlias; g.TextRenderingHint = TextRenderingHint.ClearTypeGridFit;
             using (var pb = new SolidBrush(UI.Card)) g.FillRectangle(pb, ClientRectangle);
-            using (var b = new LinearGradientBrush(ClientRectangle, Color.FromArgb(60, 150, 240), Color.FromArgb(30, 100, 210), 90f)) g.FillRectangle(b, ClientRectangle);
+            using (var b = new LinearGradientBrush(ClientRectangle, Top1, Bottom1, 90f)) g.FillRectangle(b, ClientRectangle);
             UI.Pixels(g, ClientRectangle, Color.White, 5);
             using (var f = UI.F(18, true)) using (var wb = new SolidBrush(Color.White))
             { SizeF s = g.MeasureString(Caption, f); g.DrawString(Caption, f, wb, (Width - s.Width) / 2, (Height - s.Height) / 2); }
+        }
+    }
+
+    // ------------------------------------------------------------------
+    //  Skins (Minecraft Java layout): the same built-in skins as the game, importing PNG skins, front-view pictures
+    // ------------------------------------------------------------------
+    class SkinLook
+    {
+        public string Name; public Color Skin, Hair, Shirt, Pants, Shoes = Color.FromArgb(60, 50, 40);
+        public Color? Eyes, Helmet, Mask, Belt, Stripe, Gloves; public string Mouth = "#7a4a3a"; public int Sleeve = 4; public bool Long, Slim;
+    }
+    static class SkinArt
+    {
+        static Color C(int r, int g, int b) { return Color.FromArgb(r, g, b); }
+        public static readonly string[] Order = { "hero", "heroine", "knight", "ninja", "pirate", "robot", "hunter", "zombie", "astronaut", "wizard" };
+        public static SkinLook Preset(string k)
+        {
+            var o = new SkinLook();
+            switch (k)
+            {
+                case "hero": o.Name = "Hero"; o.Skin = C(198, 140, 104); o.Hair = C(60, 38, 22); o.Shirt = C(40, 160, 170); o.Pants = C(50, 60, 150); o.Shoes = C(70, 70, 74); break;
+                case "heroine": o.Name = "Heroine"; o.Skin = C(226, 176, 140); o.Hair = C(200, 120, 40); o.Shirt = C(80, 150, 70); o.Pants = C(110, 80, 50); o.Shoes = C(90, 60, 40); o.Long = true; o.Eyes = C(60, 140, 60); o.Slim = true; break;
+                case "knight": o.Name = "Knight"; o.Skin = C(200, 150, 110); o.Hair = C(40, 30, 20); o.Shirt = C(170, 170, 180); o.Pants = C(120, 120, 130); o.Shoes = C(80, 80, 90); o.Helmet = C(190, 190, 200); o.Belt = C(120, 80, 40); o.Gloves = C(140, 140, 150); break;
+                case "ninja": o.Name = "Ninja"; o.Skin = C(190, 140, 100); o.Hair = C(20, 20, 24); o.Shirt = C(30, 30, 36); o.Pants = C(26, 26, 30); o.Shoes = C(20, 20, 20); o.Mask = C(30, 30, 36); o.Belt = C(170, 30, 30); o.Eyes = C(200, 40, 40); break;
+                case "pirate": o.Name = "Pirate"; o.Skin = C(180, 124, 90); o.Hair = C(30, 20, 14); o.Shirt = C(230, 230, 220); o.Pants = C(60, 40, 30); o.Shoes = C(40, 26, 18); o.Belt = C(200, 40, 40); o.Stripe = C(200, 40, 40); o.Sleeve = 12; break;
+                case "robot": o.Name = "Robot"; o.Skin = C(150, 156, 166); o.Hair = C(110, 116, 126); o.Shirt = C(120, 126, 136); o.Pants = C(90, 96, 106); o.Shoes = C(60, 64, 70); o.Eyes = C(255, 60, 40); o.Mouth = "#333333"; o.Sleeve = 0; break;
+                case "hunter": o.Name = "Zombie Hunter"; o.Skin = C(170, 120, 90); o.Hair = C(90, 60, 30); o.Shirt = C(70, 90, 50); o.Pants = C(80, 70, 50); o.Shoes = C(50, 40, 30); o.Belt = C(40, 30, 20); o.Gloves = C(50, 40, 30); break;
+                case "zombie": o.Name = "Zombie"; o.Skin = C(96, 130, 80); o.Hair = C(50, 70, 40); o.Shirt = C(50, 140, 150); o.Pants = C(60, 60, 140); o.Shoes = C(60, 60, 140); o.Eyes = C(20, 20, 20); o.Mouth = "#2d4c26"; break;
+                case "astronaut": o.Name = "Astronaut"; o.Skin = C(220, 224, 230); o.Hair = C(220, 224, 230); o.Shirt = C(230, 232, 236); o.Pants = C(220, 224, 230); o.Shoes = C(150, 150, 160); o.Helmet = C(230, 232, 236); o.Stripe = C(220, 90, 40); o.Gloves = C(150, 150, 160); break;
+                case "wizard": o.Name = "Wizard"; o.Skin = C(214, 170, 130); o.Hair = C(230, 230, 236); o.Shirt = C(80, 50, 150); o.Pants = C(70, 40, 130); o.Shoes = C(40, 30, 60); o.Long = true; o.Belt = C(230, 200, 60); o.Sleeve = 12; break;
+                default: return null;
+            }
+            return o;
+        }
+        // paints one box of the Minecraft layout: fn(face, i, j) gives the colour of each pixel (or null)
+        static void Part(Bitmap b, int u, int v, int w, int h, int d, Func<string, int, int, Color?> fn)
+        {
+            var R = new Dictionary<string, int[]>();
+            R["right"] = new[] { u, v + d, d, h }; R["front"] = new[] { u + d, v + d, w, h }; R["left"] = new[] { u + d + w, v + d, d, h };
+            R["back"] = new[] { u + 2 * d + w, v + d, w, h }; R["top"] = new[] { u + d, v, w, d }; R["bottom"] = new[] { u + d + w, v, w, d };
+            foreach (var kv in R)
+            {
+                int[] r = kv.Value;
+                for (int j = 0; j < r[3]; j++) for (int i = 0; i < r[2]; i++) { Color? c = fn(kv.Key, i, j); if (c.HasValue) b.SetPixel(r[0] + i, r[1] + j, c.Value); }
+            }
+        }
+        public static Bitmap Human(SkinLook o)
+        {
+            var b = new Bitmap(64, 64, System.Drawing.Imaging.PixelFormat.Format32bppArgb);
+            var rnd = new Random(7);
+            Func<Color, double, Color> sh = (c, k) => { double n = 1 + (rnd.NextDouble() - 0.5) * k; Func<double, int> f = x => Math.Max(0, Math.Min(255, (int)(x * n))); return Color.FromArgb(f(c.R), f(c.G), f(c.B)); };
+            Color mouth = ColorTranslator.FromHtml(o.Mouth);
+            Part(b, 0, 0, 8, 8, 8, (f, i, j) =>
+            {
+                if (o.Helmet.HasValue) return j < (f == "front" ? 3 : 8) || (f == "front" && (i == 0 || i == 7)) ? sh(o.Helmet.Value, 0.15) : f == "front" && j == 3 ? Color.FromArgb(17, 17, 17) : sh(o.Skin, 0.06);
+                if (f == "top") return sh(o.Hair, 0.12); if (f == "bottom") return sh(o.Skin, 0.05);
+                if (f == "front")
+                {
+                    if (j < 2 || (j == 2 && (i == 0 || i == 7)) || (o.Long && (i == 0 || i == 7) && j < 6)) return sh(o.Hair, 0.12);
+                    if (o.Mask.HasValue && j >= 5) return sh(o.Mask.Value, 0.1);
+                    if (j == 4 && (i == 1 || i == 6)) return Color.White;
+                    if (j == 4 && (i == 2 || i == 5)) return o.Eyes.HasValue ? o.Eyes.Value : Color.FromArgb(48, 80, 192);
+                    if (j == 6 && i >= 3 && i <= 4) return mouth;
+                    return sh(o.Skin, 0.05);
+                }
+                if (f == "back") return j < (o.Long ? 8 : 6) ? sh(o.Hair, 0.12) : sh(o.Skin, 0.05);
+                return j < (o.Long ? 7 : 3) ? sh(o.Hair, 0.12) : sh(o.Skin, 0.05);
+            });
+            if (o.Mask.HasValue) Part(b, 32, 0, 8, 8, 8, (f, i, j) => f == "front" && j >= 5 && j <= 6 ? (Color?)sh(o.Mask.Value, 0.1) : null);
+            Func<string, int, int, Color?> body = (f, i, j) => o.Belt.HasValue && j == 9 ? sh(o.Belt.Value, 0.1) : o.Stripe.HasValue && f == "front" && (i == 3 || i == 4) ? sh(o.Stripe.Value, 0.1) : sh(o.Shirt, 0.12);
+            Func<string, int, int, Color?> arm = (f, i, j) => j < o.Sleeve ? sh(o.Shirt, 0.12) : o.Gloves.HasValue && j >= 10 ? sh(o.Gloves.Value, 0.1) : sh(o.Skin, 0.05);
+            Func<string, int, int, Color?> leg = (f, i, j) => j >= 10 ? sh(o.Shoes, 0.12) : sh(o.Pants, 0.12);
+            Part(b, 16, 16, 8, 12, 4, body); Part(b, 40, 16, 4, 12, 4, arm); Part(b, 0, 16, 4, 12, 4, leg);
+            Part(b, 32, 48, 4, 12, 4, arm); Part(b, 16, 48, 4, 12, 4, leg);
+            return b;
+        }
+        public static bool Valid(string s)
+        {
+            return s != null && s.Length < 65000 && Regex.IsMatch(s, "^(preset:[a-z]{1,16}|data:image/png;base64,[A-Za-z0-9+/=]+)$");
+        }
+        // a skin string -> a 64x64 (or 64x32) bitmap, or null if it can't be used
+        public static Bitmap Load(string s, out bool slim)
+        {
+            slim = false;
+            try
+            {
+                if (string.IsNullOrEmpty(s)) return null;
+                if (s.StartsWith("preset:")) { var o = Preset(s.Substring(7)); if (o == null) return null; slim = o.Slim; return Human(o); }
+                if (!Valid(s)) return null;
+                byte[] bytes = Convert.FromBase64String(s.Substring(s.IndexOf(',') + 1));
+                using (var ms = new MemoryStream(bytes)) using (var img = Image.FromStream(ms))
+                {
+                    int W = img.Width, H = img.Height;
+                    if (W < 64 || W % 64 != 0 || (H != W && H != W / 2)) return null;
+                    var b = new Bitmap(64, H == W ? 64 : 32, System.Drawing.Imaging.PixelFormat.Format32bppArgb);
+                    using (var g = Graphics.FromImage(b)) { g.InterpolationMode = InterpolationMode.NearestNeighbor; g.PixelOffsetMode = PixelOffsetMode.Half; g.DrawImage(img, 0, 0, 64, b.Height); }
+                    if (b.Height == 64) slim = b.GetPixel(54, 20).A == 0 && b.GetPixel(55, 31).A == 0;
+                    return b;
+                }
+            }
+            catch { return null; }
+        }
+        // the player seen from the front: a 16x32-pixel picture drawn at (x, y), p screen pixels per skin pixel
+        public static void DrawFront(Graphics g, Bitmap sk, bool slim, float x, float y, float p)
+        {
+            var st = g.Save();
+            g.InterpolationMode = InterpolationMode.NearestNeighbor; g.PixelOffsetMode = PixelOffsetMode.Half; g.SmoothingMode = SmoothingMode.None;
+            int aw = slim ? 3 : 4; bool legacy = sk.Height == 32;
+            Action<int, int, int, int, int, int> b = (sx, sy, w, h, dx, dy) => g.DrawImage(sk, new RectangleF(x + dx * p, y + dy * p, w * p, h * p), new RectangleF(sx, sy, w, h), GraphicsUnit.Pixel);
+            b(8, 8, 8, 8, 4, 0); b(20, 20, 8, 12, 4, 8); b(44, 20, aw, 12, 4 - aw, 8); b(4, 20, 4, 12, 4, 20);
+            if (legacy) { b(44, 20, aw, 12, 12, 8); b(4, 20, 4, 12, 8, 20); }
+            else { b(36, 52, aw, 12, 12, 8); b(20, 52, 4, 12, 8, 20); b(40, 8, 8, 8, 4, 0); b(20, 36, 8, 12, 4, 8); b(44, 36, aw, 12, 4 - aw, 8); b(52, 52, aw, 12, 12, 8); b(4, 36, 4, 12, 4, 20); b(4, 52, 4, 12, 8, 20); }
+            g.Restore(st);
+        }
+    }
+
+    // a skin choice: a little picture of the skin and its name
+    class SkinTile : Control
+    {
+        public string Value; public string Label; public bool Selected; Bitmap bmp; bool slim, hover;
+        public SkinTile(string value, string label) { Value = value; Label = label; DoubleBuffered = true; Cursor = Cursors.Hand; bmp = SkinArt.Load(value == "" ? "preset:hero" : value, out slim); }
+        protected override void OnMouseEnter(EventArgs e) { hover = true; Invalidate(); base.OnMouseEnter(e); }
+        protected override void OnMouseLeave(EventArgs e) { hover = false; Invalidate(); base.OnMouseLeave(e); }
+        protected override void OnPaint(PaintEventArgs e)
+        {
+            var g = e.Graphics; g.SmoothingMode = SmoothingMode.AntiAlias;
+            using (var pb = new SolidBrush(Parent != null ? Parent.BackColor : UI.Bg)) g.FillRectangle(pb, ClientRectangle);
+            using (var path = UI.Round(new RectangleF(1, 1, Width - 3, Height - 3), 10))
+            using (var b = new SolidBrush(Selected ? Color.FromArgb(30, 60, 44) : hover ? Color.FromArgb(36, 36, 44) : Color.FromArgb(28, 28, 34)))
+            using (var pen = new Pen(Selected ? Color.FromArgb(120, 255, 170) : hover ? Color.FromArgb(120, 255, 170) : UI.CardBorder, 2)) { g.FillPath(b, path); g.DrawPath(pen, path); }
+            if (bmp != null) SkinArt.DrawFront(g, bmp, slim, (Width - 48) / 2f, 8, 3);
+            g.TextRenderingHint = TextRenderingHint.ClearTypeGridFit;
+            using (var f = UI.F(8.5f, true)) using (var tb = new SolidBrush(UI.Text)) using (var sf = new StringFormat { Alignment = StringAlignment.Center })
+                g.DrawString(Label, f, tb, new RectangleF(2, Height - 22, Width - 4, 20), sf);
+        }
+    }
+
+    // the big picture of your skin on the Skins page
+    class SkinPreview : Control
+    {
+        public Bitmap Bmp; public bool Slim; public string Caption = "";
+        public SkinPreview() { DoubleBuffered = true; SetStyle(ControlStyles.ResizeRedraw, true); }
+        protected override void OnPaint(PaintEventArgs e)
+        {
+            var g = e.Graphics; g.SmoothingMode = SmoothingMode.AntiAlias;
+            using (var pb = new SolidBrush(UI.Bg)) g.FillRectangle(pb, ClientRectangle);
+            using (var path = UI.Round(new RectangleF(1, 1, Width - 3, Height - 3), 16))
+            {
+                using (var b = new LinearGradientBrush(ClientRectangle, Color.FromArgb(44, 58, 74), Color.FromArgb(18, 20, 26), 90f)) g.FillPath(b, path);
+                using (var pen = new Pen(UI.CardBorder, 2)) g.DrawPath(pen, path);
+            }
+            if (Bmp != null) SkinArt.DrawFront(g, Bmp, Slim, (Width - 160) / 2f, 50, 10);
+            g.TextRenderingHint = TextRenderingHint.ClearTypeGridFit;
+            using (var f = UI.F(14, true)) using (var tb = new SolidBrush(Color.White)) using (var sf = new StringFormat { Alignment = StringAlignment.Center })
+                g.DrawString(Caption, f, tb, new RectangleF(0, 14, Width, 30), sf);
         }
     }
 
@@ -747,7 +923,13 @@ namespace BlockCraft
         readonly FancyButton play, updates;
         readonly LinkLabel newLauncher;
         readonly HeroPanel hero;
-        readonly Panel versionList, newsList;
+        readonly Panel versionList, newsList, mgPage, verPage, skinPage, skinGrid;
+        readonly SkinPreview skinPreview;
+        readonly Label skinMsg;
+        readonly FancyButton skinTab;
+        readonly Control[] homeCtrls;
+        readonly FancyButton logoTab, mgTab;
+        readonly List<FancyButton> sideNav = new List<FancyButton>();
         readonly Versions versions = new Versions();
         bool played, busy;
         readonly List<FancyButton> playButtons = new List<FancyButton>();
@@ -776,21 +958,24 @@ namespace BlockCraft
                 var b = new FancyButton(""); b.Glyph = glyph; b.Base = col; b.TextSize = 15; b.Radius = 12; b.Bounds = new Rectangle(12, y, 52, 50);
                 b.Click += delegate { act(); }; new ToolTip().SetToolTip(b, tip); side.Controls.Add(b); return b;
             };
-            sideBtn("", "Home", 18, Color.FromArgb(40, 40, 48), delegate { });
-            sideBtn("", "Minigames", 84, Color.FromArgb(26, 26, 32), delegate { LaunchLatest("#minigames"); });
-            sideBtn("", "Skins", 146, Color.FromArgb(26, 26, 32), delegate { LaunchLatest("#skins"); });
-            sideBtn("", "Open the saves folder", 208, Color.FromArgb(26, 26, 32), delegate { OpenSaves(); });
-            sideBtn("", "Check for updates", 270, Color.FromArgb(26, 26, 32), delegate { CheckForUpdates(true); });
+            sideNav.Add(sideBtn("", "Home", 18, Color.FromArgb(40, 40, 48), delegate { ShowPage(0); }));
+            sideNav.Add(sideBtn("", "Minigames", 84, Color.FromArgb(26, 26, 32), delegate { ShowPage(1); }));
+            sideNav.Add(sideBtn("", "All versions", 146, Color.FromArgb(26, 26, 32), delegate { ShowPage(2); }));
+            sideNav.Add(sideBtn("\uE77B", "Skins", 208, Color.FromArgb(26, 26, 32), delegate { ShowPage(3); }));
+            sideBtn("", "Open the saves folder", 270, Color.FromArgb(26, 26, 32), delegate { OpenSaves(); });
+            sideBtn("", "Check for updates", 332, Color.FromArgb(26, 26, 32), delegate { CheckForUpdates(true); });
             sideBtn("", "Quit", 580, Color.FromArgb(26, 26, 32), delegate { Close(); });
             var sidePlay = sideBtn("", "Play the newest version", 644, UI.Green, delegate { LaunchLatest(""); });
             sidePlay.PixelTex = true; playButtons.Add(sidePlay);
 
             // ---- top: the BlockCraft tab ----
-            var tabs = new CardPanel(); tabs.Bounds = new Rectangle(100, 18, 420, 64); tabs.Fill = Color.FromArgb(20, 20, 24); tabs.Radius = 16; Controls.Add(tabs);
-            var logoTab = new FancyButton("BLOCKCRAFT"); logoTab.Base = UI.Orange; logoTab.PixelTex = true; logoTab.TextSize = 17; logoTab.Radius = 12; logoTab.Bounds = new Rectangle(6, 6, 220, 52);
+            var tabs = new CardPanel(); tabs.Bounds = new Rectangle(100, 18, 590, 64); tabs.Fill = Color.FromArgb(20, 20, 24); tabs.Radius = 16; Controls.Add(tabs);
+            logoTab = new FancyButton("BLOCKCRAFT"); logoTab.Click += delegate { ShowPage(0); }; logoTab.Base = UI.Orange; logoTab.PixelTex = true; logoTab.TextSize = 17; logoTab.Radius = 12; logoTab.Bounds = new Rectangle(6, 6, 220, 52);
             tabs.Controls.Add(logoTab);
-            var mgTab = new FancyButton("MINIGAMES"); mgTab.Base = Color.FromArgb(20, 20, 24); mgTab.ForeColor = Color.FromArgb(150, 150, 160); mgTab.TextSize = 15; mgTab.Bounds = new Rectangle(232, 6, 180, 52);
-            mgTab.Click += delegate { LaunchLatest("#minigames"); }; tabs.Controls.Add(mgTab);
+            mgTab = new FancyButton("MINIGAMES"); mgTab.Base = Color.FromArgb(20, 20, 24); mgTab.ForeColor = Color.FromArgb(150, 150, 160); mgTab.TextSize = 15; mgTab.Bounds = new Rectangle(232, 6, 180, 52);
+            mgTab.Click += delegate { ShowPage(1); }; tabs.Controls.Add(mgTab);
+            skinTab = new FancyButton("SKINS"); skinTab.Base = Color.FromArgb(20, 20, 24); skinTab.ForeColor = Color.FromArgb(150, 150, 160); skinTab.TextSize = 15; skinTab.Bounds = new Rectangle(418, 6, 166, 52);
+            skinTab.Click += delegate { ShowPage(3); }; tabs.Controls.Add(skinTab);
 
             updates = new FancyButton("Updates"); updates.Glyph = ""; updates.Base = Color.FromArgb(32, 32, 38); updates.TextSize = 13; updates.Bounds = new Rectangle(850, 22, 150, 56);
             updates.Click += delegate { CheckForUpdates(true); }; Controls.Add(updates);
@@ -820,6 +1005,35 @@ namespace BlockCraft
             // ---- versions ----
             var vh = new Label(); vh.Text = "Recent Versions"; vh.Font = UI.F(12.5f, true); vh.ForeColor = UI.Text; vh.AutoSize = true; vh.Location = new Point(104, 442); Controls.Add(vh);
             versionList = new Panel(); versionList.BackColor = UI.Bg; versionList.Bounds = new Rectangle(100, 474, 700, 180); Controls.Add(versionList);
+            // ---- the other pages, shown in place of the home page ----
+            homeCtrls = new Control[] { hero, vh, versionList };
+            mgPage = new Panel(); mgPage.BackColor = UI.Bg; mgPage.Bounds = new Rectangle(100, 98, 700, 556); mgPage.Visible = false; Controls.Add(mgPage);
+            Action<string, string, Color, Color, string, int> mgCard = (caption, desc, top, bottom, hash, y) =>
+            {
+                var card = new CardPanel(); card.Bounds = new Rectangle(0, y, 700, 262); card.Radius = 16; mgPage.Controls.Add(card);
+                var ban = new BannerPanel(); ban.Caption = caption; ban.Top1 = top; ban.Bottom1 = bottom; ban.Bounds = new Rectangle(2, 2, 696, 84); card.Controls.Add(ban);
+                var d = new Label(); d.Text = desc; d.Font = UI.F(11f, false); d.ForeColor = UI.Text; d.BackColor = card.Fill; d.Bounds = new Rectangle(26, 104, 470, 140); card.Controls.Add(d);
+                var b = new FancyButton("Play"); b.Glyph = ""; b.Base = top; b.PixelTex = true; b.TextSize = 15; b.Bounds = new Rectangle(522, 150, 150, 60);
+                b.Click += delegate { LaunchLatest(hash); }; card.Controls.Add(b); playButtons.Add(b);
+            };
+            mgCard("ZOMBIE APOCALYPSE", "Survive the undead alone or with up to 4 friends.\n\n4 maps: Dark Forest, Desert, Plains and Ruined City.\nSurvival or Waves - 11 kinds of zombies.\nCrossbows, flame arrows, firecrackers and ammo crates.",
+                Color.FromArgb(200, 50, 46), Color.FromArgb(110, 20, 20), "#zombies", 0);
+            mgCard("PVP DUELS", "Fight other players 1v1 in an arena.\n\n4 maps and 6 kits - best of 3 rounds.\nFind a random match, or duel a friend by both typing the same secret code.",
+                UI.Blue, Color.FromArgb(24, 80, 170), "#pvp", 288);
+            verPage = new Panel(); verPage.BackColor = UI.Bg; verPage.Bounds = new Rectangle(100, 98, 700, 556); verPage.AutoScroll = true; verPage.Visible = false; Controls.Add(verPage);
+            // ---- the Skins page ----
+            skinPage = new Panel(); skinPage.BackColor = UI.Bg; skinPage.Bounds = new Rectangle(100, 98, 700, 556); skinPage.Visible = false; Controls.Add(skinPage);
+            skinPreview = new SkinPreview(); skinPreview.Bounds = new Rectangle(0, 0, 250, 420); skinPage.Controls.Add(skinPreview);
+            skinGrid = new Panel(); skinGrid.BackColor = UI.Bg; skinGrid.Bounds = new Rectangle(266, 0, 434, 420); skinGrid.AutoScroll = true; skinPage.Controls.Add(skinGrid);
+            var importBtn = new FancyButton("Import Minecraft Skin (.png)"); importBtn.Glyph = ""; importBtn.Base = UI.Green; importBtn.PixelTex = true; importBtn.TextSize = 12;
+            importBtn.Bounds = new Rectangle(0, 434, 340, 50); importBtn.Click += delegate { ImportSkin(); }; skinPage.Controls.Add(importBtn);
+            var defBtn = new FancyButton("Use Default Skin"); defBtn.Base = Color.FromArgb(40, 40, 48); defBtn.TextSize = 12;
+            defBtn.Bounds = new Rectangle(352, 434, 220, 50); defBtn.Click += delegate { SetSkin(""); }; skinPage.Controls.Add(defBtn);
+            skinMsg = new Label(); skinMsg.ForeColor = UI.Muted; skinMsg.BackColor = UI.Bg; skinMsg.Font = UI.F(9.5f, false);
+            skinMsg.Bounds = new Rectangle(2, 494, 690, 60);
+            skinMsg.Text = "Works with Minecraft Java skins (64x64, old 64x32, or HD). Your skin shows in the game, to friends, on the big server and in PvP.";
+            skinPage.Controls.Add(skinMsg);
+            if (server != null) server.SkinChanged += delegate { try { BeginInvoke((Action)delegate { RefreshSkin(); }); } catch { } };
 
             // ---- bottom buttons ----
             var savesBtn = new FancyButton("Open Saves Folder"); savesBtn.Glyph = ""; savesBtn.Base = UI.Orange; savesBtn.PixelTex = true; savesBtn.TextSize = 12;
@@ -856,6 +1070,7 @@ namespace BlockCraft
 
             try { versions.LoadLocal(); } catch (Exception e) { status.Text = "Could not read versions.json: " + e.Message; }
             FillVersions(null);
+            RefreshSkin();
             UpdateStatus();
 
             HandleCreated += delegate { try { int on = 1; DwmSetWindowAttribute(Handle, 20, ref on, 4); } catch { } }; // dark title bar
@@ -888,6 +1103,15 @@ namespace BlockCraft
                 card.Bounds = new Rectangle(0, y, 700, 82); card.PlayBtn.Click += delegate { Play(vv, ""); };
                 versionList.Controls.Add(card); y += 92;
             }
+            verPage.Controls.Clear();
+            int vy = 0;
+            foreach (var v in versions.List)
+            {
+                var vv = v;
+                var card = new VersionCard("BlockCraft " + v.Id + (v.Latest ? "   (newest)" : ""), (string.IsNullOrEmpty(v.Title) ? "" : v.Title + "  ·  ") + (v.Installed ? "Ready to play" : "Downloads when you press Play"));
+                card.Bounds = new Rectangle(0, vy, 676, 82); card.PlayBtn.Click += delegate { Play(vv, ""); };
+                new ToolTip().SetToolTip(card, v.Notes ?? ""); verPage.Controls.Add(card); vy += 92;
+            }
             // news: the notes of the newest versions
             newsList.Controls.Clear();
             int ny = 0, k = 0;
@@ -899,6 +1123,80 @@ namespace BlockCraft
                 newsList.Controls.Add(card); ny += 122;
             }
             ShowSelected();
+        }
+
+        string SkinFile { get { return Path.Combine(server != null ? server.Saves : Path.Combine(Versions.RootDir, "saves"), "skin.txt"); } }
+        string CurrentSkin() { try { return File.Exists(SkinFile) ? File.ReadAllText(SkinFile).Trim() : ""; } catch { return ""; } }
+        string CustomSkinFile { get { return Path.Combine(Path.GetDirectoryName(SkinFile), "skin-imported.txt"); } }
+
+        // fills the Skins page and the player on the home page with your current skin
+        void RefreshSkin()
+        {
+            string cur = CurrentSkin(); bool slim;
+            Bitmap bmp = SkinArt.Load(cur == "" ? "preset:hero" : cur, out slim);
+            if (bmp == null) { cur = ""; bmp = SkinArt.Load("preset:hero", out slim); }
+            skinPreview.Bmp = bmp; skinPreview.Slim = slim;
+            skinPreview.Caption = cur == "" ? "Default skin" : cur.StartsWith("preset:") ? SkinArt.Preset(cur.Substring(7)).Name : "Your imported skin";
+            skinPreview.Invalidate();
+            hero.Skin = bmp; hero.SkinSlim = slim; hero.Invalidate();
+            skinGrid.Controls.Clear();
+            var opts = new List<string[]>(); opts.Add(new[] { "", "Default" });
+            foreach (var k in SkinArt.Order) opts.Add(new[] { "preset:" + k, SkinArt.Preset(k).Name });
+            string custom = ""; try { if (File.Exists(CustomSkinFile)) custom = File.ReadAllText(CustomSkinFile).Trim(); } catch { }
+            if (SkinArt.Valid(custom) && custom.StartsWith("data:")) opts.Add(new[] { custom, "My Skin" });
+            int i = 0;
+            foreach (var o in opts)
+            {
+                var t = new SkinTile(o[0], o[1]); t.Selected = o[0] == cur;
+                t.Bounds = new Rectangle((i % 4) * 104, (i / 4) * 128, 98, 122);
+                string val = o[0]; t.Click += delegate { SetSkin(val); };
+                skinGrid.Controls.Add(t); i++;
+            }
+        }
+
+        void SetSkin(string val)
+        {
+            try
+            {
+                Directory.CreateDirectory(Path.GetDirectoryName(SkinFile));
+                if (val == "") { if (File.Exists(SkinFile)) File.Delete(SkinFile); } else File.WriteAllText(SkinFile, val);
+                skinMsg.Text = "Skin saved! The game uses it the next time it starts (or when you go back to its title screen).";
+            }
+            catch (Exception e) { skinMsg.Text = "Could not save the skin: " + e.Message; }
+            RefreshSkin();
+        }
+
+        void ImportSkin()
+        {
+            using (var dlg = new OpenFileDialog())
+            {
+                dlg.Title = "Choose a Minecraft skin"; dlg.Filter = "Minecraft skin (*.png)|*.png";
+                if (dlg.ShowDialog(this) != DialogResult.OK) return;
+                try
+                {
+                    var info = new FileInfo(dlg.FileName);
+                    if (info.Length > 45000) { skinMsg.Text = "That picture is too big for a skin (a skin is a small 64x64 PNG)."; return; }
+                    string data = "data:image/png;base64," + Convert.ToBase64String(File.ReadAllBytes(dlg.FileName));
+                    bool slim;
+                    if (SkinArt.Load(data, out slim) == null) { skinMsg.Text = "That is not a Minecraft skin: it must be a 64x64 or 64x32 PNG."; return; }
+                    File.WriteAllText(CustomSkinFile, data);
+                    SetSkin(data);
+                }
+                catch (Exception e) { skinMsg.Text = "Could not read that file: " + e.Message; }
+            }
+        }
+
+        public void ShowPage(int n)
+        {
+            foreach (var c in homeCtrls) c.Visible = n == 0;
+            mgPage.Visible = n == 1; verPage.Visible = n == 2; skinPage.Visible = n == 3;
+            logoTab.Base = n == 1 ? Color.FromArgb(20, 20, 24) : UI.Orange; logoTab.PixelTex = n != 1; logoTab.ForeColor = n == 1 ? Color.FromArgb(150, 150, 160) : Color.White;
+            mgTab.Base = n == 1 ? UI.Orange : Color.FromArgb(20, 20, 24); mgTab.PixelTex = n == 1; mgTab.ForeColor = n == 1 ? Color.White : Color.FromArgb(150, 150, 160);
+            bool lt = n == 0 || n == 2;
+            logoTab.Base = lt ? UI.Orange : Color.FromArgb(20, 20, 24); logoTab.PixelTex = lt; logoTab.ForeColor = lt ? Color.White : Color.FromArgb(150, 150, 160);
+            skinTab.Base = n == 3 ? UI.Orange : Color.FromArgb(20, 20, 24); skinTab.PixelTex = n == 3; skinTab.ForeColor = n == 3 ? Color.White : Color.FromArgb(150, 150, 160);
+            logoTab.Invalidate(); mgTab.Invalidate(); skinTab.Invalidate();
+            for (int i = 0; i < sideNav.Count; i++) { sideNav[i].Base = i == n ? Color.FromArgb(40, 40, 48) : Color.FromArgb(26, 26, 32); sideNav[i].Invalidate(); }
         }
 
         static string Ago(string date)

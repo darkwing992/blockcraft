@@ -139,7 +139,7 @@ export class World {
         for (const e of d.l.slice(0, 2000)) {
           if (!Array.isArray(e)) continue;
           const [x, y, z, id, meta] = e;
-          if (![x, y, z, id].every(Number.isInteger) || y < 0 || y > 127 || id < 0 || id > 127) continue;
+          if (![x, y, z, id].every(Number.isInteger) || y < 0 || y > 127 || id < 0 || id > 255 || (id >= 100 && id < 200)) continue;
           const mt = typeof meta === 'string' && meta.length < 8 ? meta : 0;
           this.setBlock(x, y, z, id, mt); l.push([x, y, z, id, mt]);
         }

@@ -290,6 +290,26 @@
   body.title #chatLog { display: none; }
   #loading { margin-top: 8px; font-family: Consolas, monospace; color: #aaa; height: 18px; }
   @media (max-width: 520px) { .btn, .settings { width: 86vw; } .overlay h1 { font-size: 40px; } .slot { width: 36px; height: 36px; } .slot img { width: 28px; height: 28px; } }
+  /* ---- panels: dark cards with a thin frame, inputs that look the same everywhere ---- */
+  #worldsPanel, #mpPanel, #signupPanel, #zPanel, #pvpPanel, #mgPanel, #skinPanel {
+    background: rgba(18,18,24,.94); border: 2px solid #000; box-shadow: inset 0 0 0 2px #3a3a46, 0 10px 40px rgba(0,0,0,.6); padding: 16px 22px; box-sizing: border-box; border-radius: 4px; }
+  #worldsPanel h2, #mpPanel h2, #signupPanel h2 { font-size: 26px; letter-spacing: 2px; margin-bottom: 10px; }
+  #worldList { background: rgba(0,0,0,.35); border: 2px solid #2a2a34; border-radius: 3px; }
+  .world { border: 2px solid transparent; border-radius: 3px; margin-bottom: 4px; background: rgba(255,255,255,.03); }
+  .world:hover { border-color: #8b8b9a; background: rgba(255,255,255,.08); }
+  .wname { color: #fff; } .wmeta { color: #a8a8b4; }
+  .overlay input:not([type=range]):not([type=checkbox]) { background: #0c0c10 !important; color: #fff !important; border: 2px solid #5a5a68 !important; border-radius: 2px; outline: none; }
+  .overlay input:not([type=range]):not([type=checkbox]):focus { border-color: #fff !important; }
+  .mpBox { background: rgba(255,255,255,.04); border: 2px solid #2e2e3a; border-radius: 3px; }
+  .zopt { border-radius: 3px; transition: border-color .1s, background .1s; }
+  .mgCard { border-radius: 4px; transition: transform .08s, border-color .1s; } .mgCard:hover { transform: translateY(-2px); }
+  .settings { background: rgba(0,0,0,.35); border: 2px solid #2a2a34; padding: 10px 14px; box-sizing: border-box; border-radius: 3px; }
+  #death h1, #zOver h1, #pvpEnd h1 { text-shadow: 4px 4px 0 #000; }
+  #death .btn, #zOver .btn, #pvpEnd .btn { width: 300px; }
+  #hotbar { background: rgba(0,0,0,.55); border: 2px solid #000; box-shadow: inset 0 0 0 2px #444; border-radius: 2px; }
+  #hotbar .slot { border-color: #6b6b6b; background: rgba(120,120,120,.28); }
+  #hotbar .slot.sel { border: 3px solid #fff; box-shadow: 0 0 0 2px #000, 0 0 8px rgba(255,255,255,.6); }
+  #blockname { background: rgba(0,0,0,.45); padding: 3px 10px; border-radius: 3px; }
 </style>
 </head>
 <body>
@@ -530,7 +550,7 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 <script>
 'use strict';
-const GAME_VERSION='4.0';
+const GAME_VERSION='4.2';
 const DEFAULT_SERVER='wss://blockcraft-server.austinhodgins2014-e99.workers.dev/ws'; // the big server's address (set by "Deploy Big Server.bat")
 let PV=null; // the PvP duel you're in (null = none)
 let ZM=null,flashOn=true,zLife=0,flickT=0;
@@ -571,7 +591,7 @@ const B={AIR:0,GRASS:1,DIRT:2,STONE:3,SAND:4,WATER:5,LOG:6,LEAVES:7,PLANKS:8,COB
   CLAY:72,RED_MUSHROOM:73,BROWN_MUSHROOM:74,MELON:75,COBWEB:76,HAY_BALE:77,BLACK_WOOL:78,COAL_BLOCK:79,EMERALD_BLOCK:80,
   GRANITE:81,DIORITE:82,ANDESITE:83,DEAD_BUSH:84,LAPIS_ORE:85,LAPIS_BLOCK:86,BLUE_WOOL:87,
   END_STONE:88,END_PORTAL_FRAME:89,END_PORTAL:90,DRAGON_EGG:91,END_PORTAL_FRAME_EYE:92,
-  ASPHALT:93,AMMO_CRATE:94,CONCRETE:95,SANDBAG:96,CRACKED_CONCRETE:97,BARRICADE:98,DARK_LOG:99,DARK_LEAVES:100,BLOOD_ASPHALT:101,BLOOD_CONCRETE:102,HELP_WALL:103};
+  ASPHALT:93,AMMO_CRATE:94,CONCRETE:95,SANDBAG:96,CRACKED_CONCRETE:97,BARRICADE:98,DARK_LOG:99,DARK_LEAVES:200,BLOOD_ASPHALT:201,BLOOD_CONCRETE:202,HELP_WALL:203}; // 100-199 are items
 const T={GRASS_TOP:0,GRASS_SIDE:1,DIRT:2,STONE:3,SAND:4,WATER:5,LOG_SIDE:6,LOG_TOP:7,LEAVES:8,PLANKS:9,COBBLE:10,GLASS:11,BRICK:12,
   SNOW:13,BEDROCK:14,COAL:15,IRON:16,SNOW_SIDE:17,DIAMOND:18,GRAVEL:19,CACTUS_SIDE:20,CACTUS_TOP:21,GOLD:22,TALLGRASS:23,ROSE:24,DANDELION:25,
   TORCH:26,GLOW:27,WOOL:28,TNT_SIDE:29,TNT_TOP:30,TNT_BOTTOM:31,CHEST_SIDE:32,CHEST_FRONT:33,CHEST_TOP:34,BED_TOP:35,BED_SIDE:36,
@@ -2407,8 +2427,9 @@ const armorId=(m,p)=>143+m*4+p;
 for(let m=0;m<3;m++)for(let p=0;p<4;p++)
   ITEM[armorId(m,p)]={name:(m===0?'Leather ':ARMOR_MAT[m]+' ')+(m===0&&p===0?'Cap':m===0&&p===1?'Tunic':m===0&&p===2?'Pants':ARMOR_PIECE[p]),
     stack:1,armor:{slot:p,def:ARMOR_DEF[m][p],mat:m},dur:ARMOR_DUR[m][p]};
-function itemInfo(id){if(id<100)return {name:DEF[id].name,stack:64,block:true};const it=ITEM[id];return {name:it.name,stack:it.stack||64,tool:it.tool,dur:it.dur,dmg:it.dmg,food:it.food,armor:it.armor};}
-const isFlat=id=>id>=100||DEF[id].plant||DEF[id].torch||DEF[id].ladder;
+function itemInfo(id){if(!isItem(id))return {name:DEF[id].name,stack:64,block:true};const it=ITEM[id];return {name:it.name,stack:it.stack||64,tool:it.tool,dur:it.dur,dmg:it.dmg,food:it.food,armor:it.armor};}
+const isItem=id=>id>=100&&id<200; // block ids are 0-99 and 200-255
+const isFlat=id=>isItem(id)||DEF[id].plant||DEF[id].torch||DEF[id].ladder;
 
 // Item sprites are 32x32. Shapes are described in 16-unit coordinates (1 unit = one Minecraft pixel) and filled
 // with per-pixel colour functions (metal bevels, wood grain, stitching), then edge-lit and outlined.
@@ -2760,6 +2781,12 @@ for(const r of RECIPES){ // ingredient totals (for the recipe book) and the grid
     r.size=Math.max(r.pat.length,...r.pat.map(l=>l.length))<=2?2:3;}
   r.in=[...cnt].map(([k,n])=>[k,n]);
 }
+// things that only belong in the minigames (zombie gear, city blocks): hidden from normal worlds'
+// creative inventory and recipe book, and they can't be crafted there
+const MG_ONLY=new Set([IT.CROSSBOW,IT.WOOD_ARROW,IT.FLAME_ARROW,IT.BOLT,IT.FIRECRACKER,IT.BANDAGE,IT.CANNED_FOOD,
+  B.ASPHALT,B.AMMO_CRATE,B.CONCRETE,B.SANDBAG,B.CRACKED_CONCRETE,B.BARRICADE,B.DARK_LOG,B.DARK_LEAVES,B.BLOOD_ASPHALT,B.BLOOD_CONCRETE,B.HELP_WALL]);
+const mgHere=()=>!!(ZM||PV);
+const mgHidden=id=>MG_ONLY.has(id)&&!mgHere();
 // Repairing (like Minecraft's anvil, but in the crafting grid): a damaged weapon / tool / armor piece
 // plus its material fixes a quarter of it per material; two damaged ones of the same kind join together.
 function repairMat(id){
@@ -2773,7 +2800,7 @@ function repairMat(id){
 }
 function matchRepair(grid){
   const items=grid.filter(Boolean);if(items.length<2)return null;
-  const tools=items.filter(s=>s.id>=100&&ITEM[s.id].dur);
+  const tools=items.filter(s=>isItem(s.id)&&ITEM[s.id].dur);
   if(tools.length===2&&items.length===2){const [a,b]=tools,base=a.id===IT.CROSSBOW_LOADED?IT.CROSSBOW:a.id;if(!(a.dmg>0||b.dmg>0))return null;
     if((b.id===IT.CROSSBOW_LOADED?IT.CROSSBOW:b.id)!==base)return null;const D=ITEM[base].dur;
     return {out:[base,1],repair:true,dmg:Math.max(0,D-((D-(a.dmg||0))+(D-(b.dmg||0))+Math.floor(D*0.05)))};}
@@ -2790,6 +2817,7 @@ function matchRecipe(grid,w){
   if(x1<0)return null;
   const gw=x1-x0+1,gh=y1-y0+1,items=grid.filter(Boolean);
   for(const r of RECIPES){
+    if(mgHidden(r.out[0]))continue;
     if(r.shapeless){
       if(items.length!==r.shapeless.length)continue;
       const left=[...r.shapeless];let ok=true;
@@ -2825,7 +2853,7 @@ const TOOLFOR={pick:[B.STONE,B.COBBLE,B.BRICK,B.COAL,B.IRON,B.DIAMOND,B.GOLD,B.G
   axe:[B.DARK_LOG,B.AMMO_CRATE,B.BARRICADE,B.MELON,B.LOG,B.PLANKS,B.CHEST,B.CRAFTING_TABLE,B.BOOKSHELF,B.LADDER,B.PUMPKIN,B.JACK_O_LANTERN,B.SPRUCE_LOG,B.BIRCH_LOG,B.JUNGLE_LOG,B.SPRUCE_PLANKS],
   shovel:[B.SANDBAG,B.CLAY,B.SOUL_SAND,B.GRASS,B.DIRT,B.SAND,B.GRAVEL,B.SNOW,B.FARMLAND,B.PATH],sword:[B.DARK_LEAVES,B.COBWEB,B.LEAVES,B.CACTUS,B.WOOL,B.SPRUCE_LEAVES,B.BIRCH_LEAVES,B.JUNGLE_LEAVES]};
 const NEEDTIER={[B.STONE]:1,[B.COBBLE]:1,[B.BRICK]:1,[B.COAL]:1,[B.IRON]:2,[B.GOLD]:3,[B.DIAMOND]:3,[B.FURNACE]:1,[B.FURNACE_LIT]:1,[B.STONE_BRICKS]:1,[B.SANDSTONE]:1,[B.MOSSY_COBBLE]:1,[B.IRON_BLOCK]:2,[B.GOLD_BLOCK]:3,[B.DIAMOND_BLOCK]:3,[B.OBSIDIAN]:4,[B.NETHERRACK]:1,[B.COAL_BLOCK]:1,[B.EMERALD_BLOCK]:3,[B.END_STONE]:1,[B.END_PORTAL_FRAME]:1,[B.END_PORTAL_FRAME_EYE]:1,[B.LAPIS_ORE]:2,[B.LAPIS_BLOCK]:2,[B.GRANITE]:1,[B.DIORITE]:1,[B.ANDESITE]:1,[B.QUARTZ_ORE]:1,[B.QUARTZ_BLOCK]:1,[B.ASPHALT]:1,[B.CONCRETE]:1,[B.CRACKED_CONCRETE]:1};
-function heldTool(){const s=inv[selected];return s&&s.id>=100?ITEM[s.id].tool:null;}
+function heldTool(){const s=inv[selected];return s&&isItem(s.id)?ITEM[s.id].tool:null;}
 function canHarvest(id){const need=NEEDTIER[id];if(!need)return true;const t=heldTool();return !!(t&&t.type==='pick'&&t.tier>=need);}
 function breakTime(id){
   if(isWater(id))return -1;
@@ -2953,7 +2981,7 @@ function replaceHeld(id){ // e.g. bucket <-> water bucket
   invChanged();
 }
 function wearHeld(n=1){
-  if(mode==='creative')return;const s=inv[selected];if(!s||s.id<100||!ITEM[s.id].dur)return;
+  if(mode==='creative')return;const s=inv[selected];if(!s||!isItem(s.id)||!ITEM[s.id].dur)return;
   s.dmg=(s.dmg||0)+n;if(s.dmg>=ITEM[s.id].dur){inv[selected]=null;sfx('toolbreak');toast(ITEM[s.id].name+' broke!');}invChanged();
 }
 let invDirty=true;
@@ -3279,7 +3307,7 @@ function buildWolf(){
   const tail=box(0.1,0.1,0.42,T);tail.position.set(0,0.66,-0.55);tail.rotation.x=0.7;g.add(tail);
   const collar=box(0.5,0.1,0.36,MT.collar);collar.position.set(0,0.42,0.28);collar.visible=false;g.add(collar);
   const legs=quadLegs(g,T,0.38,0.12,0.11,0.24);
-  return {g,legs,head,arms:[],legType:'quad',collar};
+  return {g,legs,head,arms:[],legType:'quad',collar,tail};
 }
 function buildEnderman(){
   const g=new THREE.Group(),T=MT.ender;
@@ -3465,7 +3493,7 @@ function buildZed(kind){
       for(const dx of [-0.16,0,0.16]){const st=box(0.09,0.34,0.09,zt('dyn',()=>skinTex(2,8,[190,30,24],14,x=>{x.fillStyle='#e8d070';x.fillRect(0,1,2,1);x.fillRect(0,6,2,1);})));st.position.set(dx,0.4,bd/2+0.07);torso.add(st);}
       M.pus=[zGlow(torso,0xff8a20,0.1,-0.28,0.66,0.1),zGlow(torso,0xff8a20,0.12,0.26,0.6,-0.18),zGlow(torso,0xffa030,0.09,0.06,0.2,-bd/2-0.02)];}
     else{const rag=box(0.16,0.2,0.02,zShirtT(SH,SK));rag.userData.detail=true;rag.position.set(0.1,-0.06,bd/2+0.01);rag.rotation.x=0.1;torso.add(rag);}
-    const aw=run?0.17:0.22,ah=run?0.74:0.72,ax=bw/2+aw/2+0.01;
+    const aw=run?0.17:0.22,ah=run?0.82:0.84,ax=bw/2+aw/2+0.01;
     const noArm=kind==='walker'&&Math.random()<0.3;
     M.arms=[limb(aw,noArm?0.26:ah,aw,zArmT(SK,SH),-ax,0.68,0),limb(aw,ah,aw,zArmT(SK,SH),ax,0.68,0)];M.arms.forEach(a=>torso.add(a));
     if(noArm){const st=box(aw*0.9,0.08,aw*0.9,zBloodT());st.position.y=-0.3;M.arms[0].add(st);}
@@ -3474,6 +3502,9 @@ function buildZed(kind){
     if(!bomb)for(let k=0;k<3;k++){const sp=box(0.1,0.08,0.06,zBoneT());sp.userData.detail=true;sp.position.set(0,0.15+k*0.2,-bd/2-0.02);torso.add(sp);} // spine showing through
     const head=box(0.5,0.5,0.5,face(skin,zFaceT(SK,run?'scream':'w'),zHairT(SK)));head.position.y=0.98;torso.add(head);M.head=head;
     const jaw=box(0.34,0.1,0.14,skin);jaw.position.set(0,-0.27,0.16);jaw.rotation.x=0.35;head.add(jaw);M.jaw=jaw;
+    const teeth=box(0.28,0.05,0.03,zt('teeth',()=>skinTex(8,2,[220,212,180],20,x=>{x.fillStyle='#3a0808';for(let i=1;i<8;i+=2)x.fillRect(i,1,1,1);})));teeth.position.set(0,0.06,0.07);jaw.add(teeth);
+    const drool=box(0.05,0.2,0.03,zBloodT());drool.position.set(0.06,-0.14,0.07);drool.userData.detail=true;jaw.add(drool);
+    if(!bomb){M.g.scale.setScalar(0.94+Math.random()*0.18);M.tilt*=1.8;}
     zEyes(head,run?0xff2a10:bomb?0xff9a20:0xe0d050,0.25,0.02,0.13,run?1.2:1);if(!bomb)zHair(head,0.25);
     if(bomb)M.fuseLight=zGlow(head,0xff2020,0.08,0,0.3,0);
   }else if(kind==='screamer'||kind==='spitter'){ // built like walkers, so they move like them
@@ -3551,6 +3582,7 @@ function buildZed(kind){
   }
   return M;
 }
+const _zv=new THREE.Vector3();
 function zAnim(m,dt){
   const M=m.model,v=m.vel,p=m.pos,k=MOBS[m.type].zed,hs=Math.hypot(v.x,v.z),t=performance.now()/1000+m.nid*1.7;
   const cd=Math.hypot(p.x-camera.position.x,p.z-camera.position.z);
@@ -3618,6 +3650,14 @@ function zAnim(m,dt){
       const tl=Math.max(0.05,lightAt(T.position.x,T.position.y,T.position.z));T.material.color.setRGB(0.6*tl+0.05,0.13*tl,0.2*tl);}
     else T.visible=false;
   }
+  // jerky, twitchy movement: heads and arms snap at random, faster when they've seen you
+  m.jerkT=(m.jerkT??Math.random()*2)-dt;
+  if(m.jerkT<=0){m.jerkT=0.25+Math.random()*(m.aware>0?0.9:2.6);m.jerk=[(Math.random()-0.5)*1.1,(Math.random()-0.5)*0.7,(Math.random()-0.5)*0.8];m.jk=1;}
+  m.jk=Math.max(0,(m.jk||0)-dt*5);
+  if(m.jk>0&&m.jerk){M.head.rotation.z+=m.jerk[0]*m.jk;M.head.rotation.x+=m.jerk[1]*m.jk;if(A.length)A[0].rotation.z+=m.jerk[2]*m.jk;}
+  // eyes glow brighter and dimmer; blood drips from their mouths
+  for(const mt of m.glow)if(mt.opacity<0.5)mt.opacity=0.1+0.2*(0.5+0.5*Math.sin(t*2.6));
+  if(cd<14&&Math.random()<dt*1.6&&k!=='stalker'){const hp2=M.head.getWorldPosition(_zv);emit(hp2.x,hp2.y-0.25,hp2.z,[0.35,0.02,0.02],1,0.15,0,0.9,0.2,14);}
   if(M.jaw)M.jaw.rotation.x=0.3+Math.abs(Math.sin(t*(m.aware>0?6:2)))*0.25;
   {const dx=player.pos.x-p.x,dz=player.pos.z-p.z,dd=Math.hypot(dx,dz);let want=0; // stare at you when close
     if(dd<10&&!player.dead){let a=Math.atan2(dx,dz)-m.yaw;a=Math.atan2(Math.sin(a),Math.cos(a));want=clamp(a,-1,1);}
@@ -3890,7 +3930,7 @@ function mobBurn(m,dt){
 }
 function bloodFx(m){if(MOBS[m.type].zed)emit(m.pos.x,m.pos.y+m.h*0.65,m.pos.z,[0.45,0.02,0.02],10,m.w*1.2,2.5,0.7,2.5);}
 function attackMob(m){
-  const s=inv[selected],it=s&&s.id>=100?ITEM[s.id]:null;
+  const s=inv[selected],it=s&&isItem(s.id)?ITEM[s.id]:null;
   let dmg=it&&it.tool?it.dmg:1;
   if(sprinting)dmg+=1; // sprint hits harder (and knock back further)
   if(!player.onGround&&player.vel.y<0&&!player.inWater){dmg*=1.5;emit(m.pos.x,m.pos.y+m.h*0.7,m.pos.z,[1,1,0.6],8,0.6,2,0.5,3,8,true);} // critical hit
@@ -3997,7 +4037,7 @@ function updateMobs(dt){
           break;
         case 'melee':
           dirx=nx;dirz=nz;speed=dist>1.1?D.speed:0;
-          if(dist<1.4&&Math.abs(dy)<1.6&&m.attackCd<=0){hitTarget(tg,D.dmg+(m.weapon?2:0),p);m.attackCd=1;}
+          if(dist<1.4&&Math.abs(dy)<1.6&&m.attackCd<=0){hitTarget(tg,D.dmg+(m.weapon?2:0),p);m.attackCd=1;m.swingT=0.4;}
           break;
         case 'golem':
           dirx=nx;dirz=nz;speed=dist>1.8?D.speed:0;
@@ -4067,14 +4107,20 @@ function animMob(m,dt,headX){
     if(m.model.legType==='quad'){L[0].rotation.x=sw;L[3].rotation.x=sw;L[1].rotation.x=-sw;L[2].rotation.x=-sw;}
     else if(m.model.legType==='biped'){L[0].rotation.x=sw;L[1].rotation.x=-sw;}
     else L.forEach((l,j)=>{l.rotation.y=l.userData.base+Math.sin(m.walk*1.5+j*1.3)*0.3*Math.min(1,hs);});
-    if(m.model.arms.length){m.model.arms[0].rotation.x=-Math.PI/2+sw*0.2;m.model.arms[1].rotation.x=-Math.PI/2-sw*0.2;}
+    const tt0=performance.now()/1000+m.nid;
+    if(m.model.arms.length){m.swingT=Math.max(0,(m.swingT||0)-dt);const hit=m.swingT>0?Math.sin(m.swingT/0.4*Math.PI)*0.9:0;
+      m.model.arms[0].rotation.x=-Math.PI/2+sw*0.2-hit+Math.sin(tt0*1.3)*0.04;m.model.arms[1].rotation.x=-Math.PI/2-sw*0.2-hit*0.6+Math.sin(tt0*1.3+1)*0.04;
+      m.model.arms[0].rotation.z=Math.sin(tt0*0.9)*0.05;m.model.arms[1].rotation.z=-Math.sin(tt0*0.9)*0.05;}
+    if(m.model.tail)m.model.tail.rotation.z=Math.sin(tt0*(m.tamed?9:2))*(m.tamed?0.5:0.15);
     if(m.model.golemArms){m.swingT=Math.max(0,(m.swingT||0)-dt);const a=m.swingT>0?-1.6*Math.sin(m.swingT/0.5*Math.PI):sw*0.6;
       m.model.golemArms[0].rotation.x=a;m.model.golemArms[1].rotation.x=m.swingT>0?a:-sw*0.6;}
     if(m.model.wings){m.flap+=dt*(m.onGround?0:30);const f=m.onGround?0:Math.abs(Math.sin(m.flap))*1.2;m.model.wings[0].rotation.z=-f;m.model.wings[1].rotation.z=f;}
-    m.model.head.rotation.x=headX;
+    m.model.head.rotation.x=headX;const tt=performance.now()/1000+m.nid;
     if(m.model.legType==='quad'||m.model.legType==='biped'){ // turn the head to look at you when you're close
       const dx=player.pos.x-p.x,dz=player.pos.z-p.z,dd=Math.hypot(dx,dz);let want=0;
       if(dd<8&&!player.dead){let a=Math.atan2(dx,dz)-m.yaw;a=Math.atan2(Math.sin(a),Math.cos(a));want=clamp(a,-1.1,1.1);}
+      else if(hs<0.3)want=Math.sin(tt*0.45)*0.7*Math.max(0,Math.sin(tt*0.17)); // looking around now and then
+      if(m.model.legType==='quad'&&hs<0.2&&dd>=8&&Math.sin(tt*0.23)>0.8&&!MOBS[m.type].hostile)m.model.head.rotation.x=headX+0.7; // grazing
       m.headY=(m.headY||0)+(want-(m.headY||0))*Math.min(1,dt*6);m.model.head.rotation.y=m.headY;}
     m.model.g.position.copy(p);m.model.g.rotation.y=m.yaw;
     const sc=1+Math.min(1,m.fuse/1.5)*0.2;m.model.g.scale.set(sc,sc,sc);
@@ -4218,7 +4264,8 @@ function zedAI(m,D,tg,dt){
     if(!tg.id){if(sprinting)R*=1.4;if(sneaking)R*=0.55;}
     if(d<R)m.aware=Math.max(m.aware||0,6);
     if(m.aware>0){chase=tg;gx=tg.pos.x;gz=tg.pos.z;gy=tg.pos.y;
-      if(!m.noticed){m.noticed=true;if(k==='runner')sfxAt('zscream',p.x,p.y,p.z,0,44);else if(k==='juggernaut')sfxAt('zroar',p.x,p.y,p.z,0,50);}}
+      if(!m.noticed){m.noticed=true;if(k==='runner')sfxAt('zscream',p.x,p.y,p.z,0,44);else if(k==='juggernaut')sfxAt('zroar',p.x,p.y,p.z,0,50);
+        else if(k!=='stalker'){sfxAt('zsnarl',p.x,p.y,p.z,0,30);m.lurchT=1;m.jerkT=0;}}}
   }
   m.aware=(m.aware||0)-dt;if(m.aware<=0)m.noticed=false;
   let dirx=0,dirz=0,speed=0,dist=99;
@@ -4226,7 +4273,8 @@ function zedAI(m,D,tg,dt){
   const dy=gy-p.y,t=performance.now()/1000+m.nid;
   if(gx!==null){
     speed=D.speed;
-    if(k==='walker')speed*=0.75+0.25*Math.sin(t*3);
+    if(k==='walker'){speed*=0.75+0.25*Math.sin(t*3); // shambling, then sudden lurches
+      if(m.lurchT>0){m.lurchT-=dt;speed*=2.4;}else if(chase&&dist<8&&dist>1.6&&Math.random()<dt*0.45){m.lurchT=0.7;m.jerkT=0;}}
     if(k==='crawler'&&chase&&dist<4.5&&dist>1.4&&m.onGround&&m.attackCd<=0&&Math.random()<dt*2){v.x=dirx*7;v.z=dirz*7;v.y=4;m.attackCd=0.9;sfxAt('zgurgle',p.x,p.y,p.z);}
     if(k==='juggernaut'){m.chargeCd=(m.chargeCd??4)-dt;
       if(chase&&m.chargeCd<=0&&dist<16&&dist>4){m.chargeCd=7+Math.random()*3;m.chargeT=1.6;sfxAt('zroar',p.x,p.y,p.z,0,50);}
@@ -4704,7 +4752,7 @@ const AMMO_KIND={[IT.ARROW]:'arrow',[IT.WOOD_ARROW]:'wood',[IT.FLAME_ARROW]:'fla
 function nextAmmo(list){if(list===XBOW_AMMO&&countItem(IT.BOLT))return IT.BOLT;for(const s of inv)if(s&&list.includes(s.id))return s.id;return mode==='creative'?list[0]:0;}
 function startUse(){ // right mouse pressed: returns true if it started a hold action
   const id=heldItem();
-  if(id>=100&&ITEM[id].food&&mode==='survival'&&(food<20||id===IT.GOLDEN_APPLE)){useHold={type:'eat',t:0,id,crunch:0};return true;}
+  if(isItem(id)&&ITEM[id].food&&mode==='survival'&&(food<20||id===IT.GOLDEN_APPLE)){useHold={type:'eat',t:0,id,crunch:0};return true;}
   if(id===IT.BOW&&nextAmmo(BOW_AMMO)){useHold={type:'bow',t:0,id};return true;}
   if(id===IT.CROSSBOW_LOADED){fireCrossbow();return true;}
   if(id===IT.CROSSBOW){if(nextAmmo(XBOW_AMMO)){useHold={type:'xload',t:0,id,click:0};return true;}toast('No bolts or arrows!');return true;}
@@ -4782,7 +4830,7 @@ function useItem(){
     if(a)setBlockRaw(target.x,target.y+1,target.z,0);setBlock(target.x,target.y,target.z,B.FARMLAND);sfx('till');wearHeld(1);swing=1;return;}
   if(id===IT.SEEDS){if(target&&target.id===B.FARMLAND&&getBlock(target.x,target.y+1,target.z)===0){
     plantSeeds(target.x,target.y+1,target.z);consumeHeld();sfx('place',B.WHEAT);swing=1;}return;}
-  if(!target||!s||id>=100)return;
+  if(!target||!s||isItem(id))return;
   let px=target.x+target.n[0],py=target.y+target.n[1],pz=target.z+target.n[2];
   if(DEF[target.id].plant){px=target.x;py=target.y;pz=target.z;}
   const cur=getBlock(px,py,pz);if(cur&&!isWater(cur)&&!DEF[cur].plant&&cur!==B.LAVA)return;
@@ -4830,7 +4878,7 @@ function updateSleep(dt){
   if(sleeping.t>3.2){const s=sleeping;sleeping=null;el.style.opacity=0;toast('Good morning!');player.pos.set(s.x+0.5,s.y+1,s.z+0.5);player.spawned=false;}
 }
 function equipArmor(){
-  const s=inv[selected];if(!s||s.id<100||!ITEM[s.id].armor)return false;
+  const s=inv[selected];if(!s||!isItem(s.id)||!ITEM[s.id].armor)return false;
   const p=ITEM[s.id].armor.slot;const old=armor[p];armor[p]=s;inv[selected]=old;sfx('equip');swing=1;invChanged();statsDirty=true;
   toast('Equipped '+ITEM[s.id].name);return true;
 }
@@ -4889,9 +4937,9 @@ const flatMat=new THREE.MeshBasicMaterial({alphaTest:0.5,vertexColors:true,depth
 const heldFlat=new THREE.Mesh(new THREE.PlaneGeometry(1,1),flatMat);heldFlat.scale.setScalar(0.56);heldFlat.renderOrder=999;heldGroup.add(heldFlat);
 const armMat=new THREE.MeshBasicMaterial({color:0xd8a47f,depthTest:false,depthWrite:false});
 const heldArm=new THREE.Mesh(new THREE.BoxGeometry(0.16,0.16,0.55),armMat);heldArm.renderOrder=999;heldGroup.add(heldArm);
-let heldId=-1;
+let heldId=-1,equipT=0,idleT=0;
 function updateHeldGeometry(){
-  const s=inv[selected];const id=s?s.id:0;if(id===heldId)return;heldId=id;
+  const s=inv[selected];const id=s?s.id:0;if(id===heldId)return;if(heldId!==-1)equipT=1;heldId=id;
   heldCube.visible=heldFlat.visible=heldArm.visible=false;
   if(!id){heldArm.visible=true;return;}
   if(isFlat(id)){flatMat.map=flatTex(id);flatMat.needsUpdate=true;heldFlat.geometry=extrudeGeo(id);heldFlat.visible=true;}
@@ -4902,13 +4950,14 @@ function updateHeld(dt,moving){
   updateHeldGeometry();
   swing=Math.max(0,swing-dt*4.5);if(moving&&player.onGround)bob+=dt*(sprinting?12:9);
   const s=Math.sin(swing*Math.PI),bx=Math.sin(bob)*0.025,by=Math.abs(Math.cos(bob))*0.02;
-  let ex=0,ey=0,ez=0,rx=0,ry=0;
+  equipT=Math.max(0,equipT-dt*4.5);idleT+=dt;
+  let ex=0,ey=-equipT*equipT*0.45+Math.sin(idleT*1.6)*0.006,ez=0,rx=equipT*0.4,ry=0;
   if(useHold&&useHold.type==='xload'){ex=-0.3;ey=0.1+Math.sin(useHold.t*9)*0.03;ez=0.2;ry=0.9;rx=-0.3;}
   if(useHold&&(useHold.type==='eat'||useHold.type==='heal')){ex=-0.25;ey=0.12+Math.abs(Math.sin(useHold.t*14))*0.04;ez=0.1;rx=0.3;ry=0.6;}
   if(useHold&&useHold.type==='bow'){const c=Math.min(1,useHold.t);ex=-0.35;ey=0.2;ez=0.25+c*0.12;ry=1.0;rx=0;}
   heldCube.position.set(0.62+bx+ex,-0.5+by-s*0.12+ey,-1.0-s*0.1+ez);heldCube.rotation.set(-s*0.6+rx,0.75+ry,0);
   heldFlat.position.set(0.6+bx+ex,-0.4+by-s*0.15+ey,-0.82-s*0.1+ez);heldFlat.rotation.set(0.12-s*1.0+rx,-1.6+ry,0.32);
-  heldArm.position.set(0.56+bx,-0.56+by-s*0.1,-0.85-s*0.15);heldArm.rotation.set(0.45-s*0.8,-0.25,0.1);
+  heldArm.position.set(0.56+bx,-0.56+by-s*0.1+ey,-0.85-s*0.15);heldArm.rotation.set(0.45-s*0.8,-0.25,0.1);
   const l=Math.max(0.06,heldLight);heldMat.color.setScalar(l);flatMat.color.setScalar(l);armMat.color.setRGB(0.85*l,0.64*l,0.5*l);
 }
 
@@ -4960,7 +5009,7 @@ function selectSlot(i){selected=(i+9)%9;invDirty=true;useHold=null;showName();}
 const invEl=document.getElementById('inventory'),cursorEl=document.getElementById('cursorItem');
 const creativeGrid=document.getElementById('creativeGrid'),mainGrid=document.getElementById('mainGrid'),hotGrid=document.getElementById('hotGrid'),recipesEl=document.getElementById('recipes');
 const ALL_ITEMS=[...DEF.filter(d=>d&&d.id&&!d.hidden).map(d=>d.id),...Object.keys(ITEM).map(Number).filter(id=>!ITEM[id].hidden)];
-for(const id of ALL_ITEMS){const d=document.createElement('div');d.className='slot';d.title=itemInfo(id).name;d.innerHTML=`<img src="${ICON[id]}">`;
+for(const id of ALL_ITEMS){const d=document.createElement('div');d.className='slot';d.dataset.id=id;d.title=itemInfo(id).name;d.innerHTML=`<img src="${ICON[id]}">`;
   d.onclick=()=>{inv[selected]={id,count:itemInfo(id).stack,dmg:0};invChanged();showName();sfx('click');};creativeGrid.appendChild(d);}
 // move a stack into arr[from..to), merging first; returns what's left
 function moveInto(s,arr,from,to){
@@ -4972,13 +5021,13 @@ function moveInto(s,arr,from,to){
 // arr = inv | armor | open chest; armor slots only accept the matching armor piece
 function slotClick(arr,i,e){
   const s=arr[i],right=e.button===2,isArmor=arr===armor,isFurn=openFurnace&&arr===openFurnace.s;
-  const accepts=st=>isFurn?i!==2:(!isArmor||(st.id>=100&&ITEM[st.id].armor&&ITEM[st.id].armor.slot===i));
+  const accepts=st=>isFurn?i!==2:(!isArmor||(isItem(st.id)&&ITEM[st.id].armor&&ITEM[st.id].armor.slot===i));
   if(mode==='creative'&&arr===inv&&i<9&&!openChest&&!openFurnace&&!tablePos){selectSlot(i);invDirty=true;return;}
   if(isFurn&&i===2&&cursor&&s){ // taking smelted items onto a matching cursor stack
     if(cursor.id===s.id&&cursor.count+s.count<=maxStack(s.id)){cursor.count+=s.count;arr[i]=null;sfx('click');invChanged();}return;}
   if(e.shiftKey&&s&&!cursor){
     let left;
-    const ap=s.id>=100&&ITEM[s.id].armor?ITEM[s.id].armor.slot:-1;
+    const ap=isItem(s.id)&&ITEM[s.id].armor?ITEM[s.id].armor.slot:-1;
     if(arr===inv&&openFurnace){const fs=openFurnace.s;
       if(SMELT[s.id]!==undefined)left=moveInto(s,fs,0,1);else if(FUEL[s.id])left=moveInto(s,fs,1,2);else left=s.count;}
     else if(arr===inv&&openChest)left=moveInto(s,openChest,0,27);
@@ -5050,7 +5099,8 @@ function renderInventory(){
   const station=openChest||openFurnace||tradeMob;
   const cr=mode==='creative'&&!station&&!tablePos;
   document.getElementById('invTitle').textContent=openChest?(chestPos&&getBlock(...chestPos)===B.AMMO_CRATE?'Ammo Crate':'Chest'):openFurnace?'Furnace':tradeMob?'Villager ('+tradeMob.prof+')':tablePos?'Crafting Table':cr?'Creative Inventory':'Inventory';
-  creativeGrid.style.display=cr?'grid':'none';mainGrid.style.display=cr?'none':'grid';
+  creativeGrid.style.display=cr?'grid':'none';
+  if(cr)for(const d of creativeGrid.children)d.style.display=mgHidden(+d.dataset.id)?'none':'';mainGrid.style.display=cr?'none':'grid';
   document.getElementById('chestGrid').style.display=openChest?'grid':'none';
   document.getElementById('furnaceBox').style.display=openFurnace?'flex':'none';
   const crafting=!openChest&&!openFurnace&&!tradeMob&&(tablePos||!cr);
@@ -5090,7 +5140,7 @@ function renderInventory(){
   if(showList){recipesEl.innerHTML='';
     const have=r=>tradeMob?r.in.every(([id,n])=>countItem(id)>=n):canCraft(r);
     const rank=r=>(have(r)?0:2)+(!tradeMob&&r.size>craftW?1:0);
-    const list=tradeMob?tradeMob.trades:[...RECIPES].sort((a,b)=>rank(a)-rank(b));
+    const list=tradeMob?tradeMob.trades:RECIPES.filter(r=>!mgHidden(r.out[0])).sort((a,b)=>rank(a)-rank(b));
     for(const r of list){const ok=have(r),big=!tradeMob&&r.size>craftW;const d=document.createElement('div');d.className='recipe'+(ok&&!big?'':' no')+(big?' big':'');
       d.innerHTML=`<div class="slot"><img src="${ICON[r.out[0]]}">${r.out[1]>1?`<span class="cnt">${r.out[1]}</span>`:''}</div>
         <div class="rtext"><b>${itemInfo(r.out[0]).name}</b><br>${tradeMob?'for ':''}${r.in.map(([k,n])=>{const id=keyIcon(k);
@@ -5407,7 +5457,7 @@ function packDim(d){const D=d===dim?{mods,meta:blockMeta,chests,furnaces,crops}:
   const m=[];for(const mk of D.mods.values()){const arr=[];for(const [i,id] of mk.m)arr.push(i,id);m.push([mk.cx,mk.cz,arr]);}
   return {mods:m,chests:[...D.chests],meta:[...D.meta],furnaces:[...D.furnaces],crops:[...D.crops]};}
 function unpackDim(s){const mods_=new Map();
-  for(const [cx,cz,arr] of s.mods||[]){const m=new Map();for(let i=0;i<arr.length;i+=2)m.set(arr[i],arr[i+1]);mods_.set(ckey(cx,cz),{cx,cz,m});}
+  for(const [cx,cz,arr] of s.mods||[]){const m=new Map();for(let i=0;i<arr.length;i+=2){const b=arr[i+1];m.set(arr[i],b>=100&&b<=103?b+100:b);}mods_.set(ckey(cx,cz),{cx,cz,m});}
   return {mods:mods_,meta:new Map(s.meta||[]),chests:new Map(s.chests||[]),furnaces:new Map(s.furnaces||[]),crops:new Map(s.crops||[])};}
 function unloadAll(){
   for(const c of chunks.values())for(const m of c.meshes){scene.remove(m);m.geometry.dispose();}chunks.clear();pendingRebuild.clear();
@@ -5585,7 +5635,7 @@ function applyWorld(s,id){
   SEED=s.seed;perlin=new Perlin(SEED);
   ZM=s.zm?Object.assign(zNewState(s.zm),s.zm):null;zLife=0;
   if(ZM&&ZM.st==='over')Object.assign(ZM,{wave:0,st:'break',t:12,queue:[]});
-  for(const [cx,cz,arr] of s.mods||[]){const m=new Map();for(let i=0;i<arr.length;i+=2)m.set(arr[i],arr[i+1]);mods.set(ckey(cx,cz),{cx,cz,m});}
+  for(const [cx,cz,arr] of s.mods||[]){const m=new Map();for(let i=0;i<arr.length;i+=2){const b=arr[i+1];m.set(arr[i],b>=100&&b<=103?b+100:b);}mods.set(ckey(cx,cz),{cx,cz,m});}
   dayTime=s.time??0.3;selected=s.selected||0;spawnPoint=s.spawn||findSpawn();
   if(s.v===1){mode='creative';(s.hotbar||[]).forEach((id,i)=>{if(id)inv[i]={id,count:64,dmg:0};});}
   else{mode=s.mode||'survival';(s.inv||[]).forEach((v,i)=>{if(i<36)inv[i]=v;});hp=s.hp??20;food=s.food??20;sat=s.sat??5;
@@ -5624,7 +5674,7 @@ function enterTitle(){
   for(let dx=-48;dx<=48;dx+=8)for(let dz=-48;dz<=48;dz+=8)top=Math.max(top,column(Math.floor(spawnPoint[0])+dx,Math.floor(spawnPoint[2])+dz).h);
   player.pos.set(spawnPoint[0],top+6,spawnPoint[2]);player.spawned=true;player.pitch=-0.18;dayTime=0.27;
   menu.style.display='flex';worldsEl.style.display='none';updateMenuButtons();invChanged();
-  if(typeof updateTitleSkin==='function')setTimeout(updateTitleSkin,0);
+  if(typeof updateTitleSkin==='function')setTimeout(()=>{updateTitleSkin();syncLauncherSkin();},0);
 }
 async function quitToTitle(){
   if(PV){pvpSend({t:'leave'});PV=null;if(document.pointerLockElement)document.exitPointerLock();enterTitle();return;}
@@ -5725,7 +5775,7 @@ document.getElementById('verLabel').textContent='BlockCraft '+GAME_VERSION;
 loadSettings();
 enterTitle();
 setTimeout(()=>{const h=location.hash.slice(1),b={zombies:'btnZombie',pvp:'btnPvp',skins:'btnSkins',minigames:'btnMinigames'}[h];if(b){if(h!=='skins'&&h!=='minigames')document.getElementById('btnMinigames').click();document.getElementById(b).click();}},300);
-(async()=>{await Store.init();await migrateOld();if(worldsEl.style.display==='flex')renderWorldList();})();
+(async()=>{await Store.init();await migrateOld();if(worldsEl.style.display==='flex')renderWorldList();syncLauncherSkin();})();
 
 let last=performance.now(),fpsAcc=0,fpsN=0,fps=0,lastEyeWater=false;
 const debugEl=document.getElementById('debug'),uwEl=document.getElementById('underwater'),loadEl=document.getElementById('loading');
@@ -5884,19 +5934,22 @@ function updateRemotes(dt){
     let d=rp.tyaw-rp.yaw;d=Math.atan2(Math.sin(d),Math.cos(d));rp.yaw+=d*Math.min(1,dt*12);
     const sp=Math.hypot(rp.pos.x-px,rp.pos.z-pz)/Math.max(dt,1e-3);rp.walk+=sp*dt*2.6;
     const sw=Math.sin(rp.walk)*Math.min(1,sp/3)*0.8;rp.swingT=Math.max(0,rp.swingT-dt*4);
-    M.legs[0].rotation.x=sw;M.legs[1].rotation.x=-sw;M.arms[1].rotation.x=sw*0.8;
-    M.arms[0].rotation.x=-sw*0.8-Math.sin(rp.swingT*Math.PI)*1.3-(rp.held?0.25:0);
+    const idle=Math.sin(performance.now()/1000*1.4+rp.walk)*0.05;
+    M.legs[0].rotation.x=sw;M.legs[1].rotation.x=-sw;M.arms[1].rotation.x=sw*0.8;M.arms[1].rotation.z=-0.05-idle;M.arms[0].rotation.z=0.05+idle;
+    M.arms[0].rotation.x=-sw*0.8-Math.sin(rp.swingT*Math.PI)*1.3-(rp.held?0.25:0)-((rp.held===IT.BOW||rp.held===IT.CROSSBOW_LOADED)?1.1:0);
+    if(rp.held===IT.BOW||rp.held===IT.CROSSBOW_LOADED)M.arms[1].rotation.x=-1.2;
+    M.g.rotation.x=0;if(rp.sneak){M.legs[0].rotation.x+=0.25;M.legs[1].rotation.x+=0.25;}
     M.head.rotation.x=clamp(-rp.pitch,-1.2,1.2);
     M.g.position.set(rp.pos.x,rp.pos.y-(rp.sneak?0.12:0),rp.pos.z);M.g.rotation.y=rp.yaw+Math.PI;M.g.visible=!rp.dead;
     if(rp.held!==rp.heldId){
       if(rp.heldMesh){M.arms[0].remove(rp.heldMesh);rp.heldMesh.material.dispose();rp.heldMesh=null;}
       rp.heldId=rp.held;const id=rp.held;
-      if(id&&(id>=100?ITEM[id]:DEF[id])){
+      if(id&&(isItem(id)?ITEM[id]:DEF[id])){
         let mesh;
         if(isFlat(id)){mesh=new THREE.Mesh(extrudeGeo(id),new THREE.MeshBasicMaterial({map:flatTex(id),vertexColors:true,alphaTest:0.5,side:THREE.DoubleSide}));
-          mesh.scale.setScalar(0.85);mesh.position.set(0,-0.72,0.28);mesh.rotation.set(0,-Math.PI/2,Math.PI/4);}
+          mesh.scale.setScalar(0.8);mesh.position.set(0,-0.62,0.22);mesh.rotation.set(0,-Math.PI/2,Math.PI/4);}
         else{if(!blockGeoCache[id])blockGeoCache[id]=blockGeo(id,0.25);
-          mesh=new THREE.Mesh(blockGeoCache[id],new THREE.MeshBasicMaterial({map:atlasTex,vertexColors:true,alphaTest:0.5}));mesh.position.set(0,-0.74,0.12);}
+          mesh=new THREE.Mesh(blockGeoCache[id],new THREE.MeshBasicMaterial({map:atlasTex,vertexColors:true,alphaTest:0.5}));mesh.position.set(0,-0.66,0.1);}
         M.arms[0].add(mesh);rp.heldMesh=mesh;}
     }
     const l=lightAt(rp.pos.x,rp.pos.y+1.2,rp.pos.z);rp.hurtT=Math.max(0,(rp.hurtT||0)-dt);
@@ -6244,6 +6297,15 @@ async function renderSkinScreen(){
     d.onclick=()=>setMySkin(val);grid.appendChild(d);}
   try{drawSkinFront(document.getElementById('skinPreview'),cur?await loadSkin(cur):{canvas:autoSkin(mpName()),legacy:false,slim:false});}catch(e){}
 }
+// with the BlockCraft launcher, your skin is kept in its saves folder (saves\skin.txt), so the launcher's Skins tab
+// and the game's Skins screen are the same thing
+async function syncLauncherSkin(){
+  if(typeof Store==='undefined'||Store.kind!=='server')return;
+  try{const r=await fetch('api/skin',{cache:'no-store'});if(!r.ok)return;const t=(await r.text()).trim();
+    if(t===mySkin()||(t&&!validSkin(t)))return;
+    if(t){localStorage.setItem('bc_skin',t);if(t.startsWith('data:'))localStorage.setItem('bc_skin_custom',t);}else localStorage.removeItem('bc_skin');
+    mySkinReady=null;updateTitleSkin();if(document.getElementById('skinScreen').style.display==='flex')renderSkinScreen();}catch(e){}
+}
 // the title screen shows you in your skin, with your name (like Minecraft's profile)
 document.getElementById('btnSettings').onclick=()=>{audioInit();document.body.classList.add('settingsOpen');};
 document.getElementById('btnSettingsDone').onclick=()=>{document.body.classList.remove('settingsOpen');};
@@ -6254,6 +6316,7 @@ async function updateTitleSkin(){
 function setMySkin(val){
   try{if(val)localStorage.setItem('bc_skin',val);else localStorage.removeItem('bc_skin');}catch(e){}
   mySkinReady=null;sfx('click');renderSkinScreen();updateTitleSkin();
+  if(Store.kind==='server')fetch('api/skin',{method:'POST',body:val||''}).catch(()=>{});
   if(val){if(MP.role)MP.send({t:'skin',d:val});if(PV)pvpSend({t:'skin',d:val});}
 }
 document.getElementById('btnSkins').onclick=()=>{audioInit();document.getElementById('skinScreen').style.display='flex';document.getElementById('skinMsg').textContent='';renderSkinScreen();};
@@ -6351,7 +6414,7 @@ function pvpTryHit(){
   for(let a=0;a<3;a++){if(Math.abs(D[a])<1e-9){if(O[a]<mn[a]||O[a]>mx[a])return false;continue;}
     let ta=(mn[a]-O[a])/D[a],tb=(mx[a]-O[a])/D[a];if(ta>tb){const q=ta;ta=tb;tb=q;}t0=Math.max(t0,ta);t1=Math.min(t1,tb);if(t0>t1)return false;}
   if(target&&target.t<t0)return false;
-  const s=inv[selected],it=s&&s.id>=100?ITEM[s.id]:null;let dmg=it&&it.tool?it.dmg:1;
+  const s=inv[selected],it=s&&isItem(s.id)?ITEM[s.id]:null;let dmg=it&&it.tool?it.dmg:1;
   if(sprinting)dmg+=1;
   if(!player.onGround&&player.vel.y<0&&!player.inWater){dmg*=1.5;emit(rp.tp.x,rp.tp.y+1.4,rp.tp.z,[1,1,0.6],8,0.6,2,0.5,3,8,true);}
   const kx=rp.tp.x-player.pos.x,kz=rp.tp.z-player.pos.z;
@@ -6494,10 +6557,19 @@ function thirdPerson(dt){
   if(!selfModel)return null;
   const M=selfModel,v=player.vel,hs=Math.hypot(v.x,v.z);M.walk+=hs*dt*2.6;
   const sw=Math.sin(M.walk)*Math.min(1,hs/3)*0.8,s=Math.sin(swing*Math.PI);
-  M.legs[0].rotation.x=sw;M.legs[1].rotation.x=-sw;M.arms[1].rotation.x=sw*0.8;M.arms[0].rotation.x=-sw*0.8-s*1.3;
+  const idle=Math.sin(performance.now()/1000*1.4)*0.05,hid=heldItem(),aim=useHold&&(useHold.type==='bow'||useHold.type==='xload')||hid===IT.CROSSBOW_LOADED;
+  M.legs[0].rotation.x=sw;M.legs[1].rotation.x=-sw;M.arms[1].rotation.x=aim?-1.3:sw*0.8;M.arms[0].rotation.x=aim?-1.4:-sw*0.8-s*1.3-(hid?0.25:0);
+  M.arms[1].rotation.z=-0.05-idle;M.arms[0].rotation.z=0.05+idle;
+  if(useHold&&useHold.type==='eat')M.arms[0].rotation.x=-1.6+Math.sin(useHold.t*14)*0.15;
   M.head.rotation.x=clamp(-player.pitch,-1.2,1.2);
+  if(M.heldId!==hid){if(M.heldMesh){M.arms[0].remove(M.heldMesh);M.heldMesh.material.dispose();M.heldMesh=null;}M.heldId=hid;
+    if(hid&&(isItem(hid)?ITEM[hid]:DEF[hid])){let mesh;
+      if(isFlat(hid)){mesh=new THREE.Mesh(extrudeGeo(hid),new THREE.MeshBasicMaterial({map:flatTex(hid),vertexColors:true,alphaTest:0.5,side:THREE.DoubleSide}));
+        mesh.scale.setScalar(0.8);mesh.position.set(0,-0.62,0.22);mesh.rotation.set(0,-Math.PI/2,Math.PI/4);}
+      else{if(!blockGeoCache[hid])blockGeoCache[hid]=blockGeo(hid,0.25);mesh=new THREE.Mesh(blockGeoCache[hid],new THREE.MeshBasicMaterial({map:atlasTex,vertexColors:true,alphaTest:0.5}));mesh.position.set(0,-0.66,0.1);}
+      M.arms[0].add(mesh);M.heldMesh=mesh;}}
   M.g.position.set(player.pos.x,player.pos.y-(sneaking?0.12:0),player.pos.z);M.g.rotation.y=player.yaw+Math.PI;
-  const l=lightAt(player.pos.x,player.pos.y+1.2,player.pos.z);for(const mt of M.mats)mt.color.setScalar(l);
+  const l=lightAt(player.pos.x,player.pos.y+1.2,player.pos.z);for(const mt of M.mats)mt.color.setScalar(l);if(M.heldMesh)M.heldMesh.material.color.setScalar(l);
   const saved=[camera.position.clone(),camera.rotation.clone()],eye=saved[0],dir=camDir.clone().multiplyScalar(camView===1?-1:1);
   let d=0.3;while(d<4&&!isSolid(Math.floor(eye.x+dir.x*(d+0.3)),Math.floor(eye.y+dir.y*(d+0.3)),Math.floor(eye.z+dir.z*(d+0.3))))d+=0.1;
   camera.position.copy(eye).addScaledVector(dir,d);
