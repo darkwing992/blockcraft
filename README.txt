@@ -79,14 +79,49 @@ BIG SERVER (ALWAYS ONLINE, UP TO 100 PLAYERS)
   Players on your Wi-Fi join with the address it shows (like ws://192.168.1.5:8080/ws).
   The world is saved in server\server-data.json.
 
+THE NETHER
+  Lava pools sit deep in caves. Pour water next to lava (bucket) to make obsidian, and mine it
+  with a diamond pickaxe. Build a frame of obsidian 4 wide and 5 tall (the middle 2x3 empty),
+  then use flint and steel inside it. Stand in the purple portal to go to the Nether.
+  A portal home is built for you on the other side. 1 block in the Nether = 8 in the Overworld.
+  Watch out for ghasts (they shoot fireballs) and don't hit zombified piglins unless you want
+  the whole group after you. Beds explode in the Nether! (The Nether is single player only.)
+MOBS
+  Slimes split when killed. Endermen get angry if you look right at them. Right-click a wolf
+  with a bone to tame it - it follows you and fights monsters. Throw ender pearls to teleport.
+  Iron golems guard villages. Squid swim in the sea (ink sacs make black dye), bats live in caves,
+  rabbits hop around plains. Husks roam deserts and strays roam snowy places.
+
+THE END
+  Blazes live in the Nether and drop blaze rods (2 blaze powder each). Ender pearl + blaze powder
+  = Eye of Ender. 3 quartz over 3 obsidian = 2 End Portal Frames. Place 12 frames in a ring around
+  a 3x3 hole (3 on each side, no corners) and put an Eye of Ender in every frame - the End Portal
+  opens. Jump in to fight the Ender Dragon! Break the End Crystals on the obsidian towers first,
+  they heal the dragon. Beat it and an exit portal with the Dragon Egg appears.
+  (The End is single player only.)
+
+ON A PHONE (IPHONE OR ANDROID)
+  Put the game online for free with GitHub Pages (once): on github.com open your blockcraft
+  repository > Settings > Pages > under "Branch" pick "main" and "/ (root)" > Save. After a minute
+  the game is at https://darkwing992.github.io/blockcraft/ - open that on any phone.
+  - Hold the phone sideways. Left circle = walk, drag the screen = look, buttons = jump / mine /
+    place / sneak / fly, top-left: pause, bag (inventory), drop, view, chat (in multiplayer).
+  - In the inventory, "Move one" and "Quick move" do what right-click and shift-click do on a PC.
+  - iPhone: tap the Share button > "Add to Home Screen" so it opens full screen like an app.
+    Android: it goes full screen by itself; use the menu > "Add to Home screen" / "Install app".
+  - Phones start with Fast graphics and a short render distance; change them in the pause menu.
+  - Worlds are saved on the phone. The big server and friends' worlds work on phones too.
+
 CONTROLS
   WASD move, mouse look (or arrow keys), Space jump/swim
   Double-tap W (or hold Shift) sprint, C sneak
   Hold left click: mine / attack
   Right click: place block, open chest, sleep in bed, equip armor, use bucket
   Hold right click: eat food / draw bow
-  E inventory & crafting, Q drop item, 1-9 / scroll select, F fly (creative), F3 debug, Esc pause
+  E inventory & crafting (2x2 grid; right-click a Crafting Table for 3x3), Q drop item, 1-9 / scroll select, F fly (creative), F3 debug, Esc pause
   T or Enter: chat (in multiplayer)
+  F5: change view (first person / behind you / in front of you)
+  Ladders: walk into them or hold Space to climb, sneak (C) to hold still
 
 ON A CHROMEBOOK
   Chromebooks can't run .bat files. Use one of these instead:

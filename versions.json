@@ -1,5 +1,10 @@
-{"latest":"1.9","launcher":"2.1",
+{"latest":"2.5","launcher":"2.1",
   "versions": [
+    {"id":"2.5","title":"Phone Update","date":"2026-10-12","notes":"Plays on iPhone and Android: phone-sized controls and inventory, faster graphics on phones, chat and view buttons, add to home screen.","sha256":"4e17b4f795f27eeebb3124694745600ce1d404600108696c96d037a7f3bddbb7"},
+    {"id":"2.4","title":"The End Update","date":"2026-10-12","notes":"The End and the Ender Dragon boss fight, blazes, eyes of ender and end portals. All mobs look much better: 3D shading, shadows, more detail and death animations.","sha256":"2f8e24755dd92c863778acecb7df1c71474753cee086bc270b450d59cbfd1579"},
+    {"id":"2.3","title":"Mobs \u0026 Blocks Update","date":"2026-10-12","notes":"Mobs hold real 3D items. Iron golems, squid, bats, rabbits, husks and strays. Clay, mushrooms, melons, cobwebs, hay, granite, diorite, andesite, lapis and more.","sha256":"f2201891f4f874ddb0359c40b3e960010d8f2b51a3e309f714d6729823ec785a"},
+    {"id":"2.2","title":"Nether Update","date":"2026-10-12","notes":"The Nether with portals, lava and obsidian. New mobs: slimes, endermen, tameable wolves, zombified piglins, ghasts and magma cubes. Ender pearls.","sha256":"2340bc0b34daea1cc07000218c74292fdc79b97daa3880f40c88fbc2499bc4df"},
+    {"id":"2.1","title":"Blocks \u0026 Items Update","date":"2026-10-12","notes":"14 new blocks (ladders, pumpkins, bookshelves, sugar cane, metal blocks...), gold, dyes, golden apples, and F5 third-person view.","sha256":"08df91e12a22630aa92ed225685f226f07d34118c4439ed83ea7350063af10e7"},
     {"id":"1.9","title":"Accounts Update","date":"2026-10-12","notes":"Sign up on the big server with a name and password. Your name is yours forever and works from any computer.","sha256":"9afc093d70aca566dbd1027eb5c17d1074ca98e01981d7613134351c2f245220"},
     {"id":"1.8","title":"Rare Diamonds Update","date":"2026-10-12","notes":"Diamonds are about 5 times rarer, only deep down, and slower to mine. Villages give fewer diamonds.","sha256":"97a75d0d72562ed5881553b3782a353f478bbea95b43f2cb3e884ee3aa57cc4a"},
     {"id":"1.7","title":"Big Server Update","date":"2026-10-11","notes":"Join the big always-online server with up to 100 players, or a friend\u0027s world with a code.","sha256":"aa960afdd7a79687b2a0057dafa5063e5d3a99dd0c20d6f51fb12d8734a46ea7"},
