@@ -12,11 +12,11 @@ if (-not (Get-Command git -ErrorAction SilentlyContinue)) {
 }
 
 $repo = $null
-if (Test-Path 'update-source.txt') { $repo = (Get-Content 'update-source.txt' -Raw).Trim() }
+if (Test-Path 'update-source.txt') { $repo = ((Get-Content 'update-source.txt' -Raw).Trim() -replace '\.git$','') }
 if (-not $repo) {
   Write-Host "Make an empty repository on github.com first (no README), then paste its address here."
   $url = Read-Host "Repository address (like https://github.com/yourname/blockcraft)"
-  $m = [regex]::Match($url, 'github\.com[/:]([A-Za-z0-9_.-]+)/([A-Za-z0-9_.-]+?)(\.git)?/?$')
+  $m = [regex]::Match($url.Trim(), 'github\.com[/:]([A-Za-z0-9_.-]+)/([A-Za-z0-9_.-]+?)(\.git)?/?$')
   if (-not $m.Success) { Write-Host "That does not look like a GitHub repository address." -ForegroundColor Red; exit 1 }
   $repo = $m.Groups[1].Value + '/' + $m.Groups[2].Value
   [IO.File]::WriteAllText((Join-Path $PSScriptRoot 'update-source.txt'), $repo)

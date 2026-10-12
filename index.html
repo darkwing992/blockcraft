@@ -278,7 +278,7 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 <script>
 'use strict';
-const GAME_VERSION='1.7';
+const GAME_VERSION='1.8';
 const DEFAULT_SERVER='wss://blockcraft-server.austinhodgins2014-e99.workers.dev/ws'; // the big server's address (set by "Deploy Big Server.bat")
 const MP={role:null,applying:false,seq:0,players:new Map(),conns:new Map(),outB:new Map(),remote(){return MP.role==='client'||MP.role==='net';}}; // multiplayer state (see the Multiplayer section)
 // =====================================================================
@@ -648,7 +648,7 @@ function buildVillage(X,Z,biome,rng){
   const platform=(x0,z0,w,d,base,floor)=>{for(let x=x0;x<x0+w;x++)for(let z=z0;z<z0+d;z++){const th=hAt(x,z);
     for(let y=Math.min(th,base-4);y<base;y++)put(x,y,z,y>=th-1?S.found:B.DIRT);put(x,base,z,floor);for(let y=base+1;y<=base+9;y++)put(x,y,z,0);}};
   const rndLoot=()=>{const items=new Array(27).fill(null);const pool=[[IT.BREAD,1,4],[IT.APPLE,1,3],[IT.WHEAT,2,6],[IT.IRON_INGOT,1,3],[IT.EMERALD,1,3],
-      [IT.COAL,2,8],[IT.SEEDS,2,6],[B.TORCH,2,6],[IT.DIAMOND,1,2,0.15],[armorId(1,1),1,1,0.12],[toolId("pick",3),1,1,0.15],[IT.BOW,1,1,0.15],[IT.ARROW,4,10,0.4]];
+      [IT.COAL,2,8],[IT.SEEDS,2,6],[B.TORCH,2,6],[IT.DIAMOND,1,1,0.04],[armorId(1,1),1,1,0.12],[toolId("pick",3),1,1,0.15],[IT.BOW,1,1,0.15],[IT.ARROW,4,10,0.4]];
     for(const [id,a,b,p] of pool){if(rng()<(p??0.55)){let slot;do slot=Math.floor(rng()*27);while(items[slot]);items[slot]={id,count:a+Math.floor(rng()*(b-a+1)),dmg:0};}}
     return items;};
   const house=(x0,z0,w,d,door,big)=>{
@@ -769,7 +769,7 @@ function generateChunk(cx,cz){
       let id;
       if(y===0||(y<=2&&hash3(x,y,z,SEED)<0.5))id=B.BEDROCK;
       else if(y<h-3){id=B.STONE;const r=hash3(x,y,z,SEED+7);
-        if(r<0.011)id=B.COAL;else if(y<52&&r<0.018)id=B.IRON;else if(y<30&&r<0.0205)id=B.GOLD;else if(y<16&&r<0.0222)id=B.DIAMOND;}
+        if(r<0.011)id=B.COAL;else if(y<52&&r<0.018)id=B.IRON;else if(y<30&&r<0.0205)id=B.GOLD;else if(y<13&&r<0.0209)id=B.DIAMOND;}
       else if(y<h){id=(biome==='desert'||beach)?B.SAND:(h>=stoneLine?B.STONE:B.DIRT);if(under&&!beach)id=perlin.noise(x/12,5.5,z/12)>0.1?B.GRAVEL:B.SAND;}
       else if(y===h){
         if(under)id=biome==='swamp'?B.DIRT:perlin.noise(x/12,5.5,z/12)>0.1?B.GRAVEL:B.SAND;
@@ -1726,7 +1726,7 @@ RECIPES.push(
 
 // mining rules
 const HARD={[B.GRASS]:0.6,[B.DIRT]:0.5,[B.STONE]:1.5,[B.SAND]:0.5,[B.LOG]:2,[B.LEAVES]:0.2,[B.PLANKS]:2,[B.COBBLE]:2,[B.GLASS]:0.3,
-  [B.BRICK]:2,[B.SNOW]:0.6,[B.BEDROCK]:-1,[B.COAL]:3,[B.IRON]:3,[B.DIAMOND]:3,[B.GRAVEL]:0.6,[B.CACTUS]:0.4,[B.GOLD]:3,
+  [B.BRICK]:2,[B.SNOW]:0.6,[B.BEDROCK]:-1,[B.COAL]:3,[B.IRON]:3,[B.DIAMOND]:5,[B.GRAVEL]:0.6,[B.CACTUS]:0.4,[B.GOLD]:3,
   [B.TALLGRASS]:0,[B.ROSE]:0,[B.DANDELION]:0,[B.TORCH]:0,[B.GLOW]:0.3,[B.WOOL]:0.8,[B.TNT]:0,[B.CHEST]:2.5,[B.BED]:0.2,
   [B.SPRUCE_LOG]:2,[B.BIRCH_LOG]:2,[B.JUNGLE_LOG]:2,[B.SPRUCE_LEAVES]:0.2,[B.BIRCH_LEAVES]:0.2,[B.JUNGLE_LEAVES]:0.2,[B.ICE]:0.5,
   [B.FURNACE]:3.5,[B.FURNACE_LIT]:3.5,[B.WHEAT]:0,[B.WHEAT_YOUNG]:0,[B.FARMLAND]:0.6,[B.SPRUCE_PLANKS]:2,[B.PATH]:0.6};
@@ -2202,7 +2202,7 @@ const PROFS={
     {out:[IT.APPLE,4],in:[[IT.EMERALD,1]]},{out:[IT.SEEDS,10],in:[[IT.EMERALD,1]]},{out:[IT.HOE,1],in:[[IT.EMERALD,1]]}]},
   smith:{name:'Toolsmith',robe:[62,62,66],trades:[{out:[IT.EMERALD,1],in:[[IT.COAL,15]]},{out:[IT.EMERALD,1],in:[[IT.IRON_INGOT,4]]},
     {out:[toolId('pick',3),1],in:[[IT.EMERALD,3]]},{out:[toolId('sword',3),1],in:[[IT.EMERALD,4]]},{out:[armorId(1,1),1],in:[[IT.EMERALD,7]]},
-    {out:[toolId('pick',4),1],in:[[IT.EMERALD,12],[IT.DIAMOND,1]]}]},
+    {out:[toolId('pick',4),1],in:[[IT.EMERALD,24],[IT.DIAMOND,3]]}]},
   butcher:{name:'Butcher',robe:[232,232,232],trades:[{out:[IT.EMERALD,1],in:[[IT.PORK,8]]},{out:[IT.EMERALD,1],in:[[IT.CHICKEN,10]]},
     {out:[IT.COOKED_PORK,5],in:[[IT.EMERALD,1]]},{out:[IT.STEAK,5],in:[[IT.EMERALD,1]]}]},
   shepherd:{name:'Shepherd',robe:[110,150,90],trades:[{out:[IT.EMERALD,1],in:[[B.WOOL,12]]},{out:[B.BED,1],in:[[IT.EMERALD,3]]},
@@ -3192,7 +3192,7 @@ document.getElementById('btnWorldsBack').onclick=()=>{worldsEl.style.display='no
 // =====================================================================
 //  Main loop
 // =====================================================================
-const splashes=['Now with infinite worlds!','Now with 3D items!','Beds are 2 blocks now!','100% procedurally generated!','Punch trees!','Also try the real thing!','Made of cubes!','Look up at night!',
+const splashes=['Now with infinite worlds!','Now with 3D items!','Diamonds are rare now!','Beds are 2 blocks now!','100% procedurally generated!','Punch trees!','Also try the real thing!','Made of cubes!','Look up at night!',
   'Caves included!','Beware of creepers!','Torches not included!','Oink!','Moo!','Craft your own tools!','Survive the night!','Water flows!','Don\'t starve!','Sssss...'];
 document.getElementById('splash').textContent=splashes[Math.floor(Math.random()*splashes.length)];
 document.getElementById('verLabel').textContent='BlockCraft '+GAME_VERSION;

@@ -26,14 +26,14 @@ using System.Windows.Forms;
 [assembly: AssemblyTitle("BlockCraft Launcher")]
 [assembly: AssemblyProduct("BlockCraft")]
 [assembly: AssemblyDescription("Launcher and save server for BlockCraft")]
-[assembly: AssemblyVersion("2.0.0.0")]
-[assembly: AssemblyFileVersion("2.0.0.0")]
+[assembly: AssemblyVersion("2.1.0.0")]
+[assembly: AssemblyFileVersion("2.1.0.0")]
 
 namespace BlockCraft
 {
     static class Program
     {
-        public const string LauncherVersion = "2.0";
+        public const string LauncherVersion = "2.1";
 
         [STAThread]
         static int Main(string[] args)
@@ -135,6 +135,7 @@ namespace BlockCraft
                 string f = Path.Combine(RootDir, "update-source.txt");
                 if (!File.Exists(f)) return null;
                 string r = File.ReadAllText(f).Trim();
+                if (r.EndsWith(".git", StringComparison.OrdinalIgnoreCase)) r = r.Substring(0, r.Length - 4);
                 return Regex.IsMatch(r, "^[A-Za-z0-9_.-]+/[A-Za-z0-9_.-]+$") ? r : null;
             }
             catch { return null; }
