@@ -9,6 +9,7 @@ import path from 'node:path';
 import os from 'node:os';
 import { fileURLToPath } from 'node:url';
 import { World } from './world.js';
+import { Arena } from './pvp.js';
 
 const here = path.dirname(fileURLToPath(import.meta.url));
 const PORT = +(process.argv[2] || process.env.PORT || 8080);
@@ -28,9 +29,11 @@ const store = {
 };
 
 const world = new World(store);
+const arena = new Arena();
 await world.load();
 
 const server = http.createServer((req, res) => {
+  if (req.url === '/pvp/status') { res.writeHead(200, { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' }); res.end(JSON.stringify(arena.status())); return; }
   if (req.url === '/status') { res.writeHead(200, { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' }); res.end(JSON.stringify(world.status())); return; }
   if (req.url === '/' || req.url.startsWith('/?') || req.url === '/index.html') {
     try { res.writeHead(200, { 'Content-Type': 'text/html; charset=utf-8', 'Cache-Control': 'no-store' }); res.end(fs.readFileSync(GAME)); }
@@ -53,7 +56,8 @@ server.on('upgrade', (req, socket) => {
     const head = n < 126 ? Buffer.from([0x80 | op, n]) : n < 65536 ? Buffer.from([0x80 | op, 126, n >> 8, n & 255]) : (() => { const b = Buffer.alloc(10); b[0] = 0x80 | op; b[1] = 127; b.writeBigUInt64BE(BigInt(n), 2); return b; })();
     if (open) socket.write(Buffer.concat([head, payload]));
   };
-  const c = world.connect(t => frame(1, Buffer.from(t, 'utf8')), () => { frame(8, Buffer.alloc(0)); socket.end(); });
+  const pvp = (req.url || '').startsWith('/pvp'), srv = pvp ? arena : world; // /pvp = the duel server, anything else = the world
+  const c = srv.connect(t => frame(1, Buffer.from(t, 'utf8')), () => { frame(8, Buffer.alloc(0)); socket.end(); });
   let buf = Buffer.alloc(0), parts = [];
   socket.on('data', chunk => {
     buf = Buffer.concat([buf, chunk]);
@@ -73,18 +77,18 @@ server.on('upgrade', (req, socket) => {
       if (op === 9) { frame(10, payload); continue; }
       if (op === 1 || op === 0) {
         parts.push(payload);
-        if (fin) { const text = Buffer.concat(parts).toString('utf8'); parts = []; world.message(c, text).catch(e => console.log('message error', e)); }
+        if (fin) { const text = Buffer.concat(parts).toString('utf8'); parts = []; if (pvp) arena.message(c, text); else world.message(c, text).catch(e => console.log('message error', e)); }
       }
     }
   });
-  const gone = () => { if (!open) return; open = false; world.disconnect(c); };
+  const gone = () => { if (!open) return; open = false; srv.disconnect(c); };
   socket.on('close', gone); socket.on('error', gone);
 });
 
 server.listen(PORT, () => {
   const ips = Object.values(os.networkInterfaces()).flat().filter(a => a && a.family === 'IPv4' && !a.internal).map(a => a.address);
   console.log('BlockCraft big server is running (up to 100 players). Keep this window open.');
-  console.log('On this PC, join with:      ws://localhost:' + PORT + '/ws');
+  console.log('On this PC, join with:      ws://localhost:' + PORT + '/ws   (PvP duels use the same address)');
   for (const ip of ips) console.log('On your Wi-Fi, join with:   ws://' + ip + ':' + PORT + '/ws   (or open http://' + ip + ':' + PORT + '/ )');
 });
 process.on('SIGINT', async () => { await world.flush(true); clearTimeout(saveTimer); fs.writeFileSync(DATA, JSON.stringify(data)); process.exit(0); });

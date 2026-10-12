@@ -100,8 +100,16 @@ THE END
   they heal the dragon. Beat it and an exit portal with the Dragon Egg appears.
   (The End is single player only.)
 
+PVP DUELS (version 3.7)
+  Title screen > Minigames > PvP Duels. "Find a Match" puts you against any other player who is
+  waiting; or you and a friend type the same secret code and click "Duel a Friend".
+  You fight 1v1 in a walled arena with the same gear (iron sword, axe, bow, crossbow, armor,
+  2 golden apples). First to win 2 rounds wins. You can't build or break blocks in the arena.
+  PvP runs on the big server: run "Deploy Big Server.bat" once so it has the duel server too.
+  (On your own Wi-Fi, "Run Server On This PC.bat" has it as well.)
+
 ZOMBIE APOCALYPSE (version 2.7)
-  On the title screen click "Zombie Apocalypse". Pick a map - Dark Forest, Desert, Plains or Ruined City -
+  On the title screen click "Minigames", then "Zombie Apocalypse". Pick a map - Dark Forest, Desert, Plains or Ruined City -
   and a mode:
   - Survival: zombies roam all the time and nights are worse. See how long you last.
   - Waves: fight wave after wave. A supply crate drops after every wave, and every 5th wave
@@ -110,13 +118,21 @@ ZOMBIE APOCALYPSE (version 2.7)
   type the code in Multiplayer > Join Friend.
   Zombies: Walkers (slow), Runners (fast and screaming), Crawlers (low, fit under gaps),
   Stalkers (almost invisible until they're right behind you), Bombers (run at you and blow up),
-  Juggernauts (huge, armored, smash through walls). Walkers and Juggernauts break blocks to reach you.
+  Juggernauts (huge, armored, smash through walls).
+  New: Hounds (zombie dogs, hunt in packs), Spitters (spit acid that burns), Screamers (shriek and call
+  every zombie nearby - kill them fast!).
+  Lurkers hide up in trees and on roofs, leap down and choke you with their tongue - your air runs out,
+  so click fast to break free!
+  If a Crawler grabs your leg you can't move: click fast (or press jump / A) to kick free! Walkers and Juggernauts break blocks to reach you.
   - L (or the Light button on phones, right stick click on a controller) = flashlight.
   - Firecrackers: right-click to throw. Walkers, Runners and Crawlers run to them instead of you.
   - Crossbow: hold right-click to load, right-click again to fire. Uses bolts first, then arrows.
   - Ammo: Wooden Arrows (2 sticks = 3), Flame Arrows (arrow + coal, sets zombies on fire),
     Bolts (iron ingot over a stick = 4), Arrows. Bows use the first arrows in your inventory.
   - Ammo crates (green boxes) are hidden around every map and on every floor of the city.
+  - The Dark Forest is haunted: very tall dark trees, dead trees with cobwebs, gravestones, thick fog.
+  - Abandoned campsites (tents, a fire pit, chests) are scattered around the forest, plains and desert.
+    Crates and chests can hold iron, gold, diamonds, tools, armor, food and more.
   - Fix weapons: put a damaged weapon or tool in the crafting grid with its material
     (string for bows, iron for crossbows, planks / cobblestone / iron / diamond for tools).
   - Also new: Bandages (paper + string), Canned Food, Barricades, Sandbags, Concrete.
