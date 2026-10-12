@@ -105,6 +105,8 @@
     #craftPanel { width: 220px !important; } #recipes { max-height: 70vh !important; }
     .recipe .slot { width: 32px !important; height: 32px !important; } .recipe .slot img { width: 24px; height: 24px; } .rtext { font-size: 11px; }
   }
+  #padCursor { display: none; position: fixed; width: 22px; height: 22px; margin: -2px 0 0 -2px; pointer-events: none; z-index: 50;
+    background: radial-gradient(circle at 30% 30%, #fff 0 30%, #ffd84a 31% 60%, #000 61% 70%, transparent 71%); }
   #rotateHint { display: none; position: fixed; left: 50%; top: 40%; transform: translate(-50%,-50%); background: rgba(0,0,0,.75); color: #fff; padding: 14px 18px;
     border: 2px solid #aaa; font: 15px Consolas, monospace; text-align: center; z-index: 20; }
   #invTouch { display: none; gap: 6px; margin-top: 8px; }
@@ -262,7 +264,7 @@
   <div class="help">
     WASD move &middot; Mouse look (or arrow keys) &middot; Space jump/swim &middot; Double-tap W or hold Shift to sprint &middot; C sneak<br>
     Hold left click mine/attack &middot; Right click place &middot; Hold right click eat / draw bow &middot; Q drop &middot; Middle click pick (creative)<br>
-    1-9 / scroll select &middot; E inventory &amp; crafting &middot; F fly (creative) &middot; F3 or ` debug &middot; Esc pause<br>Touchscreen? Just tap the screen - on-screen controls appear.
+    1-9 / scroll select &middot; E inventory &amp; crafting &middot; F fly (creative) &middot; F3 or ` debug &middot; Esc pause<br>Touchscreen? Just tap the screen - on-screen controls appear.<br>Controller? Plug in an Xbox / PlayStation controller and press A.
   </div>
 </div>
 
@@ -304,6 +306,7 @@
     <button class="btn" id="btnSignupBack">Back</button>
   </div>
 </div>
+<div id="padCursor"></div>
 <div id="rotateHint">Turn your phone sideways<br>for the best view</div>
 <div id="chatLog"></div>
 <input id="chatInput" maxlength="120" autocomplete="off" enterkeyhint="send" placeholder="Say something... (Enter to send, Esc to cancel)">
@@ -356,7 +359,7 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 <script>
 'use strict';
-const GAME_VERSION='2.5';
+const GAME_VERSION='2.6';
 const DEFAULT_SERVER='wss://blockcraft-server.austinhodgins2014-e99.workers.dev/ws'; // the big server's address (set by "Deploy Big Server.bat")
 const MP={role:null,applying:false,seq:0,players:new Map(),conns:new Map(),outB:new Map(),remote(){return MP.role==='client'||MP.role==='net';}}; // multiplayer state (see the Multiplayer section)
 // =====================================================================
@@ -1609,6 +1612,7 @@ function updatePlayer(dt){
   player.pitch=clamp(player.pitch+((keys.ArrowUp?1:0)-(keys.ArrowDown?1:0))*1.8*dt,-Math.PI/2+0.001,Math.PI/2-0.001);
   let fw=(keys.KeyW?1:0)-(keys.KeyS?1:0),st=(keys.KeyD?1:0)-(keys.KeyA?1:0);
   if(touchMove.active){fw=-touchMove.y;st=touchMove.x;}
+  if(padMove.active){fw=-padMove.y;st=padMove.x;}
   const s=Math.sin(player.yaw),c=Math.cos(player.yaw);
   let wx=st*c-fw*s,wz=-st*s-fw*c;const l=Math.hypot(wx,wz);if(l>0){wx/=l;wz/=l;}
   const feet=getBlock(Math.floor(p.x),Math.floor(p.y+0.4),Math.floor(p.z));
@@ -3395,7 +3399,7 @@ function damagePlayer(n,src,ignoreInvuln,knock=6,useArmor=!!src){
         if(a.dmg>=ITEM[a.id].dur){toast(ITEM[a.id].name+' broke!');sfx('toolbreak');armor[p]=null;}}
       invChanged();}}
   if(sleeping){sleeping=null;document.getElementById('sleepFade').style.opacity=0;}
-  hp-=n;invuln=0.5;hurtTilt=1;sfx('hurt');addExhaustion(0.1);
+  hp-=n;invuln=0.5;hurtTilt=1;sfx('hurt');padRumble(0.6,160);addExhaustion(0.1);
   const d=document.getElementById('damage');d.style.background='rgba(200,0,0,.32)';setTimeout(()=>d.style.background='rgba(200,0,0,0)',140);
   if(src){const dx=player.pos.x-src.x,dz=player.pos.z-src.z,l=Math.hypot(dx,dz)||1;player.vel.x+=dx/l*knock;player.vel.z+=dz/l*knock;player.vel.y=Math.max(player.vel.y,knock*0.7);}
   if(hp<=0){hp=0;die();}
@@ -3849,6 +3853,7 @@ function updateMenuButtons(){
 }
 function lock(){
   audioInit();
+  if(padUsed&&padIndex!==null&&!document.pointerLockElement){enterFree();return;} // playing with a controller
   if(touchMode&&IS_MOBILE&&!document.fullscreenElement&&document.documentElement.requestFullscreen){
     document.documentElement.requestFullscreen({navigationUI:'hide'}).then(()=>{try{screen.orientation.lock('landscape').catch(()=>{});}catch(e){}}).catch(()=>{});}
   if(touchMode||!canvas.requestPointerLock){enterFree();return;}
@@ -3914,7 +3919,7 @@ function autoTune(dt){
 // ---------------------------------------------------------------------
 //  Touch controls (Chromebook touchscreens / tablets) - shown after the first touch
 // ---------------------------------------------------------------------
-let touchMode=false;const touchMove={x:0,y:0,active:false};
+let touchMode=false;const touchMove={x:0,y:0,active:false},padMove={x:0,y:0,active:false};
 function enableTouch(){if(touchMode)return;touchMode=true;document.body.classList.add('touch');}
 window.addEventListener('touchstart',enableTouch,{passive:true});
 {
@@ -3954,6 +3959,71 @@ window.addEventListener('touchstart',enableTouch,{passive:true});
   const rotate=document.getElementById('rotateHint');
   const checkRotate=()=>{rotate.style.display=touchMode&&!titleMode&&innerHeight>innerWidth*1.1?'block':'none';};
   window.addEventListener('resize',checkRotate);setInterval(checkRotate,1000);rotate.onclick=()=>rotate.style.display='none';
+}
+// =====================================================================
+//  Game controllers (Xbox / PlayStation / any "standard" gamepad), laid out like Minecraft on Xbox.
+//  In menus and the inventory the left stick moves a cursor and A clicks.
+// =====================================================================
+let padIndex=null,padPrev=[],padUsed=false,padCur={x:innerWidth/2,y:innerHeight/2},lastJumpTap=0;
+const PADB={A:0,B:1,X:2,Y:3,LB:4,RB:5,LT:6,RT:7,VIEW:8,MENU:9,LS:10,RS:11,UP:12,DOWN:13,LEFT:14,RIGHT:15};
+window.addEventListener('gamepadconnected',e=>{padIndex=e.gamepad.index;toast('Controller connected!');});
+window.addEventListener('gamepaddisconnected',e=>{if(e.gamepad.index===padIndex){padIndex=null;padMove.active=false;toast('Controller disconnected');}});
+function padRumble(strength,ms){try{const g=padIndex!==null&&navigator.getGamepads()[padIndex];
+  if(g&&g.vibrationActuator)g.vibrationActuator.playEffect('dual-rumble',{duration:ms,strongMagnitude:strength,weakMagnitude:strength*0.6});}catch(e){}}
+const dz=(v,d=0.18)=>Math.abs(v)<d?0:Math.sign(v)*(Math.abs(v)-d)/(1-d);
+function padClick(type){ // click whatever is under the menu cursor
+  const el=document.elementFromPoint(padCur.x,padCur.y);if(!el)return;
+  const o={bubbles:true,cancelable:true,clientX:padCur.x,clientY:padCur.y,button:type==='right'?2:0,shiftKey:type==='shift'};
+  el.dispatchEvent(new MouseEvent('mousemove',o));el.dispatchEvent(new MouseEvent('mousedown',o));el.dispatchEvent(new MouseEvent('mouseup',o));
+  if(type!=='right'&&type!=='shift'){el.dispatchEvent(new MouseEvent('click',o));if(el.tagName==='INPUT'&&el.type!=='range')el.focus();}
+}
+function pollGamepad(dt){
+  const pads=navigator.getGamepads?navigator.getGamepads():[];
+  let g=padIndex!==null?pads[padIndex]:null;
+  if(!g)for(const q of pads)if(q&&q.connected){g=q;padIndex=q.index;break;}
+  const cur=document.getElementById('padCursor');
+  if(!g){padMove.active=false;cur.style.display='none';return;}
+  const b=g.buttons.map(x=>x.pressed||x.value>0.5),pressed=i=>b[i]&&!padPrev[i],released=i=>!b[i]&&padPrev[i];
+  const ax=g.axes,lx=dz(ax[0]||0),ly=dz(ax[1]||0),rx=dz(ax[2]||0),ry=dz(ax[3]||0);
+  if(b.some(Boolean)||lx||ly||rx||ry)padUsed=true;
+  const inMenu=!locked||invOpen;
+  if(inMenu){ // menus: the left stick drives a cursor
+    if(padUsed){cur.style.display='block';
+      padCur.x=clamp(padCur.x+lx*900*dt,0,innerWidth-4);padCur.y=clamp(padCur.y+ly*900*dt,0,innerHeight-4);
+      cur.style.left=padCur.x+'px';cur.style.top=padCur.y+'px';
+      if(lx||ly){const el=document.elementFromPoint(padCur.x,padCur.y);if(el)el.dispatchEvent(new MouseEvent('mousemove',{bubbles:true,clientX:padCur.x,clientY:padCur.y}));}
+      if(ry){const el=document.elementFromPoint(padCur.x,padCur.y);let sc=el;while(sc&&sc!==document.body&&!(sc.scrollHeight>sc.clientHeight+2&&/auto|scroll/.test(getComputedStyle(sc).overflowY)))sc=sc.parentElement;
+        if(sc&&sc!==document.body)sc.scrollTop+=ry*700*dt;}}
+    if(pressed(PADB.A))padClick('left');
+    if(pressed(PADB.X))padClick('right');
+    if(pressed(PADB.RB))padClick('shift');
+    if(pressed(PADB.Y)&&invOpen){closeInventory();lock();}
+    if(pressed(PADB.B)){if(chatOpen)closeChat(false);else if(invOpen){closeInventory();lock();}
+      else if(document.getElementById('signupScreen').style.display==='flex')document.getElementById('btnSignupBack').click();
+      else if(document.getElementById('mpScreen').style.display==='flex')document.getElementById('btnMpBack').click();
+      else if(document.getElementById('worlds').style.display==='flex')document.getElementById('btnWorldsBack').click();
+      else if(!titleMode&&!player.dead)lock();}
+    if(pressed(PADB.MENU)&&!titleMode&&!player.dead&&!invOpen)lock();
+    padMove.active=false;keys.Space=false;mouseHeld[0]=mouseHeld[2]=false;
+  }else{ // playing
+    cur.style.display='none';
+    padMove.active=Math.hypot(lx,ly)>0.05;padMove.x=lx;padMove.y=ly;
+    const k=(sensitivity/8)*3.2*dt,curve=v=>v*Math.abs(v)*0.6+v*0.4;
+    player.yaw-=curve(rx)*k*(useHold&&useHold.type==='bow'?0.5:1);player.pitch=clamp(player.pitch-curve(ry)*k*0.8,-Math.PI/2+0.001,Math.PI/2-0.001);
+    if(pressed(PADB.A)){const now=performance.now();if(mode==='creative'&&now-lastJumpTap<300){player.flying=!player.flying;player.vel.y=0;}lastJumpTap=now;}
+    if(pressed(PADB.A))keys.Space=true;if(released(PADB.A))keys.Space=false;
+    if(pressed(PADB.B)||pressed(PADB.RS))keys.KeyC=true;if((released(PADB.B)||released(PADB.RS))&&!b[PADB.B]&&!b[PADB.RS])keys.KeyC=false;
+    if(pressed(PADB.LS))sprintTap=true;
+    if(pressed(PADB.RT)){mouseHeld[0]=true;primaryDown();}if(released(PADB.RT))mouseHeld[0]=false;
+    if(pressed(PADB.LT)){mouseHeld[2]=true;mouseTimer[2]=0.3;rightDown();}if(released(PADB.LT))mouseHeld[2]=false;
+    if(pressed(PADB.LB)||pressed(PADB.LEFT))selectSlot(selected-1);
+    if(pressed(PADB.RB)||pressed(PADB.RIGHT))selectSlot(selected+1);
+    if(pressed(PADB.X)||pressed(PADB.DOWN))dropHeld(false);
+    if(pressed(PADB.Y))openInventory();
+    if(pressed(PADB.VIEW)||pressed(PADB.UP)){camView=(camView+1)%3;toast(['First person','Third person (back)','Third person (front)'][camView]);}
+    if(pressed(PADB.MENU)){padCur.x=innerWidth/2;padCur.y=innerHeight/2;showPause();}
+  }
+  padPrev=b;
 }
 // inventory on touch screens: no right-click or shift-click, so these toggles stand in for them
 let touchClick=null;
@@ -4336,7 +4406,7 @@ document.getElementById('btnWorldsBack').onclick=()=>{worldsEl.style.display='no
 // =====================================================================
 //  Main loop
 // =====================================================================
-const splashes=['Now with infinite worlds!','Now with 3D items!','Now on phones!','Defeat the Ender Dragon!','The End is near!','Iron golems guard villages!','Watch out for cobwebs!','Now with the Nether!','Don\'t stare at Endermen!','Tame a wolf!','Climb the ladder!','Spooky pumpkins!','Press F5!','Crafting tables!','Craft it like you mean it!','Diamonds are rare now!','Beds are 2 blocks now!','100% procedurally generated!','Punch trees!','Also try the real thing!','Made of cubes!','Look up at night!',
+const splashes=['Now with infinite worlds!','Now with 3D items!','Controller supported!','Now on phones!','Defeat the Ender Dragon!','The End is near!','Iron golems guard villages!','Watch out for cobwebs!','Now with the Nether!','Don\'t stare at Endermen!','Tame a wolf!','Climb the ladder!','Spooky pumpkins!','Press F5!','Crafting tables!','Craft it like you mean it!','Diamonds are rare now!','Beds are 2 blocks now!','100% procedurally generated!','Punch trees!','Also try the real thing!','Made of cubes!','Look up at night!',
   'Caves included!','Beware of creepers!','Torches not included!','Oink!','Moo!','Craft your own tools!','Survive the night!','Water flows!','Don\'t starve!','Sssss...'];
 document.getElementById('splash').textContent=splashes[Math.floor(Math.random()*splashes.length)];
 document.getElementById('verLabel').textContent='BlockCraft '+GAME_VERSION;
@@ -4745,10 +4815,11 @@ function frame(now){
   let dt=(now-last)/1000;last=now;if(dt>0.1)dt=0.1;if(dt<0)dt=0;
   fpsAcc+=dt;fpsN++;if(fpsAcc>0.5){fps=Math.round(fpsN/fpsAcc);fpsAcc=0;fpsN=0;}
   U.time.value=now/1000;
+  pollGamepad(dt);
   updateChunks();
   if(!player.spawned)settleSpawn();
   const lf=loadedFraction();loadEl.textContent=lf<1?`Generating terrain... ${Math.round(lf*100)}%`:'';
-  const moving=locked&&(keys.KeyW||keys.KeyA||keys.KeyS||keys.KeyD||touchMove.active);
+  const moving=locked&&(keys.KeyW||keys.KeyA||keys.KeyS||keys.KeyD||touchMove.active||padMove.active);
   const active=!titleMode&&player.spawned&&!player.dead&&(locked||invOpen);
   if(titleMode){player.yaw+=dt*0.035;dayTime=0.27;}
   if(sleeping)updateSleep(dt);

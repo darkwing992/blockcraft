@@ -112,6 +112,14 @@ ON A PHONE (IPHONE OR ANDROID)
   - Phones start with Fast graphics and a short render distance; change them in the pause menu.
   - Worlds are saved on the phone. The big server and friends' worlds work on phones too.
 
+CONTROLLER (XBOX / PLAYSTATION)
+  Plug in or connect the controller, then press A. Buttons are like Minecraft on Xbox:
+  Left stick walk (click = sprint), right stick look (click = sneak), A jump (double-tap = fly in
+  creative), B sneak, X drop, Y inventory, RT mine / attack, LT place / use / eat,
+  LB / RB change hotbar slot, Menu = pause, View or D-pad up = change camera.
+  In menus and the inventory the left stick moves a cursor: A = click, X = move one,
+  RB = quick move, B = back, right stick scrolls lists. It rumbles when you get hurt.
+
 CONTROLS
   WASD move, mouse look (or arrow keys), Space jump/swim
   Double-tap W (or hold Shift) sprint, C sneak

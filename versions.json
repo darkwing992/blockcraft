@@ -1,5 +1,6 @@
-{"latest":"2.5","launcher":"2.1",
+{"latest":"2.6","launcher":"2.1",
   "versions": [
+    {"id":"2.6","title":"Controller Update","date":"2026-10-12","notes":"Play with an Xbox or PlayStation controller: Minecraft-style buttons, a cursor for menus and the inventory, and rumble.","sha256":"0dc41712b69af780708e257de43796016158c894d79e83382e168348b55cc295"},
     {"id":"2.5","title":"Phone Update","date":"2026-10-12","notes":"Plays on iPhone and Android: phone-sized controls and inventory, faster graphics on phones, chat and view buttons, add to home screen.","sha256":"4e17b4f795f27eeebb3124694745600ce1d404600108696c96d037a7f3bddbb7"},
     {"id":"2.4","title":"The End Update","date":"2026-10-12","notes":"The End and the Ender Dragon boss fight, blazes, eyes of ender and end portals. All mobs look much better: 3D shading, shadows, more detail and death animations.","sha256":"2f8e24755dd92c863778acecb7df1c71474753cee086bc270b450d59cbfd1579"},
     {"id":"2.3","title":"Mobs \u0026 Blocks Update","date":"2026-10-12","notes":"Mobs hold real 3D items. Iron golems, squid, bats, rabbits, husks and strays. Clay, mushrooms, melons, cobwebs, hay, granite, diorite, andesite, lapis and more.","sha256":"f2201891f4f874ddb0359c40b3e960010d8f2b51a3e309f714d6729823ec785a"},
