@@ -35,8 +35,11 @@
   .overlay { position: fixed; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; background: rgba(0,0,0,.55); color: #fff; }
   .overlay h1 { font-size: 64px; margin: 0 0 6px; letter-spacing: 3px; color: #e8e8e8; text-shadow: 4px 4px 0 #3a3a3a; font-family: Consolas, monospace; }
   .overlay .sub { color: #ffff55; margin-bottom: 26px; font-family: Consolas, monospace; text-shadow: 2px 2px 0 #3f3f00; transform: rotate(-4deg); }
-  .btn { width: 360px; padding: 11px; margin: 5px; font-size: 18px; color: #fff; background: #6d6d6d; border: 2px solid #000; box-shadow: inset 2px 2px 0 #a8a8a8, inset -2px -3px 0 #4a4a4a; cursor: pointer; font-family: Consolas, monospace; text-shadow: 2px 2px 0 #333; }
-  .btn:hover { background: #7f8fc9; box-shadow: inset 2px 2px 0 #b4c2ff, inset -2px -3px 0 #4b5a96; }
+  .btn { width: 360px; padding: 11px 11px 15px; margin: 5px; font-size: 18px; font-weight: bold; color: #313233; background: #d0d1d4; border: 2px solid #1e1e1f; border-radius: 0;
+    box-shadow: inset 0 -5px 0 #58585a, inset 3px 3px 0 #f2f3f4, inset -3px -8px 0 #b1b2b5; cursor: pointer; font-family: Consolas, monospace; text-shadow: none; transition: background .05s; }
+  .btn:active { box-shadow: inset 0 -2px 0 #58585a, inset 3px 3px 0 #f2f3f4, inset -3px -5px 0 #b1b2b5; padding-top: 14px; padding-bottom: 12px; }
+  .btn:hover { background: #e6e7ea; color: #1e1e1f; box-shadow: inset 0 -5px 0 #58585a, inset 3px 3px 0 #ffffff, inset -3px -8px 0 #c4c5c8; }
+  .btn:focus-visible { outline: 3px solid #fff; outline-offset: 1px; }
   .settings { width: 360px; margin-top: 14px; font-family: Consolas, monospace; font-size: 14px; }
   .settings label { display: flex; justify-content: space-between; align-items: center; margin: 6px 0; gap: 10px; }
   .settings input[type=range] { flex: 1; }
@@ -64,7 +67,7 @@
   #createForm label { display: flex; justify-content: space-between; align-items: center; gap: 10px; margin: 6px 0; }
   #createForm input { flex: 1; max-width: 320px; padding: 6px; font: 15px Consolas, monospace; background: #000; color: #fff; border: 2px solid #a0a0a0; }
   #createForm .btn { width: 100%; }
-  .modeBtn.on { background: #4a7a3a; box-shadow: inset 2px 2px 0 #7ab06a, inset -2px -3px 0 #2a4a1a; }
+  .modeBtn.on { background: #3c8527; color: #fff; box-shadow: inset 0 -5px 0 #1d4d13, inset 3px 3px 0 #6cc349, inset -3px -8px 0 #2a641c; }
   #worldMsg { min-height: 18px; color: #ffd75e; text-align: center; font-size: 13px; margin: 6px 0; }
   body.title #hotbar, body.title #stats, body.title #crosshair { display: none; }
   #game, #touchUI, #hotbar { touch-action: none; }
@@ -142,8 +145,31 @@
   .zopt:hover { border-color: #a33; }
   #zCode { flex: 1; padding: 8px; font: 16px Consolas, monospace; background: #000; color: #fff; border: 2px solid #a0a0a0; text-transform: uppercase; letter-spacing: 3px; margin: 4px 0; min-width: 0; }
   #zMsg { min-height: 18px; color: #ffd75e; font-size: 14px; margin: 4px 0; }
-  #btnMinigames { background: #6a1616; box-shadow: inset 2px 2px 0 #a84040, inset -2px -3px 0 #3a0808; }
-  #btnMinigames:hover { background: #8a2020; }
+  #btnMinigames { background: #7a45e6; color: #fff; box-shadow: inset 0 -5px 0 #3d1a99, inset 3px 3px 0 #a07cf5, inset -3px -8px 0 #6232c9; }
+  #btnMinigames:hover { background: #8c5cf2; color: #fff; box-shadow: inset 0 -5px 0 #3d1a99, inset 3px 3px 0 #b898ff, inset -3px -8px 0 #7444dd; }
+  #titleBtns .btn { width: min(460px, 86vw); padding: 17px 11px 21px; font-size: 23px; margin: 7px; }
+  #titleSkin { display: none; position: absolute; right: 6vw; bottom: 9vh; text-align: center; font-family: Consolas, monospace; }
+  body.title #titleSkin { display: block; }
+  body.title:not(.settingsOpen) #menu .settings, body.title:not(.settingsOpen) #menu .help { display: none; }
+  body.settingsOpen #titleBtns, body.settingsOpen #titleSkin, body.settingsOpen #splash { display: none !important; }
+  #btnSettingsDone { display: none; } body.title.settingsOpen #btnSettingsDone { display: block; }
+  #titleSkinName { color: #fff; font-size: 26px; font-weight: bold; text-shadow: 3px 3px 0 #000; margin-bottom: 8px; }
+  #titleSkinCv { width: 130px; height: 260px; image-rendering: pixelated; display: block; margin: 0 auto 10px; filter: drop-shadow(6px 8px 0 rgba(0,0,0,.45)); }
+  #titleSkin .btn { width: 220px; }
+  @media (max-width: 1000px), (max-height: 560px) { #titleSkin { right: 12px; bottom: 12px; } #titleSkinName, #titleSkinCv { display: none; } #titleSkin .btn { width: auto; } }
+  #skinScreen { display: none; background: rgba(8,8,14,.96); z-index: 5; }
+  #skinPanel { width: min(720px, 96vw); font-family: Consolas, monospace; text-align: center; max-height: 96vh; overflow-y: auto; }
+  #skinPanel h2 { font-size: 34px; margin: 4px 0 10px; letter-spacing: 3px; text-shadow: 3px 3px 0 #000; color: #8affc0; }
+  #skinRow { display: flex; gap: 16px; align-items: flex-start; justify-content: center; flex-wrap: wrap; }
+  #skinPreview { width: 160px; height: 320px; image-rendering: pixelated; background: radial-gradient(#2a3a4a, #10141a); border: 2px solid #4a5a6a; }
+  #skinSide { flex: 1; min-width: 260px; }
+  #skinGrid { display: grid; grid-template-columns: repeat(auto-fill, minmax(78px, 1fr)); gap: 6px; margin-bottom: 8px; }
+  .skinOpt { padding: 4px; background: #1e2028; border: 2px solid #44485a; color: #ddd; font: 11px Consolas, monospace; cursor: pointer; }
+  .skinOpt canvas { width: 32px; height: 64px; image-rendering: pixelated; display: block; margin: 0 auto 2px; }
+  .skinOpt.on { border-color: #8affc0; background: #1e3a2c; } .skinOpt:hover { border-color: #8affc0; }
+  #skinMsg { min-height: 18px; color: #ffd75e; font-size: 13px; }
+  #skinSide .btn { width: 100%; margin: 5px 0; }
+  #skinPanel { overflow-x: hidden; }
   #mgScreen, #pvpScreen { display: none; background: rgba(8,6,10,.96); z-index: 5; }
   #mgPanel, #pvpPanel { width: min(620px, 94vw); font-family: Consolas, monospace; text-align: center; max-height: 96vh; overflow-y: auto; }
   #mgPanel h2, #pvpPanel h2 { font-size: 34px; margin: 4px 0 10px; letter-spacing: 3px; text-shadow: 3px 3px 0 #000; color: #ffd84a; }
@@ -156,7 +182,7 @@
   #pvpPanel input { flex: 1; max-width: 220px; padding: 6px; font: 16px Consolas, monospace; background: #000; color: #fff; border: 2px solid #a0a0a0; }
   #pvpCode { text-transform: uppercase; letter-spacing: 3px; }
   #pvpStatus { min-height: 18px; font-size: 13px; color: #9f9; } #pvpMsg { min-height: 20px; color: #ffd75e; margin: 8px 0; font-size: 15px; }
-  #btnPvpFind { background: #1d4a7a; } #btnPvpFind:hover { background: #2a64a0; }
+  #btnPvpFind { background: #2a6fd6; color: #fff; box-shadow: inset 0 -5px 0 #123f85, inset 3px 3px 0 #6aa2f0, inset -3px -8px 0 #1f58b0; } #btnPvpFind:hover { background: #3b82ea; color: #fff; }
   #pvpHud { display: none; position: fixed; top: 10px; left: 50%; transform: translateX(-50%); text-align: center; pointer-events: none; font-family: Consolas, monospace; text-shadow: 2px 2px 0 #000; white-space: nowrap; }
   body.pvp:not(.title) #pvpHud { display: block; }
   #pvpScore { font-size: 24px; font-weight: bold; color: #fff; } #pvpScore .me { color: #5ab0ff; } #pvpScore .op { color: #ff5a5a; } #pvpRound { font-size: 14px; color: #ddd; }
@@ -295,9 +321,10 @@
 </div>
 
 <div id="menu" class="overlay">
-  <h1>BLOCKCRAFT</h1>
+  <h1 id="title">BLOCKCRAFT</h1>
   <div class="sub" id="splash">Now with infinite worlds!</div>
-  <div id="titleBtns" class="col"><button class="btn" id="btnSingle">Singleplayer</button><button class="btn" id="btnMulti">Multiplayer</button><button class="btn" id="btnMinigames">Minigames</button></div>
+  <div id="titleBtns" class="col"><button class="btn" id="btnSingle">Singleplayer</button><button class="btn" id="btnMulti">Multiplayer</button><button class="btn" id="btnMinigames">Minigames</button><button class="btn" id="btnSettings">Settings</button></div>
+  <div id="titleSkin"><div id="titleSkinName"></div><canvas id="titleSkinCv" width="64" height="128"></canvas><button class="btn" id="btnSkins">Skins</button></div>
   <div id="verLabel" style="position:absolute;left:10px;bottom:8px;color:#ddd;font:14px monospace;text-shadow:2px 2px #000;pointer-events:none"></div>
   <div id="pauseBtns" class="col">
     <div id="menuWorld"></div>
@@ -317,6 +344,7 @@
     <label class="chk"><span>Music</span><input type="checkbox" id="optMusic" checked></label>
     <label class="chk"><span>Graphics</span><button class="btn sm" id="btnGfx">Fancy</button></label>
     <button class="btn" id="btnFull" style="width:100%;margin:6px 0 0">Toggle Fullscreen</button>
+    <button class="btn" id="btnSettingsDone" style="width:100%;margin:6px 0 0">Done</button>
   </div>
   <div class="help">
     WASD move &middot; Mouse look (or arrow keys) &middot; Space jump/swim &middot; Double-tap W or hold Shift to sprint &middot; C sneak<br>
@@ -377,6 +405,19 @@
   <button class="btn" id="btnPvpAgain">Play Again</button>
   <button class="btn" id="btnPvpMenu">Back to Title</button>
 </div>
+<div id="skinScreen" class="overlay">
+  <div id="skinPanel">
+    <h2>SKINS</h2>
+    <div id="skinRow"><canvas id="skinPreview" width="160" height="320"></canvas>
+      <div id="skinSide"><div id="skinGrid"></div>
+        <button class="btn" id="btnSkinImport">Import Skin (.png)</button>
+        <p class="mpHint">Works with Minecraft Java skins: any 64x64 (or old 64x32) skin PNG. Download one from a skin website, then import it here.
+          Your skin shows to other players in multiplayer, on the big server and in PvP.</p>
+        <div id="skinMsg"></div></div></div>
+    <button class="btn" id="btnSkinDone">Done</button>
+    <input type="file" id="skinFile" accept="image/png" hidden>
+  </div>
+</div>
 <div id="mgScreen" class="overlay">
   <div id="mgPanel">
     <h2>MINIGAMES</h2>
@@ -391,6 +432,9 @@
     <p>Fight another player 1v1 in the arena. You both get the same gear: iron sword, axe, bow, crossbow, armor and 2 golden apples.
       First to win 2 rounds wins the duel.</p>
     <label>Your name <input id="pvpName" maxlength="16" autocomplete="off"></label>
+    <div class="zlabel" style="color:#5ab0ff">Your kit</div>
+    <div class="zgrid" id="pvpKits"></div>
+    <p class="mpHint">Maps: Classic Arena, Sky Islands (don't fall!), Nether Pit (mind the lava) and Forest Ruins - picked at random.</p>
     <div id="pvpStatus"></div>
     <button class="btn" id="btnPvpFind">Find a Match</button>
     <p class="mpHint">Want to fight a friend? You both type the same secret code, then click Duel a Friend.</p>
@@ -486,12 +530,12 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 <script>
 'use strict';
-const GAME_VERSION='3.7';
+const GAME_VERSION='4.0';
 const DEFAULT_SERVER='wss://blockcraft-server.austinhodgins2014-e99.workers.dev/ws'; // the big server's address (set by "Deploy Big Server.bat")
 let PV=null; // the PvP duel you're in (null = none)
 let ZM=null,flashOn=true,zLife=0,flickT=0;
 function flashFlicker(dt){flickT-=dt;if(flickT<=0&&Math.random()<dt*0.12)flickT=0.25+Math.random()*0.5;return flickT>0?(Math.random()<0.5?0.15:0.75):1;} // zombie apocalypse settings for this world (null = a normal world)
-const MP={role:null,applying:false,seq:0,players:new Map(),conns:new Map(),outB:new Map(),remote(){return MP.role==='client'||MP.role==='net';}}; // multiplayer state (see the Multiplayer section)
+const MP={role:null,applying:false,seq:0,skins:new Map(),players:new Map(),conns:new Map(),outB:new Map(),remote(){return MP.role==='client'||MP.role==='net';}}; // multiplayer state (see the Multiplayer section)
 // =====================================================================
 //  Random / noise
 // =====================================================================
@@ -1152,16 +1196,44 @@ function zForestFloor(cx,cz,data,set,colAt){
 }
 // the PvP arena: a 45x45 stone floor, high walls with lights, pillars and low walls for cover
 const ARENA_R=22;
+const PVP_MAPS=['Classic Arena','Sky Islands','Nether Pit','Forest Ruins'],SKY_Y=SEA+36;
+const SKY_ISLES=[[0,0,6.5,0],[0,-18,4.6,0],[0,18,4.6,0],[-14,0,3.6,2],[14,0,3.6,2],[-12,-11,2.6,1],[12,11,2.6,1],[12,-11,2.6,-1],[-12,11,2.6,-1]];
+const RUIN_TREES=[[-6,-10],[6,10],[-14,-4],[14,4],[10,-14],[-10,14],[-16,12],[16,-12],[-3,6],[3,-6]];
 function paintArena(cx,cz,set){
-  const h=SEA+4,R=ARENA_R;
+  const h=SEA+4,R=ARENA_R,map=PV?PV.map||0:0;
   for(let lz=0;lz<CS;lz++)for(let lx=0;lx<CS;lx++){
-    const x=cx*CS+lx,z=cz*CS+lz,ax=Math.abs(x),az=Math.abs(z),d=Math.max(ax,az);if(d>R+3)continue;
+    const x=cx*CS+lx,z=cz*CS+lz,ax=Math.abs(x),az=Math.abs(z),d=Math.max(ax,az);
+    if(map===1){ // sky islands: floating grass islands joined by narrow bridges; falling = losing the round
+      for(const [ix,iz,r,dy] of SKY_ISLES){const dd=Math.hypot(x-ix,z-iz);if(dd>r)continue;const top=SKY_Y+dy,depth=1+Math.floor((r-dd)*1.6);
+        for(let y=top-depth;y<top;y++)set(lx,y,lz,y<top-2?B.STONE:B.DIRT);set(lx,top,lz,dd<1&&r<4?B.GLOW:B.GRASS);}
+      if(ax<=1&&az>=6&&az<=14)set(lx,SKY_Y,lz,B.PLANKS);
+      if(az===0&&ax>=6&&ax<=11&&ax!==9)set(lx,SKY_Y+(ax>=10?2:ax>=8?1:0),lz,B.SPRUCE_PLANKS);
+      continue;}
+    if(d>R+3)continue;
     if(d<=R){
-      set(lx,h,lz,d<=2?B.QUARTZ_BLOCK:d===R?B.GLOW:((x+z)&1)?B.STONE_BRICKS:B.ANDESITE);
       for(let y=h+1;y<=h+12;y++)set(lx,y,lz,0);
-      if((ax===8||ax===9)&&(az===8||az===9)){for(let y=h+1;y<=h+4;y++)set(lx,y,lz,(x+y)&1?B.COBBLE:B.MOSSY_COBBLE);set(lx,h+5,lz,B.GLOW);} // pillars
-      if((az===5&&ax<=2)||(ax===13&&az<=1)||(az===12&&ax>=5&&ax<=6))for(let y=h+1;y<=h+2;y++)set(lx,y,lz,B.STONE_BRICKS); // cover
-    }else{for(let y=h-1;y<=h+9;y++)set(lx,y,lz,(y===h+5&&(x+z)%6===0&&d===R+1)?B.GLOW:B.STONE_BRICKS);}
+      if(map===2){ // nether pit: netherrack, a lava pool in the middle, quartz pillars, soul sand
+        const dc=Math.hypot(x,z);set(lx,h,lz,dc<3.2?B.LAVA:dc<4.2?B.OBSIDIAN:perlin.noise(x/5,9.9,z/5)>0.3?B.SOUL_SAND:B.NETHERRACK);
+        if(dc<3.2)set(lx,h-1,lz,B.NETHERRACK);
+        if((ax===8||ax===9)&&(az===8||az===9)){for(let y=h+1;y<=h+5;y++)set(lx,y,lz,B.QUARTZ_BLOCK);set(lx,h+6,lz,B.GLOW);}
+        if((az===12&&ax>=4&&ax<=6)||(ax===12&&az>=4&&az<=6))for(let y=h+1;y<=h+2;y++)set(lx,y,lz,B.NETHERRACK);
+        if(d===R)set(lx,h,lz,B.GLOW);
+      }else if(map===3){ // forest ruins: grass, trees, broken mossy walls and a ruined tower
+        set(lx,h,lz,perlin.noise(x/6,3.3,z/6)>0.25?B.PATH:B.GRASS);
+        const dc=Math.hypot(x,z);
+        if(dc>2.4&&dc<3.6&&!(Math.abs(x)<1.5&&z>0)&&!(Math.abs(z)<1.5&&x<0)){const th=2+Math.floor(hash3(x,1,z,SEED+700)*4);for(let y=h+1;y<=h+th;y++)set(lx,y,lz,(x+y+z)&1?B.MOSSY_COBBLE:B.COBBLE);}
+        if(((az===9||az===10)&&ax>=11&&ax<=16)||((ax===9)&&az>=2&&az<=5)){const th=1+Math.floor(hash3(x,2,z,SEED+701)*3);for(let y=h+1;y<=h+th;y++)set(lx,y,lz,B.MOSSY_COBBLE);}
+        for(const [tx,tz] of RUIN_TREES){const dx=x-tx,dz=z-tz;
+          if(dx===0&&dz===0)for(let y=h+1;y<=h+5;y++)set(lx,y,lz,B.LOG);
+          else if(Math.abs(dx)<=2&&Math.abs(dz)<=2){for(let y=h+4;y<=h+6;y++){const rr=y===h+6?1:2;if(Math.abs(dx)<=rr&&Math.abs(dz)<=rr&&!(Math.abs(dx)===2&&Math.abs(dz)===2))set(lx,y,lz,B.LEAVES,true);}}}
+      }else{ // classic
+        set(lx,h,lz,d<=2?B.QUARTZ_BLOCK:d===R?B.GLOW:((x+z)&1)?B.STONE_BRICKS:B.ANDESITE);
+        if((ax===8||ax===9)&&(az===8||az===9)){for(let y=h+1;y<=h+4;y++)set(lx,y,lz,(x+y)&1?B.COBBLE:B.MOSSY_COBBLE);set(lx,h+5,lz,B.GLOW);} // pillars
+        if((az===5&&ax<=2)||(ax===13&&az<=1)||(az===12&&ax>=5&&ax<=6))for(let y=h+1;y<=h+2;y++)set(lx,y,lz,B.STONE_BRICKS); // cover
+      }
+    }else{ // the outer wall
+      const wallB=map===2?B.OBSIDIAN:map===3?((x+z)&1?B.MOSSY_COBBLE:B.COBBLE):B.STONE_BRICKS,top=map===3?h+4+Math.floor(hash3(x,3,z,SEED+702)*5):h+9;
+      for(let y=h-1;y<=top;y++)set(lx,y,lz,(y===h+5&&(x+z)%6===0&&d===R+1)?B.GLOW:wallB);}
   }
 }
 function paintCamps(cx,cz,data,set){
@@ -5223,6 +5295,7 @@ function pollGamepad(dt){
       else if(document.getElementById('signupScreen').style.display==='flex')document.getElementById('btnSignupBack').click();
       else if(document.getElementById('mpScreen').style.display==='flex')document.getElementById('btnMpBack').click();
       else if(document.getElementById('worlds').style.display==='flex')document.getElementById('btnWorldsBack').click();
+      else if(document.body.classList.contains('settingsOpen'))document.body.classList.remove('settingsOpen');
       else if(document.getElementById('pvpScreen').style.display==='flex')document.getElementById('btnPvpBack').click();
       else if(document.getElementById('mgScreen').style.display==='flex')document.getElementById('btnMgBack').click();
       else if(document.getElementById('zScreen').style.display==='flex')document.getElementById('btnZBack').click();
@@ -5536,7 +5609,7 @@ async function openWorld(id){
   catch(e){alertBox('Could not load that world: '+(e.message||e));}
 }
 function startPlaying(){
-  titleMode=false;document.body.classList.remove('title');document.body.classList.toggle('zm',!!ZM);buildOffsets();
+  titleMode=false;document.body.classList.remove('title','settingsOpen');document.body.classList.toggle('zm',!!ZM);buildOffsets();
   document.getElementById('zOver').style.display='none';
   if(ZM)zBanner(ZM.style==='waves'?(ZM.wave?'WAVE '+ZM.wave:'SURVIVE THE WAVES'):'SURVIVE',ZM.style==='waves'?'Hold out as long as you can. Press L for your flashlight.':'Find ammo crates. Stay out of the dark. Press L for your flashlight.');
   worldsEl.style.display='none';updateMenuButtons();updateModeBtn();lock();
@@ -5551,6 +5624,7 @@ function enterTitle(){
   for(let dx=-48;dx<=48;dx+=8)for(let dz=-48;dz<=48;dz+=8)top=Math.max(top,column(Math.floor(spawnPoint[0])+dx,Math.floor(spawnPoint[2])+dz).h);
   player.pos.set(spawnPoint[0],top+6,spawnPoint[2]);player.spawned=true;player.pitch=-0.18;dayTime=0.27;
   menu.style.display='flex';worldsEl.style.display='none';updateMenuButtons();invChanged();
+  if(typeof updateTitleSkin==='function')setTimeout(updateTitleSkin,0);
 }
 async function quitToTitle(){
   if(PV){pvpSend({t:'leave'});PV=null;if(document.pointerLockElement)document.exitPointerLock();enterTitle();return;}
@@ -5644,12 +5718,13 @@ document.getElementById('btnWorldsBack').onclick=()=>{worldsEl.style.display='no
 // =====================================================================
 //  Main loop
 // =====================================================================
-const splashes=['Now with infinite worlds!','Now with 3D items!','Zombie Apocalypse!','1v1 me bro!','PvP duels!','Don\'t go out in the fog...','Bring a flashlight!','Controller supported!','Now on phones!','Defeat the Ender Dragon!','The End is near!','Iron golems guard villages!','Watch out for cobwebs!','Now with the Nether!','Don\'t stare at Endermen!','Tame a wolf!','Climb the ladder!','Spooky pumpkins!','Press F5!','Crafting tables!','Craft it like you mean it!','Diamonds are rare now!','Beds are 2 blocks now!','100% procedurally generated!','Punch trees!','Also try the real thing!','Made of cubes!','Look up at night!',
+const splashes=['Now with infinite worlds!','Now with 3D items!','Zombie Apocalypse!','1v1 me bro!','Custom skins!','Import your Minecraft skin!','PvP duels!','Don\'t go out in the fog...','Bring a flashlight!','Controller supported!','Now on phones!','Defeat the Ender Dragon!','The End is near!','Iron golems guard villages!','Watch out for cobwebs!','Now with the Nether!','Don\'t stare at Endermen!','Tame a wolf!','Climb the ladder!','Spooky pumpkins!','Press F5!','Crafting tables!','Craft it like you mean it!','Diamonds are rare now!','Beds are 2 blocks now!','100% procedurally generated!','Punch trees!','Also try the real thing!','Made of cubes!','Look up at night!',
   'Caves included!','Beware of creepers!','Torches not included!','Oink!','Moo!','Craft your own tools!','Survive the night!','Water flows!','Don\'t starve!','Sssss...'];
 document.getElementById('splash').textContent=splashes[Math.floor(Math.random()*splashes.length)];
 document.getElementById('verLabel').textContent='BlockCraft '+GAME_VERSION;
 loadSettings();
 enterTitle();
+setTimeout(()=>{const h=location.hash.slice(1),b={zombies:'btnZombie',pvp:'btnPvp',skins:'btnSkins',minigames:'btnMinigames'}[h];if(b){if(h!=='skins'&&h!=='minigames')document.getElementById('btnMinigames').click();document.getElementById(b).click();}},300);
 (async()=>{await Store.init();await migrateOld();if(worldsEl.style.display==='flex')renderWorldList();})();
 
 let last=performance.now(),fpsAcc=0,fpsN=0,fps=0,lastEyeWater=false;
@@ -5680,29 +5755,117 @@ function nameTag(text){
   const t=new THREE.CanvasTexture(c);t.minFilter=THREE.LinearFilter;
   const s=new THREE.Sprite(new THREE.SpriteMaterial({map:t,depthTest:false,transparent:true}));s.scale.set(w/40*0.3,0.3,1);s.renderOrder=998;return s;
 }
-function buildPlayerModel(name){
+// ---- Skins ----
+// Player models use the Minecraft Java skin layout, so any Minecraft skin PNG (64x64, or the old
+// 64x32 kind, also HD multiples) works. Without a skin, each name gets its own generated look.
+const SKIN_S=0.9/16; // one skin pixel in blocks (a player is 32 pixels = 1.8 blocks tall)
+function paintPart(x,u,v,w,h,d,fn){ // fn(face,px,py,W,H) -> css colour or null, for each face of one box
+  const R={right:[u,v+d,d,h],front:[u+d,v+d,w,h],left:[u+d+w,v+d,d,h],back:[u+2*d+w,v+d,w,h],top:[u+d,v,w,d],bottom:[u+d+w,v,w,d]};
+  for(const f in R){const [rx,ry,W,H]=R[f];for(let j=0;j<H;j++)for(let i=0;i<W;i++){const c=fn(f,i,j,W,H);if(c){x.fillStyle=c;x.fillRect(rx+i,ry+j,1,1);}}}
+}
+// a whole skin drawn from a few colours (used for everyone's default look and for the preset skins)
+function humanSkin(o){
+  const c=document.createElement('canvas');c.width=c.height=64;const x=c.getContext('2d');
+  const r=mulberry32(o.seed||7),sh=(col,k)=>{const n=1+(r()-0.5)*(k||0.12);return `rgb(${col[0]*n|0},${col[1]*n|0},${col[2]*n|0})`;};
+  const S=o.skin,Hc=o.hair,Sh=o.shirt,P=o.pants,Bt=o.shoes||[60,50,40];
+  // head
+  paintPart(x,0,0,8,8,8,(f,i,j)=>{
+    if(o.helmet)return j<(f==='front'?3:8)||(f==='front'&&(i===0||i===7))?sh(o.helmet,0.15):f==='front'&&j===3?'#111':sh(S,0.06);
+    if(f==='top')return sh(Hc);if(f==='bottom')return sh(S,0.05);
+    if(f==='front'){if(j<2||(j===2&&(i===0||i===7))||(o.long&&(i===0||i===7)&&j<6))return sh(Hc);
+      if(o.mask&&j>=5)return sh(o.mask,0.1);
+      if(j===4&&(i===1||i===6))return '#fff';if(j===4&&(i===2||i===5))return o.eyes?`rgb(${o.eyes})`:'#3050c0';
+      if(j===6&&i>=3&&i<=4)return o.mouth||'#7a4a3a';return sh(S,0.05);}
+    if(f==='back')return j<(o.long?8:6)?sh(Hc):sh(S,0.05);
+    return j<(o.long?7:3)?sh(Hc):sh(S,0.05);});
+  if(o.mask)paintPart(x,32,0,8,8,8,(f,i,j)=>f==='front'&&j>=5&&j<=6?sh(o.mask,0.1):null);
+  // body, arms, legs (the right ones, then the same for the left ones in the 64x64 spots)
+  const body=(f,i,j)=>{if(o.belt&&j===9)return sh(o.belt,0.1);if(o.stripe&&f==='front'&&(i===3||i===4))return sh(o.stripe,0.1);return sh(Sh);};
+  const arm=(f,i,j)=>j<(o.sleeve??4)?sh(Sh):(o.gloves&&j>=10)?sh(o.gloves,0.1):sh(S,0.05);
+  const leg=(f,i,j)=>j>=10?sh(Bt):sh(P);
+  paintPart(x,16,16,8,12,4,body);paintPart(x,40,16,4,12,4,arm);paintPart(x,0,16,4,12,4,leg);
+  paintPart(x,32,48,4,12,4,arm);paintPart(x,16,48,4,12,4,leg);
+  return c;
+}
+const SKIN_PRESETS={
+  hero:{name:'Hero',skin:[198,140,104],hair:[60,38,22],shirt:[40,160,170],pants:[50,60,150],shoes:[70,70,74]},
+  heroine:{name:'Heroine',skin:[226,176,140],hair:[200,120,40],shirt:[80,150,70],pants:[110,80,50],shoes:[90,60,40],long:true,eyes:[60,140,60],slim:true},
+  knight:{name:'Knight',skin:[200,150,110],hair:[40,30,20],shirt:[170,170,180],pants:[120,120,130],shoes:[80,80,90],helmet:[190,190,200],belt:[120,80,40],gloves:[140,140,150]},
+  ninja:{name:'Ninja',skin:[190,140,100],hair:[20,20,24],shirt:[30,30,36],pants:[26,26,30],shoes:[20,20,20],mask:[30,30,36],belt:[170,30,30],eyes:[200,40,40]},
+  pirate:{name:'Pirate',skin:[180,124,90],hair:[30,20,14],shirt:[230,230,220],pants:[60,40,30],shoes:[40,26,18],belt:[200,40,40],stripe:[200,40,40],sleeve:12},
+  robot:{name:'Robot',skin:[150,156,166],hair:[110,116,126],shirt:[120,126,136],pants:[90,96,106],shoes:[60,64,70],eyes:[255,60,40],mouth:'#333',sleeve:0},
+  hunter:{name:'Zombie Hunter',skin:[170,120,90],hair:[90,60,30],shirt:[70,90,50],pants:[80,70,50],shoes:[50,40,30],belt:[40,30,20],gloves:[50,40,30]},
+  zombie:{name:'Zombie',skin:[96,130,80],hair:[50,70,40],shirt:[50,140,150],pants:[60,60,140],shoes:[60,60,140],eyes:[20,20,20],mouth:'#2d4c26'},
+  astronaut:{name:'Astronaut',skin:[220,224,230],hair:[220,224,230],shirt:[230,232,236],pants:[220,224,230],shoes:[150,150,160],helmet:[230,232,236],stripe:[220,90,40],gloves:[150,150,160]},
+  wizard:{name:'Wizard',skin:[214,170,130],hair:[230,230,236],shirt:[80,50,150],pants:[70,40,130],shoes:[40,30,60],long:true,belt:[230,200,60],sleeve:12},
+};
+function autoSkin(name){ // everyone's default: a look picked from their name
   let h=7;for(const ch of name)h=(h*31+ch.charCodeAt(0))>>>0;
-  const sc=new THREE.Color().setHSL((h%360)/360,0.6,0.45),shirt=[sc.r*255|0,sc.g*255|0,sc.b*255|0];
-  const SK=[[196,146,110],[150,104,72],[226,180,146],[110,76,52]][(h>>4)&3],HR=[[70,45,25],[30,24,20],[200,160,80],[120,60,30]][(h>>8)&3];
-  const css=c=>`rgb(${c[0]},${c[1]},${c[2]})`;
-  const faceT=skinTex(8,8,SK,8,x=>{x.fillStyle=css(HR);x.fillRect(0,0,8,2);x.fillRect(0,2,1,1);x.fillRect(7,2,1,1);
-    x.fillStyle='#fff';x.fillRect(1,4,2,1);x.fillRect(5,4,2,1);x.fillStyle='#3050c0';x.fillRect(2,4,1,1);x.fillRect(5,4,1,1);x.fillStyle='#7a4a3a';x.fillRect(3,6,2,1);});
-  const sideT=skinTex(8,8,SK,8,x=>{x.fillStyle=css(HR);x.fillRect(0,0,8,3);}),hairT=skinTex(8,8,HR,12),skinT=skinTex(8,8,SK,8);
-  const shirtT=skinTex(8,8,shirt,14),armT=skinTex(8,8,SK,8,x=>{x.fillStyle=css(shirt);x.fillRect(0,0,8,3);});
-  const pantsT=skinTex(8,8,[48,58,140],14,x=>{x.fillStyle='#3a3a3a';x.fillRect(0,6,8,2);});
+  const sc=new THREE.Color().setHSL((h%360)/360,0.6,0.45);
+  return humanSkin({seed:h,skin:[[196,146,110],[150,104,72],[226,180,146],[110,76,52]][(h>>4)&3],hair:[[70,45,25],[30,24,20],[200,160,80],[120,60,30]][(h>>8)&3],
+    shirt:[sc.r*255|0,sc.g*255|0,sc.b*255|0],pants:[48,58,140],shoes:[58,58,58]});
+}
+// a skin string -> {canvas,legacy,slim}: 'preset:knight', or a data: PNG (a Minecraft skin file)
+const skinCache=new Map();
+function loadSkin(data){
+  if(skinCache.has(data))return skinCache.get(data);
+  let pr;
+  if(data.startsWith('preset:')){const P=SKIN_PRESETS[data.slice(7)];pr=P?Promise.resolve({canvas:humanSkin(P),legacy:false,slim:!!P.slim}):Promise.reject(new Error('unknown skin'));}
+  else if(/^data:image\/png;base64,/.test(data)&&data.length<65000)pr=new Promise((res,rej)=>{const im=new Image();
+    im.onload=()=>{const W=im.width,Hh=im.height;if(W<64||W%64||(Hh!==W&&Hh!==W/2)){rej(new Error('Not a Minecraft skin: it must be 64x64 or 64x32 pixels.'));return;}
+      const legacy=Hh!==W,c=document.createElement('canvas');c.width=64;c.height=legacy?32:64;const x=c.getContext('2d');x.imageSmoothingEnabled=false;
+      x.drawImage(im,0,0,c.width,c.height);
+      let slim=false;if(!legacy){slim=x.getImageData(54,20,1,1).data[3]===0&&x.getImageData(55,31,1,1).data[3]===0;}
+      res({canvas:c,legacy,slim});};
+    im.onerror=()=>rej(new Error('That file is not a PNG picture.'));im.src=data;});
+  else pr=Promise.reject(new Error('bad skin'));
+  skinCache.set(data,pr);pr.catch(()=>skinCache.delete(data));return pr;
+}
+// a box whose faces show the right parts of the skin (Minecraft's box layout)
+function skinBox(w,h,d,u,v,TW,TH,inf=0){
+  const g=new THREE.BoxGeometry((w+inf*2)*SKIN_S,(h+inf*2)*SKIN_S,(d+inf*2)*SKIN_S),P=g.attributes.position,UV=g.attributes.uv;
+  const R=[[u+d+w,v+d,d,h],[u,v+d,d,h],[u+d,v,w,d],[u+d+w,v,w,d],[u+d,v+d,w,h],[u+2*d+w,v+d,w,h]]; // +x left, -x right, top, bottom, front, back
+  const W=(w+inf*2)*SKIN_S,Hh=(h+inf*2)*SKIN_S,D=(d+inf*2)*SKIN_S;
+  for(let f=0;f<6;f++){const [rx,ry,rw,rh]=R[f];
+    for(let k=0;k<4;k++){const i=f*4+k,X=P.getX(i)/W+0.5,Y=P.getY(i)/Hh+0.5,Z=P.getZ(i)/D+0.5;
+      const st=[[1-Z,1-Y],[Z,1-Y],[X,Z],[X,1-Z],[X,1-Y],[1-X,1-Y]][f];
+      UV.setXY(i,(rx+st[0]*rw)/TW,1-(ry+st[1]*rh)/TH);}}
+  return g;
+}
+function buildSkinModel(sk){
+  const TW=64,TH=sk.legacy?32:64,tex=new THREE.CanvasTexture(sk.canvas);tex.magFilter=tex.minFilter=THREE.NearestFilter;tex.generateMipmaps=false;
+  const mat=new THREE.MeshBasicMaterial({map:tex,alphaTest:0.5,side:THREE.DoubleSide}),S=SKIN_S,aw=sk.slim?3:4;
+  const part=(w,h,d,u,v,ou,ov,inf)=>{const grp=new THREE.Group(),m=new THREE.Mesh(skinBox(w,h,d,u,v,TW,TH),mat);grp.add(m);
+    if(ou!=null&&!sk.legacy){const o=new THREE.Mesh(skinBox(w,h,d,ou,ov,TW,TH,inf),mat);grp.add(o);}return grp;};
+  const limb2=(w,h,d,u,v,ou,ov,px,py)=>{const p=new THREE.Group();p.position.set(px,py,0);const q=part(w,h,d,u,v,ou,ov,0.25);q.position.y=-h*S/2;p.add(q);return p;};
   const g=new THREE.Group();
-  const legs=[limb(0.24,0.72,0.24,pantsT,-0.125,0.72,0),limb(0.24,0.72,0.24,pantsT,0.125,0.72,0)];legs.forEach(l=>g.add(l));
-  const body=box(0.5,0.72,0.26,shirtT);body.position.y=1.08;g.add(body);
-  const arms=[limb(0.22,0.72,0.22,armT,-0.36,1.44,0),limb(0.22,0.72,0.22,armT,0.36,1.44,0)];arms.forEach(a=>g.add(a));
-  const head=box(0.5,0.5,0.5,[sideT,sideT,hairT,skinT,faceT,hairT]);head.position.y=1.7;g.add(head);
+  const legs=[limb2(4,12,4,0,16,0,32,-2*S,12*S),sk.legacy?limb2(4,12,4,0,16,null,null,2*S,12*S):limb2(4,12,4,16,48,0,48,2*S,12*S)];legs.forEach(l=>g.add(l));
+  const body=part(8,12,4,16,16,16,32,0.25);body.position.y=18*S;g.add(body);
+  const arms=[limb2(aw,12,4,40,16,40,32,-(4+aw/2)*S,24*S),sk.legacy?limb2(aw,12,4,40,16,null,null,(4+aw/2)*S,24*S):limb2(aw,12,4,32,48,48,48,(4+aw/2)*S,24*S)];arms.forEach(a=>g.add(a));
+  const head=part(8,8,8,0,0,32,0,0.5);head.position.y=28*S;g.add(head);
   return {g,legs,head,arms};
+}
+function buildPlayerModel(name){return buildSkinModel({canvas:autoSkin(name),legacy:false,slim:false});}
+function mySkin(){try{return localStorage.getItem('bc_skin')||'';}catch(e){return '';}}
+const validSkin=d=>typeof d==='string'&&d.length<65000&&/^(preset:[a-z]{1,16}|data:image\/png;base64,[A-Za-z0-9+\/=]+)$/.test(d);
+// swap a remote player's model for one wearing their skin
+function setRemoteSkin(rp,data){
+  if(!validSkin(data))return;rp.skin=data;
+  loadSkin(data).then(sk=>{if(MP.players.get(rp.id)!==rp||rp.skin!==data)return;
+    const old=rp.model,model=buildSkinModel(sk);scene.remove(old.g);
+    if(rp.heldMesh){old.arms[0].remove(rp.heldMesh);rp.heldMesh.material.dispose();rp.heldMesh=null;}rp.heldId=-1;old.g.remove(rp.tag);
+    old.g.traverse(o=>{if(o.geometry&&!o.userData.shared)o.geometry.dispose();if(o.material)for(const mt of [].concat(o.material)){if(mt.map)mt.map.dispose();mt.dispose();}});
+    model.g.add(rp.tag);scene.add(model.g);rp.model=model;rp.mats=[];model.g.traverse(o=>{if(o.material&&o!==rp.tag)rp.mats.push(...[].concat(o.material));});
+  }).catch(()=>{});
 }
 function addRemote(id,name){
   const model=buildPlayerModel(name),tag=nameTag(name);tag.position.y=2.2;model.g.add(tag);scene.add(model.g);
   const rp={id,name,model,tag,pos:new THREE.Vector3(),tp:new THREE.Vector3(),yaw:0,tyaw:0,pitch:0,held:0,heldId:-1,heldMesh:null,
     mode:'survival',dead:false,sneak:false,swingT:0,walk:0,fresh:true,mats:[]};
   model.g.traverse(o=>{if(o.material&&o!==tag)rp.mats.push(...[].concat(o.material));});
-  MP.players.set(id,rp);return rp;
+  MP.players.set(id,rp);
+  if(MP.skins.has(id))setRemoteSkin(rp,MP.skins.get(id));else if(MP.remote()&&id!=='opp')MP.send({t:'getskin',id});
+  return rp;
 }
 function removeRemote(id){
   const rp=MP.players.get(id);if(!rp)return;MP.players.delete(id);scene.remove(rp.model.g);
@@ -5882,6 +6045,7 @@ Object.assign(MP,{peer:null,conn:null,conns:new Map(),players:new Map(),code:nul
     if(d.host)addRemote('host',d.host);
     document.getElementById('mpScreen').style.display='none';document.getElementById('signupScreen').style.display='none';
     startPlaying();chatLine('Joined '+currentWorld.name+'. Press T to chat.','#ffff55');
+    if(mySkin())MP.send({t:'skin',d:mySkin()});
     if(MP.role==='net'&&d.account===false)chatLine('Tip: your name has no password yet. Leave, then click Sign Up to protect it.','#ffaa55');
     if(!d.host)chatLine('Players online: '+MP.online+'/100','#ffff55');
   },
@@ -5907,6 +6071,9 @@ Object.assign(MP,{peer:null,conn:null,conns:new Map(),players:new Map(),code:nul
       case 'chest':chests.set(d.k,d.c);if(MP.role==='host'){MP.send(d,from);saveDirty=true;}break;
       case 'me':{const c=MP.conns.get(from);if(c&&c.bcName){savedPlayers.set(c.bcName,d.p);saveDirty=true;}break;}
       case 'hurt':damagePlayer(d.n,{x:d.x,z:d.z},false,d.k||6);break;
+      case 'skin':{if(!validSkin(d.d))break;const id=MP.role==='host'?from:(d.id||from);MP.skins.set(id,d.d);
+        if(MP.role==='host')MP.send({t:'skin',id,d:d.d},from);const rp=MP.players.get(id);if(rp)setRemoteSkin(rp,d.d);break;}
+      case 'getskin':{if(MP.role!=='host')break;const sk=d.id==='host'?mySkin():MP.skins.get(d.id);if(sk)MP.sendTo(from,{t:'skin',id:d.id,d:sk});break;}
       case 'grab':{const m=mobs.find(o=>o.puppet&&o.nid===d.i&&o.owner===from);if(m)startGrab(m);break;}
       case 'ungrab':{const m=mobs.find(o=>!o.puppet&&o.nid===d.i);if(m&&m.holding===from)kickCrawler(m);break;}
       case 'loot':if(mode==='survival')for(const [id,n] of d.items)spawnDrop(id,n,d.x,d.y,d.z);break;
@@ -5971,7 +6138,7 @@ Object.assign(MP,{peer:null,conn:null,conns:new Map(),players:new Map(),code:nul
     try{if(MP.conn)MP.conn.close();}catch(e){}try{if(MP.peer)MP.peer.destroy();}catch(e){}
     for(const id of [...MP.players.keys()])removeRemote(id);
     for(const m of [...mobs])if(m.puppet)removeMob(m);
-    Object.assign(MP,{role:null,peer:null,conn:null,code:null,far:false,leaving:false,applying:false});MP.conns.clear();MP.outB.clear();
+    Object.assign(MP,{role:null,peer:null,conn:null,code:null,far:false,leaving:false,applying:false});MP.conns.clear();MP.outB.clear();MP.skins.clear();
     updateMenuButtons();
   },
 });
@@ -6058,10 +6225,65 @@ document.getElementById('btnJoin').onclick=async()=>{
 };
 document.getElementById('mpCode').addEventListener('keydown',e=>{if(e.code==='Enter')document.getElementById('btnJoin').click();});
 document.getElementById('btnHost').onclick=()=>MP.host();
+// ---- Skins screen ----
+function drawSkinFront(cv,sk){ // a flat front view: head, body, arms and legs (with the outer layer)
+  const x=cv.getContext('2d'),k=cv.width/16,c=sk.canvas,aw=sk.slim?3:4;x.clearRect(0,0,cv.width,cv.height);x.imageSmoothingEnabled=false;
+  const b=(sx,sy,w,h,dx,dy)=>x.drawImage(c,sx,sy,w,h,dx*k,dy*k,w*k,h*k);
+  b(8,8,8,8,4,0);b(20,20,8,12,4,8);b(44,20,aw,12,4-aw,8);b(4,20,4,12,4,20);
+  if(sk.legacy){b(44,20,aw,12,12,8);b(4,20,4,12,8,20);}
+  else{b(36,52,aw,12,12,8);b(20,52,4,12,8,20);b(40,8,8,8,4,0);b(20,36,8,12,4,8);b(44,36,aw,12,4-aw,8);b(52,52,aw,12,12,8);b(4,36,4,12,4,20);b(4,52,4,12,8,20);}
+}
+async function renderSkinScreen(){
+  const grid=document.getElementById('skinGrid'),cur=mySkin();grid.innerHTML='';
+  const opts=[['','Default (by name)'],...Object.entries(SKIN_PRESETS).map(([k,v])=>['preset:'+k,v.name])];
+  let custom='';try{custom=localStorage.getItem('bc_skin_custom')||'';}catch(e){}
+  if(custom)opts.push([custom,'My Skin']);
+  for(const [val,label] of opts){const d=document.createElement('button');d.className='skinOpt'+(val===cur?' on':'');
+    const cv=document.createElement('canvas');cv.width=32;cv.height=64;d.appendChild(cv);d.appendChild(document.createTextNode(label));
+    try{drawSkinFront(cv,val?await loadSkin(val):{canvas:autoSkin(mpName()),legacy:false,slim:false});}catch(e){}
+    d.onclick=()=>setMySkin(val);grid.appendChild(d);}
+  try{drawSkinFront(document.getElementById('skinPreview'),cur?await loadSkin(cur):{canvas:autoSkin(mpName()),legacy:false,slim:false});}catch(e){}
+}
+// the title screen shows you in your skin, with your name (like Minecraft's profile)
+document.getElementById('btnSettings').onclick=()=>{audioInit();document.body.classList.add('settingsOpen');};
+document.getElementById('btnSettingsDone').onclick=()=>{document.body.classList.remove('settingsOpen');};
+async function updateTitleSkin(){
+  document.getElementById('titleSkinName').textContent=mpName();
+  try{const v=mySkin();drawSkinFront(document.getElementById('titleSkinCv'),v?await loadSkin(v):{canvas:autoSkin(mpName()),legacy:false,slim:false});}catch(e){}
+}
+function setMySkin(val){
+  try{if(val)localStorage.setItem('bc_skin',val);else localStorage.removeItem('bc_skin');}catch(e){}
+  mySkinReady=null;sfx('click');renderSkinScreen();updateTitleSkin();
+  if(val){if(MP.role)MP.send({t:'skin',d:val});if(PV)pvpSend({t:'skin',d:val});}
+}
+document.getElementById('btnSkins').onclick=()=>{audioInit();document.getElementById('skinScreen').style.display='flex';document.getElementById('skinMsg').textContent='';renderSkinScreen();};
+document.getElementById('btnSkinDone').onclick=()=>{document.getElementById('skinScreen').style.display='none';};
+document.getElementById('btnSkinImport').onclick=()=>document.getElementById('skinFile').click();
+document.getElementById('skinFile').onchange=async e=>{
+  const f=e.target.files[0];e.target.value='';if(!f)return;const msg=document.getElementById('skinMsg');
+  if(f.size>45000){msg.textContent='That picture is too big for a skin (it should be a small 64x64 PNG).';return;}
+  const data=await new Promise(r=>{const fr=new FileReader();fr.onload=()=>r(fr.result);fr.readAsDataURL(f);});
+  try{await loadSkin(data);try{localStorage.setItem('bc_skin_custom',data);}catch(x){}setMySkin(data);msg.textContent='Skin imported!';}
+  catch(err){msg.textContent=err.message||'Could not use that picture.';}
+};
 // ---- PvP Duels: a WebSocket to the big server's /pvp address; the server pairs players and passes on moves and hits ----
-let pvpConn=null,pvpLastCode='',pvpSendT=0;
+let pvpConn=null,pvpLastCode='',pvpSendT=0,pvpMyKit='';
 function pvpUrl(){let sv='';try{sv=localStorage.getItem('bc_server')||'';}catch(e){}const u=serverUrl(sv||DEFAULT_SERVER);return u?u.replace(/\/ws$/,'/pvp'):'';}
 function pvpSend(o){if(pvpConn&&pvpConn.ws.readyState===1)pvpConn.ws.send(JSON.stringify(o));}
+// kits: everyone picks their own; the other player sees which one you chose
+const PVP_KITS={
+  classic:{name:'Classic',desc:'Iron sword & axe, bow, crossbow, iron + leather armor',armor:[1,0,0,1],items:[[toolId('sword',3),1],[IT.BOW,1],[IT.CROSSBOW,1],[toolId('axe',3),1],[IT.ARROW,24],[IT.BOLT,8],[IT.GOLDEN_APPLE,2],[IT.BREAD,4]]},
+  knight:{name:'Knight',desc:'Diamond sword, full iron armor, no bow',armor:[1,1,1,1],items:[[toolId('sword',4),1],[IT.GOLDEN_APPLE,1],[IT.BREAD,4]]},
+  archer:{name:'Archer',desc:'Bow, 48 arrows + 16 flame arrows, stone sword, leather armor',armor:[0,0,0,0],items:[[IT.BOW,1],[toolId('sword',2),1],[IT.ARROW,48],[IT.FLAME_ARROW,16],[IT.GOLDEN_APPLE,2],[IT.BREAD,4]]},
+  ranger:{name:'Crossbow Ranger',desc:'Crossbow with 24 bolts, iron axe, iron + leather armor',armor:[1,0,0,1],items:[[IT.CROSSBOW,1],[toolId('axe',3),1],[IT.BOLT,24],[IT.GOLDEN_APPLE,1],[IT.BREAD,4]]},
+  berserker:{name:'Berserker',desc:'Diamond sword & axe, almost no armor, 3 golden apples',armor:[null,null,0,null],items:[[toolId('sword',4),1],[toolId('axe',4),1],[IT.GOLDEN_APPLE,3],[IT.BREAD,4]]},
+  tank:{name:'Tank',desc:'Diamond chestplate + iron armor, stone sword, slow to kill',armor:[1,2,1,1],items:[[toolId('sword',2),1],[IT.GOLDEN_APPLE,2],[IT.BREAD,4]]},
+};
+function pvpKit(){let k='classic';try{k=localStorage.getItem('bc_pvpkit')||'classic';}catch(e){}return PVP_KITS[k]?k:'classic';}
+function renderKits(){const el=document.getElementById('pvpKits');el.innerHTML='';const cur=pvpKit();
+  for(const [k,K] of Object.entries(PVP_KITS)){const b=document.createElement('button');b.className='zopt'+(k===cur?' on':'');b.innerHTML='<b></b><span></span>';
+    b.querySelector('b').textContent=K.name;b.querySelector('span').textContent=K.desc;
+    b.onclick=()=>{try{localStorage.setItem('bc_pvpkit',k);}catch(e){}sfx('click');renderKits();};el.appendChild(b);}}
 const pvpMsgEl=t=>{document.getElementById('pvpMsg').textContent=t;};
 function pvpConnect(){
   if(pvpConn&&pvpConn.ws.readyState===1)return Promise.resolve();
@@ -6083,7 +6305,8 @@ async function pvpCheck(){const el=document.getElementById('pvpStatus'),url=pvpU
   catch(e){el.style.color='#f99';el.textContent='The PvP server is not online right now.';}}
 async function pvpQueue(code){
   pvpMsgEl('Connecting...');pvpLastCode=code;
-  try{await pvpConnect();pvpSend({t:'queue',code});}catch(e){pvpMsgEl(e.message||String(e));}
+  pvpMyKit=pvpKit();
+  try{await pvpConnect();pvpSend({t:'queue',code,kit:pvpMyKit});}catch(e){pvpMsgEl(e.message||String(e));}
 }
 function pvpOnMessage(d){
   switch(d.t){
@@ -6091,6 +6314,7 @@ function pvpOnMessage(d){
     case 'waiting':pvpStatusText(d);pvpMsgEl(pvpLastCode?'Waiting for your friend to type the code '+pvpLastCode+'...':'Looking for an opponent...');
       document.getElementById('btnPvpBack').textContent='Cancel';break;
     case 'match':pvpStart(d);break;
+    case 'skin':if(PV&&validSkin(d.d)){MP.skins.set('opp',d.d);const rp=MP.players.get('opp');if(rp)setRemoteSkin(rp,d.d);}break;
     case 's':if(PV){const rp=MP.players.get('opp')||addRemote('opp',PV.opp);setRemoteState(rp,d.s);}break;
     case 'hit':if(PV&&PV.st==='fight'&&!player.dead)damagePlayer(d.n,{x:player.pos.x-(d.kx||0),z:player.pos.z-(d.kz||0)},false,d.k||6);break;
     case 'fx':if(PV&&d.k==='arrow')shootArrow(new THREE.Vector3(...d.p),new THREE.Vector3(...d.v),'net',d.d,0,d.a);break;
@@ -6104,16 +6328,18 @@ function pvpStart(d){
   for(const id of ['pvpScreen','mgScreen','menu'])document.getElementById(id).style.display='none';document.getElementById('btnPvpBack').textContent='Back';
   clearWorld();removeRemote('opp');
   currentWorld={id:null,name:'PvP Duel vs '+d.opp,created:Date.now()};SEED=d.seed;perlin=new Perlin(SEED);mode='survival';resetPlayerState();
-  PV={you:d.you,opp:d.opp,score:d.score,round:1,st:'fight'};
-  spawnPoint=[0.5,SEA+5,d.you?18.5:-17.5];pvpRespawn();dayTime=0.28;addRemote('opp',d.opp);
+  PV={you:d.you,opp:d.opp,oppKit:d.oppKit||'classic',kit:pvpMyKit||pvpKit(),map:(d.map|0)%PVP_MAPS.length,score:d.score,round:1,st:'fight'};
+  MP.skins.delete('opp');if(mySkin())setTimeout(()=>pvpSend({t:'skin',d:mySkin()}),300);
+  spawnPoint=[0.5,PV.map===1?SKY_Y+1:SEA+5,d.you?18.5:-17.5];pvpRespawn();dayTime=0.28;addRemote('opp',d.opp);
   document.body.classList.add('pvp');startPlaying();
   if(!document.pointerLockElement&&!touchMode&&!padUsed)document.getElementById('pvpClick').style.display='flex'; // the browser needs a click to take the mouse
-  zBanner('DUEL vs '+d.opp,'Best of 3 rounds. FIGHT!');sfx('horn');
+  zBanner('DUEL vs '+d.opp,PVP_MAPS[PV.map]+' · they are a '+(PVP_KITS[PV.oppKit]||PVP_KITS.classic).name+' · FIGHT!');sfx('horn');
 }
 function pvpRespawn(){
   player.dead=false;hp=20;food=20;sat=0;exh=0;air=10;acidT=0;if(grab)endGrab(false); // no saturation: health comes back slowly
-  inv.fill(null);armor[0]={id:armorId(1,0),count:1,dmg:0};armor[1]={id:armorId(0,1),count:1,dmg:0};armor[2]={id:armorId(0,2),count:1,dmg:0};armor[3]={id:armorId(1,3),count:1,dmg:0};
-  for(const [id,n] of [[toolId('sword',3),1],[IT.BOW,1],[IT.CROSSBOW,1],[toolId('axe',3),1],[IT.ARROW,24],[IT.BOLT,8],[IT.GOLDEN_APPLE,2],[IT.BREAD,4]])addItem(id,n);
+  inv.fill(null);const K=PVP_KITS[PV&&PV.kit]||PVP_KITS.classic;
+  for(let p=0;p<4;p++)armor[p]=K.armor[p]==null?null:{id:armorId(K.armor[p],p),count:1,dmg:0};
+  for(const [id,n] of K.items)addItem(id,n);
   selected=0;player.pos.set(...spawnPoint);player.vel.set(0,0,0);player.yaw=PV&&PV.you?0:Math.PI;player.pitch=0;player.spawned=false;
   document.getElementById('death').style.display='none';statsDirty=true;invChanged();
 }
@@ -6133,12 +6359,13 @@ function pvpTryHit(){
   if(sprinting)sprinting=false;if(it&&it.tool)wearHeld(1);swing=1;mouseHeld[0]=false;return true;
 }
 function pvpFrame(dt){
-  dayTime=0.28;updateRemotes(dt);
+  dayTime=PV.map===2?0.9:0.28;updateRemotes(dt);
+  if(PV.map===1&&!player.dead&&player.pos.y<SKY_Y-14&&PV.st==='fight'){damagePlayer(100,null,true,0,false);} // fell off the islands
   pvpSendT-=dt;if(pvpSendT<=0){pvpSendT=0.07;pvpSend({t:'s',s:MP.myState()});}
   const me=PV.score[PV.you],op=PV.score[1-PV.you];
   document.getElementById('pvpScore').innerHTML=`<span class="me"></span> ${me} - ${op} <span class="op"></span>`;
   document.querySelector('#pvpScore .me').textContent=MP.name||mpName();document.querySelector('#pvpScore .op').textContent=PV.opp;
-  document.getElementById('pvpRound').textContent=PV.st==='fight'?'Round '+PV.round+' · first to 2 wins':PV.st==='between'?'Next round...':'';
+  document.getElementById('pvpRound').textContent=PV.st==='fight'?PVP_MAPS[PV.map]+' · round '+PV.round+' · first to 2 wins':PV.st==='between'?'Next round...':'';
 }
 function pvpShowEnd(won,forfeit){
   const el=document.getElementById('pvpEnd');el.style.display='flex';locked=false;freeMode=false;if(document.pointerLockElement)document.exitPointerLock();
@@ -6149,7 +6376,7 @@ function pvpShowEnd(won,forfeit){
   sfx(won?'win':'zroar');
 }
 document.getElementById('btnPvp').onclick=()=>{audioInit();document.getElementById('mgScreen').style.display='none';
-  document.getElementById('pvpScreen').style.display='flex';document.getElementById('pvpName').value=mpName();pvpMsgEl('');pvpCheck();
+  document.getElementById('pvpScreen').style.display='flex';document.getElementById('pvpName').value=mpName();pvpMsgEl('');pvpCheck();renderKits();
   try{document.getElementById('pvpCode').value=localStorage.getItem('bc_pvpcode')||'';}catch(e){}};
 document.getElementById('pvpClick').onclick=()=>{document.getElementById('pvpClick').style.display='none';lock();};
 document.getElementById('btnPvpFind').onclick=()=>pvpQueue('');
@@ -6255,13 +6482,16 @@ function frame(now){
   if(cam3){camera.position.copy(cam3[0]);camera.rotation.copy(cam3[1]);} // the game still thinks from the eyes
 }
 // F5 views: your own blocky player is drawn and the camera moves behind (or in front of) you
-let camView=0,selfModel=null;
+let camView=0,selfModel=null,mySkinReady=null;
 function thirdPerson(dt){
   const show=camView>0&&!titleMode&&!sleeping;
   if(selfModel)selfModel.g.visible=show&&!player.dead;
   if(!show)return null;
-  if(!selfModel){const m=buildPlayerModel(MP.name||mpName());selfModel={...m,walk:0,mats:[]};
+  if(selfModel&&selfModel.skin!==mySkin()){scene.remove(selfModel.g);selfModel=null;}
+  if(!selfModel&&mySkin()&&!mySkinReady){loadSkin(mySkin()).then(sk=>{mySkinReady=sk;}).catch(()=>{try{localStorage.removeItem('bc_skin');}catch(e){}});}
+  if(!selfModel&&(!mySkin()||mySkinReady)){const m=mySkin()?buildSkinModel(mySkinReady):buildPlayerModel(MP.name||mpName());selfModel={...m,walk:0,mats:[],skin:mySkin()};
     m.g.traverse(o=>{if(o.material)selfModel.mats.push(...[].concat(o.material));});scene.add(m.g);}
+  if(!selfModel)return null;
   const M=selfModel,v=player.vel,hs=Math.hypot(v.x,v.z);M.walk+=hs*dt*2.6;
   const sw=Math.sin(M.walk)*Math.min(1,hs/3)*0.8,s=Math.sin(swing*Math.PI);
   M.legs[0].rotation.x=sw;M.legs[1].rotation.x=-sw;M.arms[1].rotation.x=sw*0.8;M.arms[0].rotation.x=-sw*0.8-s*1.3;

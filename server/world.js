@@ -167,6 +167,17 @@ export class World {
         d.from = c.id; delete d.to; this.out(o, d);
         break;
       }
+      case 'skin': { // your skin (a preset name or a small PNG) - everyone near you gets it
+        if (typeof d.d !== 'string' || d.d.length > 65000 || !/^(preset:[a-z]{1,16}|data:image\/png;base64,[A-Za-z0-9+\/=]+)$/.test(d.d)) return;
+        c.skin = d.d;
+        const s = JSON.stringify({ t: 'skin', id: c.id, d: d.d });
+        for (const o of this.clients.values()) if (o !== c && o.name) try { o.send(s); } catch (e) { }
+        break;
+      }
+      case 'getskin': {
+        const o = this.clients.get(d.id); if (o && o.skin) this.out(c, { t: 'skin', id: o.id, d: o.skin });
+        break;
+      }
       case 'fx': {
         const s = JSON.stringify(Object.assign(d, { from: c.id }));
         for (const o of this.clients.values()) if (o !== c && o.name && this.near(c, o)) try { o.send(s); } catch (e) { }

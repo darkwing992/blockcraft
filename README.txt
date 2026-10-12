@@ -100,11 +100,16 @@ THE END
   they heal the dragon. Beat it and an exit portal with the Dragon Egg appears.
   (The End is single player only.)
 
+SKINS (version 3.8)
+  Title screen > Skins. Pick one of the built-in skins, or click "Import Skin (.png)" and choose a
+  Minecraft Java skin file (64x64, the old 64x32, or HD - the same PNG you'd use in Minecraft;
+  slim "Alex" arms are detected). Friends, big-server players and PvP opponents see your skin.
+
 PVP DUELS (version 3.7)
   Title screen > Minigames > PvP Duels. "Find a Match" puts you against any other player who is
   waiting; or you and a friend type the same secret code and click "Duel a Friend".
-  You fight 1v1 in a walled arena with the same gear (iron sword, axe, bow, crossbow, armor,
-  2 golden apples). First to win 2 rounds wins. You can't build or break blocks in the arena.
+  Pick a kit first: Classic, Knight, Archer, Crossbow Ranger, Berserker or Tank. The map is random:
+  Classic Arena, Sky Islands (falling off = you lose the round), Nether Pit (lava!) or Forest Ruins. First to win 2 rounds wins. You can't build or break blocks in the arena.
   PvP runs on the big server: run "Deploy Big Server.bat" once so it has the duel server too.
   (On your own Wi-Fi, "Run Server On This PC.bat" has it as well.)
 

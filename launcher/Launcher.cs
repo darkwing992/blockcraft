@@ -26,14 +26,14 @@ using System.Windows.Forms;
 [assembly: AssemblyTitle("BlockCraft Launcher")]
 [assembly: AssemblyProduct("BlockCraft")]
 [assembly: AssemblyDescription("Launcher and save server for BlockCraft")]
-[assembly: AssemblyVersion("2.1.0.0")]
-[assembly: AssemblyFileVersion("2.1.0.0")]
+[assembly: AssemblyVersion("2.2.0.0")]
+[assembly: AssemblyFileVersion("2.2.0.0")]
 
 namespace BlockCraft
 {
     static class Program
     {
-        public const string LauncherVersion = "2.1";
+        public const string LauncherVersion = "2.2";
 
         [STAThread]
         static int Main(string[] args)
@@ -485,130 +485,385 @@ namespace BlockCraft
     }
 
     // ------------------------------------------------------------------
-    //  Launcher window
+    //  Launcher window (dark, with a side bar, a hero banner, version cards, news and minigames)
     // ------------------------------------------------------------------
+    static class UI
+    {
+        public static readonly Color Bg = Color.FromArgb(14, 14, 17);
+        public static readonly Color Side = Color.FromArgb(10, 10, 12);
+        public static readonly Color Card = Color.FromArgb(24, 24, 29);
+        public static readonly Color CardBorder = Color.FromArgb(44, 44, 52);
+        public static readonly Color Text = Color.FromArgb(240, 240, 244);
+        public static readonly Color Muted = Color.FromArgb(150, 150, 162);
+        public static readonly Color Green = Color.FromArgb(46, 170, 70);
+        public static readonly Color Orange = Color.FromArgb(240, 120, 32);
+        public static readonly Color Blue = Color.FromArgb(46, 130, 230);
+        public static GraphicsPath Round(RectangleF r, float rad)
+        {
+            var p = new GraphicsPath(); float d = Math.Min(rad * 2, Math.Min(r.Width, r.Height));
+            if (d <= 0) { p.AddRectangle(r); return p; }
+            p.AddArc(r.X, r.Y, d, d, 180, 90); p.AddArc(r.Right - d, r.Y, d, d, 270, 90);
+            p.AddArc(r.Right - d, r.Bottom - d, d, d, 0, 90); p.AddArc(r.X, r.Bottom - d, d, d, 90, 90);
+            p.CloseFigure(); return p;
+        }
+        public static Color Shade(Color c, float k)
+        {
+            Func<int, int> f = v => Math.Max(0, Math.Min(255, (int)(v * k)));
+            return Color.FromArgb(c.A, f(c.R), f(c.G), f(c.B));
+        }
+        // blocky "pixel" texture over a rounded area, like the buttons in the picture
+        public static void Pixels(Graphics g, Rectangle r, Color c, int seed)
+        {
+            var rnd = new Random(seed); int s = 10;
+            for (int y = r.Top; y < r.Bottom; y += s)
+                for (int x = r.Left; x < r.Right; x += s)
+                {
+                    int n = rnd.Next(5); if (n > 1) continue;
+                    using (var b = new SolidBrush(Color.FromArgb(55, n == 0 ? Color.White : Color.Black))) g.FillRectangle(b, x, y, s, s);
+                }
+        }
+        public static Font F(float size, bool bold) { return new Font("Segoe UI", size, bold ? FontStyle.Bold : FontStyle.Regular); }
+        public static string IconFont() { return "Segoe MDL2 Assets"; }
+    }
+
+    // a rounded button: solid or "pixel" texture, an optional icon (Segoe MDL2 Assets glyph) and text
+    class FancyButton : Control
+    {
+        public Color Base = UI.Green; public bool PixelTex; public string Glyph = ""; public float Radius = 10; public float TextSize = 12;
+        bool hover, down;
+        public FancyButton(string text) { Text = text; DoubleBuffered = true; Cursor = Cursors.Hand; ForeColor = Color.White; SetStyle(ControlStyles.ResizeRedraw | ControlStyles.SupportsTransparentBackColor, true); }
+        protected override void OnMouseEnter(EventArgs e) { hover = true; Invalidate(); base.OnMouseEnter(e); }
+        protected override void OnMouseLeave(EventArgs e) { hover = false; down = false; Invalidate(); base.OnMouseLeave(e); }
+        protected override void OnMouseDown(MouseEventArgs e) { down = true; Invalidate(); base.OnMouseDown(e); }
+        protected override void OnMouseUp(MouseEventArgs e) { down = false; Invalidate(); base.OnMouseUp(e); }
+        protected override void OnEnabledChanged(EventArgs e) { Invalidate(); base.OnEnabledChanged(e); }
+        protected override void OnPaint(PaintEventArgs e)
+        {
+            var g = e.Graphics; g.SmoothingMode = SmoothingMode.AntiAlias; g.TextRenderingHint = TextRenderingHint.ClearTypeGridFit;
+            using (var pb = new SolidBrush(Parent != null ? Parent.BackColor : UI.Bg)) g.FillRectangle(pb, ClientRectangle);
+            var r = new RectangleF(1, 1, Width - 3, Height - 3 - (down ? 0 : 2));
+            if (down) r.Y += 2;
+            Color c = !Enabled ? UI.Shade(Base, 0.55f) : hover ? UI.Shade(Base, 1.15f) : Base;
+            using (var path = UI.Round(new RectangleF(r.X, r.Y + 3, r.Width, r.Height), Radius))
+            using (var lip = new SolidBrush(UI.Shade(Base, 0.6f))) if (!down) g.FillPath(lip, path);
+            using (var path = UI.Round(r, Radius))
+            {
+                using (var b = new LinearGradientBrush(r, UI.Shade(c, 1.12f), UI.Shade(c, 0.9f), 90f)) g.FillPath(b, path);
+                if (PixelTex) { var st = g.Save(); g.SetClip(path); UI.Pixels(g, Rectangle.Round(r), c, Text.Length * 31 + Width); g.Restore(st); }
+                using (var pen = new Pen(UI.Shade(c, 1.35f), 1.5f)) g.DrawPath(pen, path);
+            }
+            using (var tf = UI.F(TextSize, true))
+            using (var gf = new Font(UI.IconFont(), TextSize * 0.95f))
+            using (var tb = new SolidBrush(Enabled ? ForeColor : Color.FromArgb(170, ForeColor)))
+            {
+                SizeF ts = g.MeasureString(Text, tf), gs = Glyph != "" ? g.MeasureString(Glyph, gf) : SizeF.Empty;
+                float gap = Glyph != "" && Text != "" ? 6 : 0, total = ts.Width + gs.Width + gap, x = r.X + (r.Width - total) / 2, cy = r.Y + r.Height / 2;
+                if (Glyph != "") g.DrawString(Glyph, gf, tb, x, cy - gs.Height / 2 + 1);
+                g.DrawString(Text, tf, tb, x + gs.Width + gap, cy - ts.Height / 2);
+            }
+        }
+    }
+
+    // a rounded dark card that other controls sit on
+    class CardPanel : Panel
+    {
+        public Color Fill = UI.Card, Border = UI.CardBorder; public float Radius = 14;
+        public CardPanel() { DoubleBuffered = true; SetStyle(ControlStyles.ResizeRedraw, true); BackColor = UI.Card; }
+        protected override void OnPaintBackground(PaintEventArgs e)
+        {
+            var g = e.Graphics; g.SmoothingMode = SmoothingMode.AntiAlias;
+            using (var pb = new SolidBrush(Parent != null ? Parent.BackColor : UI.Bg)) g.FillRectangle(pb, ClientRectangle);
+            using (var path = UI.Round(new RectangleF(0.5f, 0.5f, Width - 2, Height - 2), Radius))
+            using (var b = new SolidBrush(Fill)) using (var pen = new Pen(Border, 1.5f)) { g.FillPath(b, path); g.DrawPath(pen, path); }
+        }
+    }
+
+    static class Art
+    {
+        static Color V(Color c, int amt, Random r) { int n = r.Next(-amt, amt + 1); return Color.FromArgb(Cl(c.R + n), Cl(c.G + n), Cl(c.B + n)); }
+        static int Cl(int v) { return v < 0 ? 0 : v > 255 ? 255 : v; }
+        public static void Px(Graphics g, Color c, float x, float y, float s) { using (var b = new SolidBrush(c)) g.FillRectangle(b, x, y, s, s); }
+        // a grass block icon
+        public static void GrassBlock(Graphics g, float x, float y, float s)
+        {
+            var r = new Random(7); float p = s / 16;
+            for (int j = 0; j < 16; j++) for (int i = 0; i < 16; i++)
+                    Px(g, j < 4 + (i % 3 == 0 ? 1 : 0) ? V(Color.FromArgb(92, 156, 52), 18, r) : V(Color.FromArgb(134, 96, 67), 14, r), x + i * p, y + j * p, p + 0.5f);
+        }
+        // the player, drawn from the front (a 16x32 pixel character)
+        public static void Player(Graphics g, float x, float y, float p)
+        {
+            var r = new Random(3);
+            Color skin = Color.FromArgb(198, 140, 104), hair = Color.FromArgb(60, 38, 22), shirt = Color.FromArgb(40, 160, 170), pants = Color.FromArgb(50, 60, 150), shoes = Color.FromArgb(70, 70, 74);
+            for (int j = 0; j < 32; j++)
+                for (int i = 0; i < 16; i++)
+                {
+                    Color c = Color.Empty;
+                    if (j < 8) { if (i >= 4 && i < 12) { int hx = i - 4; c = j < 2 || (j == 2 && (hx == 0 || hx == 7)) ? hair : skin;
+                            if (j == 4 && (hx == 1 || hx == 6)) c = Color.White; if (j == 4 && (hx == 2 || hx == 5)) c = Color.FromArgb(48, 80, 192);
+                            if (j == 6 && (hx == 3 || hx == 4)) c = Color.FromArgb(122, 74, 58); } }
+                    else if (j < 20) { if (i >= 4 && i < 12) c = shirt; else c = j < 12 ? shirt : skin; }
+                    else { if (i >= 4 && i < 12) c = j >= 30 ? shoes : pants; }
+                    if (c == Color.Empty) continue;
+                    float shade = i < 4 ? 0.82f : i >= 12 ? 0.9f : 1f;
+                    Px(g, V(UI.Shade(c, shade), 8, r), x + i * p, y + j * p, p + 0.5f);
+                }
+        }
+        // a sunset over blocky hills, trees and grass
+        public static void Sunset(Graphics g, Rectangle b)
+        {
+            using (var sky = new LinearGradientBrush(b, Color.FromArgb(246, 166, 120), Color.FromArgb(250, 224, 170), 90f)) g.FillRectangle(sky, b);
+            var r = new Random(11); int px = 8;
+            using (var sun = new SolidBrush(Color.FromArgb(255, 246, 200))) g.FillRectangle(sun, b.Left + b.Width * 0.22f, b.Top + b.Height * 0.38f, 56, 56);
+            using (var glow = new SolidBrush(Color.FromArgb(70, 255, 240, 200))) g.FillRectangle(glow, b.Left + b.Width * 0.22f - 16, b.Top + b.Height * 0.38f - 16, 88, 88);
+            using (var cloud = new SolidBrush(Color.FromArgb(150, 255, 236, 220)))
+            { g.FillRectangle(cloud, b.Left + 60, b.Top + 40, 140, 16); g.FillRectangle(cloud, b.Left + 90, b.Top + 28, 70, 14); g.FillRectangle(cloud, b.Right - 260, b.Top + 60, 160, 16); }
+            // far hills
+            for (int x = b.Left; x < b.Right; x += px)
+            {
+                int hgt = 60 + (int)(Math.Sin(x * 0.012) * 26 + Math.Sin(x * 0.031) * 12);
+                for (int y = b.Bottom - 70 - hgt; y < b.Bottom - 70; y += px) Px(g, V(Color.FromArgb(150, 170, 110), 10, r), x, y, px);
+            }
+            // trees
+            int[] tx = { 70, 170, 520, 640, 760 };
+            foreach (int t in tx)
+            {
+                if (t > b.Width - 40) continue;
+                int baseY = b.Bottom - 70, trunkH = 60 + (t % 3) * 14;
+                for (int y = baseY - trunkH; y < baseY; y += px) Px(g, V(Color.FromArgb(104, 82, 50), 10, r), b.Left + t, y, px);
+                for (int dy = -3; dy <= 2; dy++) for (int dx = -4; dx <= 4; dx++)
+                    {
+                        if (Math.Abs(dx) == 4 && (dy == -3 || dy == 2)) continue;
+                        Px(g, V(Color.FromArgb(108, 150, 50), 18, r), b.Left + t + dx * px, baseY - trunkH + dy * px, px);
+                    }
+            }
+            // grass ground
+            for (int x = b.Left; x < b.Right; x += px)
+                for (int y = b.Bottom - 70; y < b.Bottom; y += px)
+                    Px(g, y < b.Bottom - 54 + ((x / px) % 3 == 0 ? px : 0) ? V(Color.FromArgb(104, 160, 52), 16, r) : V(Color.FromArgb(124, 88, 60), 14, r), x, y, px);
+        }
+    }
+
+    // the big picture at the top: a sunset scene with your player
+    class HeroPanel : Control
+    {
+        public string Title = "BlockCraft", Sub = "Choose a version and play";
+        public HeroPanel() { DoubleBuffered = true; SetStyle(ControlStyles.ResizeRedraw, true); }
+        protected override void OnPaint(PaintEventArgs e)
+        {
+            var g = e.Graphics; g.SmoothingMode = SmoothingMode.AntiAlias;
+            using (var pb = new SolidBrush(UI.Bg)) g.FillRectangle(pb, ClientRectangle);
+            using (var clip = UI.Round(new RectangleF(0, 0, Width - 1, Height - 1), 18))
+            {
+                var st = g.Save(); g.SetClip(clip);
+                g.SmoothingMode = SmoothingMode.None; Art.Sunset(g, ClientRectangle);
+                Art.Player(g, Width / 2 - 48, Height - 70 - 192 + 6, 6);
+                g.Restore(st); g.SmoothingMode = SmoothingMode.AntiAlias;
+                using (var pen = new Pen(UI.CardBorder, 2)) g.DrawPath(pen, clip);
+            }
+            // name tag at the top
+            g.TextRenderingHint = TextRenderingHint.ClearTypeGridFit;
+            using (var tf = UI.F(17, true)) using (var sf = UI.F(9.5f, false))
+            {
+                SizeF a = g.MeasureString(Title, tf), b = g.MeasureString("→ " + Sub, sf);
+                float w = Math.Max(a.Width, b.Width) + 30, x = (Width - w) / 2;
+                using (var path = UI.Round(new RectangleF(x, 18, w, 56), 10)) using (var bg = new SolidBrush(Color.FromArgb(170, 40, 40, 48))) g.FillPath(bg, path);
+                using (var wb = new SolidBrush(Color.White)) g.DrawString(Title, tf, wb, (Width - a.Width) / 2, 20);
+                using (var mb = new SolidBrush(Color.FromArgb(225, 225, 230))) g.DrawString("→ " + Sub, sf, mb, (Width - b.Width) / 2, 50);
+            }
+        }
+    }
+
+    // one version in the list: an icon, its name and a green Play button
+    class VersionCard : CardPanel
+    {
+        public readonly FancyButton PlayBtn;
+        readonly string title, sub;
+        public VersionCard(string title, string sub)
+        {
+            this.title = title; this.sub = sub; Height = 82;
+            PlayBtn = new FancyButton("Play"); PlayBtn.Glyph = ""; PlayBtn.Base = UI.Green; PlayBtn.PixelTex = true; PlayBtn.TextSize = 13;
+            Controls.Add(PlayBtn);
+        }
+        protected override void OnResize(EventArgs e) { base.OnResize(e); if (PlayBtn != null) PlayBtn.Bounds = new Rectangle(Width - 150, 18, 128, 46); }
+        protected override void OnPaint(PaintEventArgs e)
+        {
+            var g = e.Graphics; g.SmoothingMode = SmoothingMode.None;
+            Art.GrassBlock(g, 20, 17, 48);
+            g.TextRenderingHint = TextRenderingHint.ClearTypeGridFit;
+            using (var tf = UI.F(13.5f, true)) using (var tb = new SolidBrush(UI.Text)) g.DrawString(title, tf, tb, 84, 14);
+            using (var sf = UI.F(9.5f, false)) using (var sb = new SolidBrush(UI.Muted)) g.DrawString(sub, sf, sb, 86, 44);
+        }
+    }
+
+    // a news card (from the version notes): an orange tag, a title and how long ago
+    class NewsCard : CardPanel
+    {
+        readonly string tag, title, when;
+        public NewsCard(string tag, string title, string when) { this.tag = tag; this.title = title; this.when = when; Height = 110; Fill = Color.FromArgb(40, 26, 18); Border = Color.FromArgb(90, 56, 30); }
+        protected override void OnPaint(PaintEventArgs e)
+        {
+            var g = e.Graphics; g.SmoothingMode = SmoothingMode.AntiAlias; g.TextRenderingHint = TextRenderingHint.ClearTypeGridFit;
+            using (var path = UI.Round(new RectangleF(1, 1, Width - 3, Height - 3), 14))
+            {
+                var st = g.Save(); g.SetClip(path);
+                using (var b = new LinearGradientBrush(new Rectangle(0, 0, Width, Height), Color.FromArgb(150, 90, 40), Color.FromArgb(36, 24, 18), 0f)) g.FillRectangle(b, 0, 0, Width, Height);
+                UI.Pixels(g, new Rectangle(Width / 2, 0, Width / 2, Height), Color.Black, tag.Length + title.Length);
+                g.Restore(st);
+            }
+            using (var tf = UI.F(8.5f, true))
+            {
+                SizeF s = g.MeasureString(tag, tf);
+                using (var path = UI.Round(new RectangleF(18, 16, s.Width + 14, 24), 6)) using (var ob = new SolidBrush(UI.Orange)) g.FillPath(ob, path);
+                using (var wb = new SolidBrush(Color.FromArgb(40, 16, 0))) g.DrawString(tag, tf, wb, 25, 20);
+            }
+            using (var f = UI.F(13.5f, true)) using (var wb = new SolidBrush(Color.White)) g.DrawString(title, f, wb, new RectangleF(18, 46, Width - 30, 30));
+            using (var f = UI.F(9.5f, false)) using (var mb = new SolidBrush(Color.FromArgb(220, 210, 200))) g.DrawString(when, f, mb, 19, 78);
+        }
+    }
+
+    // the blue banner at the top of the minigames panel
+    class BannerPanel : Control
+    {
+        public string Caption = "MINIGAMES";
+        public BannerPanel() { DoubleBuffered = true; SetStyle(ControlStyles.ResizeRedraw, true); }
+        protected override void OnPaint(PaintEventArgs e)
+        {
+            var g = e.Graphics; g.SmoothingMode = SmoothingMode.AntiAlias; g.TextRenderingHint = TextRenderingHint.ClearTypeGridFit;
+            using (var pb = new SolidBrush(UI.Card)) g.FillRectangle(pb, ClientRectangle);
+            using (var b = new LinearGradientBrush(ClientRectangle, Color.FromArgb(60, 150, 240), Color.FromArgb(30, 100, 210), 90f)) g.FillRectangle(b, ClientRectangle);
+            UI.Pixels(g, ClientRectangle, Color.White, 5);
+            using (var f = UI.F(18, true)) using (var wb = new SolidBrush(Color.White))
+            { SizeF s = g.MeasureString(Caption, f); g.DrawString(Caption, f, wb, (Width - s.Width) / 2, (Height - s.Height) / 2); }
+        }
+    }
+
     class LauncherForm : Form
     {
         readonly GameServer server;
-        readonly Label status, notes;
+        readonly Label status;
         readonly ComboBox versionBox;
         readonly CheckBox appWindow;
-        readonly Button play, updates;
+        readonly FancyButton play, updates;
         readonly LinkLabel newLauncher;
+        readonly HeroPanel hero;
+        readonly Panel versionList, newsList;
         readonly Versions versions = new Versions();
         bool played, busy;
+        readonly List<FancyButton> playButtons = new List<FancyButton>();
 
-        static readonly Color Bg = Color.FromArgb(30, 33, 28);
-        static readonly Color PanelCol = Color.FromArgb(44, 48, 41);
-        static readonly Color TextCol = Color.FromArgb(232, 232, 224);
-        static readonly Color Muted = Color.FromArgb(160, 164, 150);
+        [System.Runtime.InteropServices.DllImport("dwmapi.dll")]
+        static extern int DwmSetWindowAttribute(IntPtr hwnd, int attr, ref int value, int size);
 
         public LauncherForm(GameServer server)
         {
             this.server = server;
-            Text = "BlockCraft Launcher";
-            ClientSize = new Size(560, 470);
+            Text = "BlockCraft Launcher " + Program.LauncherVersion;
+            ClientSize = new Size(1180, 720);
             FormBorderStyle = FormBorderStyle.FixedSingle;
             MaximizeBox = false;
             StartPosition = FormStartPosition.CenterScreen;
-            BackColor = Bg;
-            ForeColor = TextCol;
-            Font = new Font("Segoe UI", 9.5f);
+            BackColor = UI.Bg;
+            ForeColor = UI.Text;
+            Font = UI.F(9.5f, false);
             DoubleBuffered = true;
             try { Icon = Icon.ExtractAssociatedIcon(Application.ExecutablePath); } catch { }
 
-            var header = new HeaderPanel();
-            header.Bounds = new Rectangle(0, 0, 560, 170);
-            Controls.Add(header);
+            // ---- side bar ----
+            var side = new Panel(); side.BackColor = UI.Side; side.Bounds = new Rectangle(0, 0, 76, 720); Controls.Add(side);
+            Func<string, string, int, Color, Action, FancyButton> sideBtn = (glyph, tip, y, col, act) =>
+            {
+                var b = new FancyButton(""); b.Glyph = glyph; b.Base = col; b.TextSize = 15; b.Radius = 12; b.Bounds = new Rectangle(12, y, 52, 50);
+                b.Click += delegate { act(); }; new ToolTip().SetToolTip(b, tip); side.Controls.Add(b); return b;
+            };
+            sideBtn("", "Home", 18, Color.FromArgb(40, 40, 48), delegate { });
+            sideBtn("", "Minigames", 84, Color.FromArgb(26, 26, 32), delegate { LaunchLatest("#minigames"); });
+            sideBtn("", "Skins", 146, Color.FromArgb(26, 26, 32), delegate { LaunchLatest("#skins"); });
+            sideBtn("", "Open the saves folder", 208, Color.FromArgb(26, 26, 32), delegate { OpenSaves(); });
+            sideBtn("", "Check for updates", 270, Color.FromArgb(26, 26, 32), delegate { CheckForUpdates(true); });
+            sideBtn("", "Quit", 580, Color.FromArgb(26, 26, 32), delegate { Close(); });
+            var sidePlay = sideBtn("", "Play the newest version", 644, UI.Green, delegate { LaunchLatest(""); });
+            sidePlay.PixelTex = true; playButtons.Add(sidePlay);
 
+            // ---- top: the BlockCraft tab ----
+            var tabs = new CardPanel(); tabs.Bounds = new Rectangle(100, 18, 420, 64); tabs.Fill = Color.FromArgb(20, 20, 24); tabs.Radius = 16; Controls.Add(tabs);
+            var logoTab = new FancyButton("BLOCKCRAFT"); logoTab.Base = UI.Orange; logoTab.PixelTex = true; logoTab.TextSize = 17; logoTab.Radius = 12; logoTab.Bounds = new Rectangle(6, 6, 220, 52);
+            tabs.Controls.Add(logoTab);
+            var mgTab = new FancyButton("MINIGAMES"); mgTab.Base = Color.FromArgb(20, 20, 24); mgTab.ForeColor = Color.FromArgb(150, 150, 160); mgTab.TextSize = 15; mgTab.Bounds = new Rectangle(232, 6, 180, 52);
+            mgTab.Click += delegate { LaunchLatest("#minigames"); }; tabs.Controls.Add(mgTab);
+
+            updates = new FancyButton("Updates"); updates.Glyph = ""; updates.Base = Color.FromArgb(32, 32, 38); updates.TextSize = 13; updates.Bounds = new Rectangle(850, 22, 150, 56);
+            updates.Click += delegate { CheckForUpdates(true); }; Controls.Add(updates);
+            var savesTop = new FancyButton("Saves"); savesTop.Glyph = ""; savesTop.Base = Color.FromArgb(232, 180, 40); savesTop.ForeColor = Color.FromArgb(40, 30, 0); savesTop.TextSize = 13;
+            savesTop.Bounds = new Rectangle(1010, 22, 150, 56); savesTop.Click += delegate { OpenSaves(); }; Controls.Add(savesTop);
+
+            // ---- hero banner with the version picker ----
+            hero = new HeroPanel(); hero.Bounds = new Rectangle(100, 98, 700, 330); Controls.Add(hero);
+            var dock = new CardPanel(); dock.Fill = Color.FromArgb(28, 28, 34); dock.Radius = 12; dock.Bounds = new Rectangle(160, 268, 380, 52); hero.Controls.Add(dock);
             versionBox = new ComboBox();
-            versionBox.DropDownStyle = ComboBoxStyle.DropDownList;
-            versionBox.FlatStyle = FlatStyle.Flat;
-            versionBox.BackColor = PanelCol;
-            versionBox.ForeColor = TextCol;
-            versionBox.Font = new Font("Segoe UI", 10f);
-            versionBox.Bounds = new Rectangle(110, 184, 340, 28);
-            versionBox.SelectedIndexChanged += delegate { ShowNotes(); };
-            Controls.Add(versionBox);
+            versionBox.DropDownStyle = ComboBoxStyle.DropDownList; versionBox.FlatStyle = FlatStyle.Flat;
+            versionBox.BackColor = Color.FromArgb(28, 28, 34); versionBox.ForeColor = UI.Text; versionBox.Font = UI.F(10.5f, true);
+            versionBox.Bounds = new Rectangle(12, 12, 236, 28);
+            versionBox.SelectedIndexChanged += delegate { ShowSelected(); };
+            versionBox.DrawMode = DrawMode.OwnerDrawFixed; versionBox.ItemHeight = 22;
+            versionBox.DrawItem += (o, e) =>
+            {
+                if (e.Index < 0) return;
+                bool sel = (e.State & DrawItemState.Selected) != 0 && (e.State & DrawItemState.ComboBoxEdit) == 0;
+                using (var bg = new SolidBrush(sel ? Color.FromArgb(46, 130, 230) : Color.FromArgb(28, 28, 34))) e.Graphics.FillRectangle(bg, e.Bounds);
+                TextRenderer.DrawText(e.Graphics, versionBox.Items[e.Index].ToString(), versionBox.Font, e.Bounds, UI.Text, TextFormatFlags.VerticalCenter | TextFormatFlags.Left);
+            };
+            dock.Controls.Add(versionBox);
+            play = new FancyButton("PLAY"); play.Glyph = ""; play.Base = UI.Green; play.PixelTex = true; play.TextSize = 13; play.Bounds = new Rectangle(256, 6, 116, 40);
+            play.Click += delegate { Play(Selected, ""); }; dock.Controls.Add(play); playButtons.Add(play);
 
-            play = MakeButton("PLAY", new Rectangle(140, 220, 280, 60), Color.FromArgb(78, 128, 44), Color.FromArgb(96, 156, 54), 20f);
-            play.Click += delegate { Play(); };
-            Controls.Add(play);
+            // ---- versions ----
+            var vh = new Label(); vh.Text = "Recent Versions"; vh.Font = UI.F(12.5f, true); vh.ForeColor = UI.Text; vh.AutoSize = true; vh.Location = new Point(104, 442); Controls.Add(vh);
+            versionList = new Panel(); versionList.BackColor = UI.Bg; versionList.Bounds = new Rectangle(100, 474, 700, 180); Controls.Add(versionList);
 
-            var saves = MakeButton("Saves", new Rectangle(140, 288, 88, 34), Color.FromArgb(78, 80, 74), Color.FromArgb(98, 100, 92), 9.5f);
-            saves.Click += delegate { OpenSaves(); };
-            Controls.Add(saves);
-
-            updates = MakeButton("Updates", new Rectangle(236, 288, 88, 34), Color.FromArgb(78, 80, 74), Color.FromArgb(98, 100, 92), 9.5f);
-            updates.Click += delegate { CheckForUpdates(true); };
-            Controls.Add(updates);
-
-            var quit = MakeButton("Quit", new Rectangle(332, 288, 88, 34), Color.FromArgb(78, 80, 74), Color.FromArgb(98, 100, 92), 9.5f);
-            quit.Click += delegate { Close(); };
-            Controls.Add(quit);
-
-            notes = new Label();
-            notes.ForeColor = Muted;
-            notes.TextAlign = ContentAlignment.TopCenter;
-            notes.Bounds = new Rectangle(30, 330, 500, 52);
-            Controls.Add(notes);
-
+            // ---- bottom buttons ----
+            var savesBtn = new FancyButton("Open Saves Folder"); savesBtn.Glyph = ""; savesBtn.Base = UI.Orange; savesBtn.PixelTex = true; savesBtn.TextSize = 12;
+            savesBtn.Bounds = new Rectangle(100, 662, 340, 46); savesBtn.Click += delegate { OpenSaves(); }; Controls.Add(savesBtn);
             appWindow = new CheckBox();
             appWindow.Text = "Open in its own game window (Microsoft Edge)";
-            appWindow.Checked = FindEdge() != null;
-            appWindow.Enabled = FindEdge() != null;
-            appWindow.ForeColor = Muted;
-            appWindow.AutoSize = true;
-            appWindow.Location = new Point(142, 388);
-            Controls.Add(appWindow);
+            appWindow.Checked = FindEdge() != null; appWindow.Enabled = FindEdge() != null;
+            appWindow.ForeColor = UI.Muted; appWindow.AutoSize = true; appWindow.Location = new Point(458, 676); Controls.Add(appWindow);
 
-            status = new Label();
-            status.ForeColor = Muted;
-            status.BackColor = PanelCol;
-            status.TextAlign = ContentAlignment.MiddleLeft;
-            status.Padding = new Padding(12, 0, 12, 0);
-            status.Bounds = new Rectangle(0, 424, 560, 46);
-            Controls.Add(status);
+            // ---- news ----
+            var nh = new Label(); nh.Text = "●  Latest News"; nh.Font = UI.F(12.5f, true); nh.ForeColor = UI.Text; nh.AutoSize = true; nh.Location = new Point(828, 100); Controls.Add(nh);
+            newsList = new Panel(); newsList.BackColor = UI.Bg; newsList.Bounds = new Rectangle(824, 132, 336, 236); Controls.Add(newsList);
 
-            newLauncher = new LinkLabel();
-            newLauncher.Text = "New launcher available";
-            newLauncher.LinkColor = Color.FromArgb(255, 255, 85);
-            newLauncher.ActiveLinkColor = Color.White;
-            newLauncher.BackColor = PanelCol;
-            newLauncher.AutoSize = true;
-            newLauncher.Visible = false;
-            newLauncher.Location = new Point(400, 438);
-            newLauncher.LinkClicked += delegate { OpenLauncherPage(); };
-            Controls.Add(newLauncher);
-            newLauncher.BringToFront();
+            // ---- minigames (blue, like a server list) ----
+            var mg = new CardPanel(); mg.Bounds = new Rectangle(824, 380, 336, 270); mg.Radius = 14; Controls.Add(mg);
+            var banner = new BannerPanel(); banner.Bounds = new Rectangle(2, 2, 332, 64); mg.Controls.Add(banner);
+            Action<string, string, string, string, int> mgRow = (name, desc, hash, glyph, y) =>
+            {
+                var row = new CardPanel(); row.Fill = Color.FromArgb(30, 30, 37); row.Radius = 10; row.Bounds = new Rectangle(12, y, 312, 84); mg.Controls.Add(row);
+                var n = new Label(); n.Text = name; n.Font = UI.F(11.5f, true); n.ForeColor = UI.Text; n.BackColor = row.Fill; n.AutoSize = true; n.Location = new Point(14, 14); row.Controls.Add(n);
+                var d = new Label(); d.Text = desc; d.Font = UI.F(8.5f, false); d.ForeColor = UI.Muted; d.BackColor = row.Fill; d.AutoSize = true; d.Location = new Point(15, 44); row.Controls.Add(d);
+                var b = new FancyButton("Play"); b.Glyph = glyph; b.Base = UI.Blue; b.PixelTex = true; b.TextSize = 11; b.Bounds = new Rectangle(196, 20, 104, 42);
+                b.Click += delegate { LaunchLatest(hash); }; row.Controls.Add(b); playButtons.Add(b);
+            };
+            mgRow("Zombie Apocalypse", "Survive alone or with friends", "#zombies", "", 78);
+            mgRow("PvP Duels", "1v1 other players online", "#pvp", "", 172);
+
+            // ---- status line ----
+            status = new Label(); status.ForeColor = UI.Muted; status.BackColor = UI.Bg; status.AutoEllipsis = true;
+            status.Bounds = new Rectangle(824, 662, 336, 46); status.TextAlign = ContentAlignment.MiddleLeft; Controls.Add(status);
+            newLauncher = new LinkLabel(); newLauncher.Text = "New launcher available"; newLauncher.LinkColor = Color.FromArgb(255, 210, 80); newLauncher.ActiveLinkColor = Color.White;
+            newLauncher.BackColor = UI.Bg; newLauncher.AutoSize = true; newLauncher.Visible = false; newLauncher.Location = new Point(828, 652);
+            newLauncher.LinkClicked += delegate { OpenLauncherPage(); }; Controls.Add(newLauncher); newLauncher.BringToFront();
 
             try { versions.LoadLocal(); } catch (Exception e) { status.Text = "Could not read versions.json: " + e.Message; }
             FillVersions(null);
             UpdateStatus();
 
+            HandleCreated += delegate { try { int on = 1; DwmSetWindowAttribute(Handle, 20, ref on, 4); } catch { } }; // dark title bar
             if (server != null)
             {
                 server.Saved += delegate { try { BeginInvoke((Action)UpdateStatus); } catch { } };
                 Shown += delegate { CheckForUpdates(false); };
             }
-            AcceptButton = play;
-        }
-
-        Button MakeButton(string text, Rectangle bounds, Color back, Color hover, float size)
-        {
-            var b = new Button();
-            b.Text = text;
-            b.Bounds = bounds;
-            b.FlatStyle = FlatStyle.Flat;
-            b.BackColor = back;
-            b.ForeColor = Color.White;
-            b.FlatAppearance.BorderColor = Color.FromArgb(20, 20, 18);
-            b.FlatAppearance.BorderSize = 2;
-            b.FlatAppearance.MouseOverBackColor = hover;
-            b.FlatAppearance.MouseDownBackColor = back;
-            b.Font = new Font("Consolas", size, FontStyle.Bold);
-            b.Cursor = Cursors.Hand;
-            return b;
         }
 
         void FillVersions(string keep)
@@ -622,18 +877,45 @@ namespace BlockCraft
                 if (keep != null ? v.Id == keep : v.Latest) sel = i;
             }
             if (versionBox.Items.Count > 0) versionBox.SelectedIndex = sel;
-            ShowNotes();
+            // the three newest versions as cards
+            versionList.Controls.Clear();
+            int y = 0, n = 0;
+            foreach (var v in versions.List)
+            {
+                if (n++ >= 2) break;
+                var vv = v;
+                var card = new VersionCard("BlockCraft " + v.Id + (v.Latest ? "   (newest)" : ""), (string.IsNullOrEmpty(v.Title) ? "" : v.Title + "  ·  ") + (v.Installed ? "Ready to play" : "Downloads when you press Play"));
+                card.Bounds = new Rectangle(0, y, 700, 82); card.PlayBtn.Click += delegate { Play(vv, ""); };
+                versionList.Controls.Add(card); y += 92;
+            }
+            // news: the notes of the newest versions
+            newsList.Controls.Clear();
+            int ny = 0, k = 0;
+            foreach (var v in versions.List)
+            {
+                if (k++ >= 2) break;
+                var card = new NewsCard(v.Latest ? "NEW UPDATE" : "UPDATE", "BlockCraft " + v.Id + (string.IsNullOrEmpty(v.Title) ? "" : ": " + v.Title), Ago(v.Date));
+                card.Bounds = new Rectangle(0, ny, 336, 110); new ToolTip().SetToolTip(card, v.Notes ?? "");
+                newsList.Controls.Add(card); ny += 122;
+            }
+            ShowSelected();
+        }
+
+        static string Ago(string date)
+        {
+            DateTime d; if (!DateTime.TryParse(date, out d)) return "";
+            int days = (int)(DateTime.Today - d.Date).TotalDays;
+            return days <= 0 ? "Today" : days == 1 ? "Yesterday" : days + " days ago";
         }
 
         VersionInfo Selected { get { return versionBox.SelectedItem as VersionInfo; } }
 
-        void ShowNotes()
+        void ShowSelected()
         {
             var v = Selected;
-            if (v == null) { notes.Text = ""; return; }
-            string t = v.Notes ?? "";
-            if (!v.Latest) t += (t.Length > 0 ? "\n" : "") + "Old versions keep their own worlds, so your newest worlds stay safe.";
-            notes.Text = t;
+            hero.Title = "BlockCraft" + (v != null ? " " + v.Id : "");
+            hero.Sub = v == null ? "Choose a version and play" : !v.Installed ? "Press Play to download it" : v.Latest ? "The newest version - press Play!" : "Old versions keep their own worlds";
+            hero.Invalidate();
         }
 
         void UpdateStatus()
@@ -641,7 +923,7 @@ namespace BlockCraft
             if (busy) return;
             if (server == null) { status.Text = "Ready"; return; }
             int n = server.WorldCount();
-            status.Text = "Ready  ·  " + n + (n == 1 ? " world" : " worlds") + " saved in: " + server.Saves;
+            status.Text = "Ready  ·  " + n + (n == 1 ? " world" : " worlds") + " saved";
         }
 
         void SetStatus(string text) { try { BeginInvoke((Action)delegate { status.Text = text; }); } catch { } }
@@ -680,17 +962,12 @@ namespace BlockCraft
                     else msg = "BlockCraft is up to date (version " + (localLatest == "" ? "?" : localLatest) + ").";
                     if (Versions.Compare(remote.LatestId, localLatest == "" ? "0.0" : localLatest) >= 0)
                     {
-                        // remember the full remote list so older versions can be downloaded too
                         Versions.WriteSafely(versions.ManifestPath, new UTF8Encoding(false).GetBytes(json));
                         changed = true;
                     }
                     bool launcherNewer = remote.RemoteLauncher != "" && Versions.Compare(remote.RemoteLauncher, Program.LauncherVersion) > 0;
                     string page = remote.LauncherUrl != "" ? remote.LauncherUrl : "https://github.com/" + repo;
-                    BeginInvoke((Action)delegate
-                    {
-                        newLauncher.Visible = launcherNewer;
-                        newLauncher.Tag = page;
-                    });
+                    BeginInvoke((Action)delegate { newLauncher.Visible = launcherNewer; newLauncher.Tag = page; });
                 }
                 catch (Exception e) { msg = manual ? "Could not check for updates: " + e.Message : "Offline - playing the versions already installed."; }
                 try
@@ -725,15 +1002,22 @@ namespace BlockCraft
             return null;
         }
 
-        void Play()
+        void LaunchLatest(string hash)
+        {
+            VersionInfo latest = versions.Find(versions.LatestId);
+            Play(latest, hash);
+        }
+
+        void SetPlayEnabled(bool on) { foreach (var b in playButtons) b.Enabled = on; }
+
+        void Play(VersionInfo v, string hash)
         {
             if (server == null || busy) return;
-            var v = Selected;
             if (v != null && !v.Installed)
             {
                 string repo = Versions.Repo();
                 if (repo == null) { MessageBox.Show("This version is not downloaded and updates are not set up.", "BlockCraft"); return; }
-                busy = true; play.Enabled = false;
+                busy = true; SetPlayEnabled(false);
                 status.Text = "Downloading BlockCraft " + v.Id + "...";
                 var t = new Thread(delegate()
                 {
@@ -741,24 +1025,25 @@ namespace BlockCraft
                     try { Versions.Download(repo, v, v.Latest); } catch (Exception e) { err = e.Message; }
                     BeginInvoke((Action)delegate
                     {
-                        busy = false; play.Enabled = true;
+                        busy = false; SetPlayEnabled(true);
                         if (err != null) { status.Text = "Download failed: " + err; return; }
                         FillVersions(v.Id);
-                        Launch(v);
+                        Launch(v, hash);
                     });
                 });
                 t.IsBackground = true;
                 t.Start();
                 return;
             }
-            Launch(v);
+            Launch(v, hash);
         }
 
-        void Launch(VersionInfo v)
+        void Launch(VersionInfo v, string hash)
         {
             // the newest version runs from index.html; older ones from versions\<id>\ with their own worlds
             string url = server.Url;
             if (v != null && !v.Latest && File.Exists(Versions.FileFor(v.Id))) url += "v/" + v.Id + "/";
+            url += hash ?? "";
             try
             {
                 string edge = FindEdge();
@@ -767,7 +1052,7 @@ namespace BlockCraft
                 else
                     Process.Start(url);
                 played = true;
-                status.Text = "BlockCraft " + (v != null ? v.Id + " " : "") + "is running. Keep this launcher open (minimized is fine) so your worlds can save.";
+                status.Text = "BlockCraft " + (v != null ? v.Id + " " : "") + "is running. Keep this launcher open (minimized is fine) so your worlds save.";
                 WindowState = FormWindowState.Minimized;
             }
             catch (Exception e)
@@ -791,74 +1076,6 @@ namespace BlockCraft
                 if (r != DialogResult.Yes) { e.Cancel = true; return; }
             }
             base.OnFormClosing(e);
-        }
-    }
-
-    // Painted title art: sky, clouds, a strip of grass blocks and the BLOCKCRAFT logo
-    class HeaderPanel : Control
-    {
-        public HeaderPanel() { DoubleBuffered = true; SetStyle(ControlStyles.ResizeRedraw, true); }
-
-        static Color Vary(Color c, int amount, Random r)
-        {
-            int n = r.Next(-amount, amount + 1);
-            return Color.FromArgb(Clamp(c.R + n), Clamp(c.G + n), Clamp(c.B + n));
-        }
-        static int Clamp(int v) { return v < 0 ? 0 : v > 255 ? 255 : v; }
-
-        protected override void OnPaint(PaintEventArgs e)
-        {
-            var g = e.Graphics;
-            int w = Width, h = Height;
-            using (var sky = new LinearGradientBrush(new Rectangle(0, 0, w, h), Color.FromArgb(120, 178, 255), Color.FromArgb(178, 214, 255), 90f))
-                g.FillRectangle(sky, 0, 0, w, h);
-
-            // blocky clouds
-            using (var cloud = new SolidBrush(Color.FromArgb(235, 255, 255, 255)))
-            {
-                int[,] clouds = { { 30, 22, 96, 14 }, { 54, 12, 48, 12 }, { 380, 30, 120, 14 }, { 410, 18, 60, 14 }, { 230, 8, 70, 10 } };
-                for (int i = 0; i < clouds.GetLength(0); i++) g.FillRectangle(cloud, clouds[i, 0], clouds[i, 1], clouds[i, 2], clouds[i, 3]);
-            }
-
-            // ground: a row of grass blocks (5px pixels, 16x16 textures)
-            const int px = 5, block = 16 * px;
-            int groundY = h - 45;
-            var rnd = new Random(1337);
-            Color grass = Color.FromArgb(92, 156, 52), dirt = Color.FromArgb(134, 96, 67);
-            for (int bx = 0; bx * block < w; bx++)
-                for (int y = 0; y < 16; y++)
-                    for (int x = 0; x < 16; x++)
-                    {
-                        int edge = 3 + ((x * 7 + bx * 3) % 3 == 0 ? 1 : 0);
-                        Color c = y < edge ? Vary(grass, 18, rnd) : Vary(dirt, 14, rnd);
-                        using (var b = new SolidBrush(c)) g.FillRectangle(b, bx * block + x * px, groundY + y * px, px, px);
-                    }
-
-            // logo
-            g.TextRenderingHint = TextRenderingHint.AntiAliasGridFit;
-            using (var font = new Font("Consolas", 40f, FontStyle.Bold))
-            using (var shadow = new SolidBrush(Color.FromArgb(60, 60, 60)))
-            using (var fore = new SolidBrush(Color.FromArgb(240, 240, 240)))
-            using (var fmt = new StringFormat { Alignment = StringAlignment.Center })
-            {
-                var rect = new RectangleF(0, 34, w, 70);
-                g.DrawString("BLOCKCRAFT", font, shadow, new RectangleF(rect.X + 4, rect.Y + 4, rect.Width, rect.Height), fmt);
-                g.DrawString("BLOCKCRAFT", font, fore, rect, fmt);
-            }
-            using (var font = new Font("Consolas", 11f, FontStyle.Bold))
-            using (var yellow = new SolidBrush(Color.FromArgb(255, 255, 85)))
-            using (var dark = new SolidBrush(Color.FromArgb(63, 63, 0)))
-            {
-                var st = g.Save();
-                g.TranslateTransform(w / 2 + 140, 104);
-                g.RotateTransform(-8);
-                g.DrawString("Every version!", font, dark, 2, 2);
-                g.DrawString("Every version!", font, yellow, 0, 0);
-                g.Restore(st);
-            }
-            using (var font = new Font("Consolas", 8.5f))
-            using (var b = new SolidBrush(Color.FromArgb(40, 40, 40)))
-                g.DrawString("Launcher " + Program.LauncherVersion, font, b, 6, 4);
         }
     }
 }

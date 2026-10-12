@@ -2,7 +2,8 @@
 // up 1v1, and the server passes their moves and hits to each other and keeps the score.
 // Each duel is best of 3 rounds. Used by worker.js (Cloudflare) and local.mjs (this PC).
 const ROUNDS_TO_WIN = 2;
-const RELAY = new Set(['s', 'hit', 'fx', 'chat']);
+const RELAY = new Set(['s', 'hit', 'fx', 'chat', 'skin']);
+const MAPS = 4; // arenas: classic, sky islands, nether pit, forest ruins
 
 export class Arena {
   constructor() { this.clients = new Set(); this.queue = []; this.matches = new Map(); this.seq = 0; }
@@ -16,12 +17,13 @@ export class Arena {
   }
 
   message(c, raw) {
-    if (typeof raw !== 'string' || raw.length > 4000) return;
+    if (typeof raw !== 'string' || raw.length > 70000) return; // skins can be a few KB
     let d; try { d = JSON.parse(raw); } catch (e) { return; }
     if (!d || typeof d.t !== 'string') return;
     if (RELAY.has(d.t)) { // goes straight to your opponent
       const m = c.match; if (!m || m.state === 'end') return;
       if (d.t === 'chat') d.text = String(d.text || '').slice(0, 120);
+      if (d.t === 'skin' && (typeof d.d !== 'string' || d.d.length > 65000)) return;
       m.p[1 - c.side].send(d);
       return;
     }
@@ -34,6 +36,7 @@ export class Arena {
         if (!c.name || c.match) return;
         this.unqueue(c);
         c.code = String(d.code || '').toUpperCase().replace(/[^A-Z0-9]/g, '').slice(0, 8);
+        c.kit = String(d.kit || 'classic').replace(/[^a-z]/g, '').slice(0, 16);
         const o = this.queue.find(q => q !== c && q.code === c.code);
         if (o) { this.unqueue(o); this.start(o, c); }
         else { this.queue.push(c); c.send({ t: 'waiting', ...this.status() }); }
@@ -58,11 +61,11 @@ export class Arena {
   }
 
   start(a, b) {
-    const m = { id: ++this.seq, p: [a, b], score: [0, 0], round: 1, state: 'fight', seed: Math.floor(Math.random() * 1e9), timer: null };
+    const m = { id: ++this.seq, p: [a, b], score: [0, 0], round: 1, state: 'fight', seed: Math.floor(Math.random() * 1e9), timer: null, map: Math.floor(Math.random() * MAPS) };
     a.match = b.match = m; a.side = 0; b.side = 1;
     this.matches.set(m.id, m);
-    a.send({ t: 'match', you: 0, opp: b.name, seed: m.seed, round: 1, score: m.score });
-    b.send({ t: 'match', you: 1, opp: a.name, seed: m.seed, round: 1, score: m.score });
+    a.send({ t: 'match', you: 0, opp: b.name, oppKit: b.kit, map: m.map, seed: m.seed, round: 1, score: m.score });
+    b.send({ t: 'match', you: 1, opp: a.name, oppKit: a.kit, map: m.map, seed: m.seed, round: 1, score: m.score });
   }
   end(m, winner, forfeit) {
     m.state = 'end'; clearTimeout(m.timer); this.matches.delete(m.id);
