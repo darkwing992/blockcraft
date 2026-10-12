@@ -1,0 +1,12 @@
+# Cloudflare settings for the BlockCraft big server (used by "Deploy Big Server.bat").
+name = "blockcraft-server"
+main = "worker.js"
+compatibility_date = "2025-01-01"
+
+[[durable_objects.bindings]]
+name = "WORLD"
+class_name = "BlockCraftServer"
+
+[[migrations]]
+tag = "v1"
+new_sqlite_classes = ["BlockCraftServer"]

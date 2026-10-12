@@ -56,6 +56,26 @@ MULTIPLAYER (PLAY WITH FRIENDS)
   - Everyone needs the same version of BlockCraft.
   - It uses the free PeerJS service to connect. Some school or work networks block it.
 
+BIG SERVER (ALWAYS ONLINE, UP TO 100 PLAYERS)
+  One shared world that anyone with the game can join any time, even when your PC is off.
+  It runs for free on Cloudflare. To set it up (once):
+    1. Install Node.js from https://nodejs.org (the LTS version) if you don't have it.
+    2. Double-click "Deploy Big Server.bat". A browser window opens: sign in to Cloudflare or
+       make a free account, then click Allow. The first time, Cloudflare may ask you to pick a
+       name for your workers.dev address.
+    3. When it says Done, the game knows the server address. Run "Publish to GitHub.bat" so
+       everyone's launcher gets it.
+  To play: title screen > Multiplayer > Join Server.
+  - Your stuff is saved on the server under your name. Nobody else can use your name
+    (it is locked to the computer/browser you first played on).
+  - Mobs near you are run by your game, so everyone near each other sees the same mobs.
+  - Cloudflare's free plan has a daily limit. It is plenty for a group of friends; if lots of
+    people play all day it may stop until the next day (their $5/month plan removes this).
+  - Chat on the big server is open to everyone who joins. Only share the game with people you know.
+  Run it on your own PC instead: double-click "Run Server On This PC.bat" (needs Node.js).
+  Players on your Wi-Fi join with the address it shows (like ws://192.168.1.5:8080/ws).
+  The world is saved in server\server-data.json.
+
 CONTROLS
   WASD move, mouse look (or arrow keys), Space jump/swim
   Double-tap W (or hold Shift) sprint, C sneak

@@ -3,3 +3,6 @@ saves/
 manifest-error.txt
 BlockCraft-new.exe
 .claude/
+server/server-data.json
+server/.wrangler/
+server/node_modules/

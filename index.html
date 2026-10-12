@@ -129,7 +129,12 @@
   #mpScreen { display: none; background: rgba(14,14,14,.96); z-index: 5; }
   #mpPanel { width: min(520px, 94vw); font-family: Consolas, monospace; text-align: center; }
   #mpPanel h2 { margin: 0 0 6px; text-shadow: 2px 2px 0 #333; }
-  #mpPanel p { color: #ccc; font-size: 14px; line-height: 1.5; }
+  #mpPanel p { color: #ccc; font-size: 13px; line-height: 1.4; margin: 2px 0 6px; }
+  #mpPanel { max-height: 96vh; overflow-y: auto; }
+  .mpBox { background: rgba(255,255,255,.06); border: 2px solid #555; padding: 6px 10px 2px; margin: 8px 0; }
+  .mpBox h3 { margin: 2px 0; color: #ffff55; text-shadow: 2px 2px 0 #3f3f00; }
+  .mpBox .btn { width: 100%; max-width: 360px; }
+  #mpStatus { min-height: 18px; font-size: 13px; color: #9f9; }
   #mpPanel label { display: flex; justify-content: space-between; align-items: center; gap: 10px; margin: 8px auto; width: 360px; max-width: 100%; }
   #mpPanel input { flex: 1; max-width: 220px; padding: 6px; font: 16px Consolas, monospace; background: #000; color: #fff; border: 2px solid #a0a0a0; }
   #mpCode { text-transform: uppercase; letter-spacing: 3px; }
@@ -206,12 +211,21 @@
 <div id="mpScreen" class="overlay">
   <div id="mpPanel">
     <h2>Multiplayer</h2>
-    <p>Play with friends over the internet. One person opens their world: in their game, press <b>Esc</b> and click <b>Open to Friends</b>.
-      They get a join code. Type that code here.</p>
     <label>Your name <input id="mpName" maxlength="16" autocomplete="off"></label>
-    <label>Join code <input id="mpCode" maxlength="8" autocomplete="off" placeholder="ABCDE"></label>
+    <div class="mpBox">
+      <h3>Big Server</h3>
+      <p>One world that is always online, for up to 100 players.</p>
+      <label>Server <input id="mpServer" autocomplete="off" placeholder="server address"></label>
+      <div id="mpStatus"></div>
+      <button class="btn" id="btnJoinServer">Join Server</button>
+    </div>
+    <div class="mpBox">
+      <h3>Friend's World</h3>
+      <p>Your friend presses <b>Esc</b> in their world and clicks <b>Open to Friends</b>. Type the code they get.</p>
+      <label>Join code <input id="mpCode" maxlength="8" autocomplete="off" placeholder="ABCDE"></label>
+      <button class="btn" id="btnJoin">Join Friend</button>
+    </div>
     <div id="mpMsg"></div>
-    <button class="btn" id="btnJoin">Join World</button>
     <button class="btn" id="btnMpBack">Back</button>
   </div>
 </div>
@@ -264,8 +278,9 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 <script>
 'use strict';
-const GAME_VERSION='1.6';
-const MP={role:null,applying:false,seq:0,players:new Map(),conns:new Map(),outB:new Map()}; // multiplayer state (see the Multiplayer section)
+const GAME_VERSION='1.7';
+const DEFAULT_SERVER='wss://blockcraft-server.austinhodgins2014-e99.workers.dev/ws'; // the big server's address (set by "Deploy Big Server.bat")
+const MP={role:null,applying:false,seq:0,players:new Map(),conns:new Map(),outB:new Map(),remote(){return MP.role==='client'||MP.role==='net';}}; // multiplayer state (see the Multiplayer section)
 // =====================================================================
 //  Random / noise
 // =====================================================================
@@ -1051,7 +1066,7 @@ function setBlockRaw(x,y,z,id){
   const cx=x>>4,cz=z>>4,lx=x&15,lz=z&15;const c=chunks.get(ckey(cx,cz));if(!c)return;
   const i=bidx(lx,y,lz);const old=c.data[i];if(old===id)return;c.data[i]=id;if(y>=c.maxY)c.maxY=Math.min(H-1,y+1);
   if(MP.role&&(MP.role==='host'||!MP.applying))MP.noteBlock(x,y,z);
-  scheduleWater(x,y,z);
+  if(!(MP.role==='net'&&MP.applying))scheduleWater(x,y,z);
   if(DEF[old].special){if(old===B.CHEST){if(MP.applying)chests.delete(wk(x,y,z));else if(typeof dropChest==='function')dropChest(x,y,z);}
     const m=blockMeta.get(wk(x,y,z))||'';blockMeta.delete(wk(x,y,z));saveDirty=true;
     if(old===B.BED&&m.length===3){const o=bedPartner(x,y,z,m);if(getBlock(o[0],o[1],o[2])===B.BED&&id!==B.BED)setBlockRaw(o[0],o[1],o[2],0);}}
@@ -1128,7 +1143,7 @@ function waterTick(x,y,z){
 }
 let waterT=0;
 function updateWater(dt){
-  if(MP.role==='client'){waterQ.clear();return;} // the host runs the water
+  if(MP.role==='client'){waterQ.clear();return;} // the host runs the water (on the big server, whoever changed it does)
   waterT+=dt;if(waterT<0.25)return;waterT=0;
   if(!waterQ.size)return;
   const q=waterQ;waterQ=new Map();let n=0;
@@ -2249,7 +2264,7 @@ function mobRay(maxD){
 }
 function hurtMob(m,dmg,kx,kz,byPlayer){
   if(!mobs.includes(m)||dmg<=0)return;
-  if(m.puppet){if(byPlayer){MP.send({t:'hit',i:m.nid,n:dmg,kx,kz});m.hurtT=0.35;sfxAt('mobhurt',m.pos.x,m.pos.y,m.pos.z);}return;} // the host owns this mob
+  if(m.puppet){if(byPlayer){MP.sendTo(m.owner,{t:'hit',i:m.nid,n:dmg,kx,kz});m.hurtT=0.35;sfxAt('mobhurt',m.pos.x,m.pos.y,m.pos.z);}return;} // the host owns this mob
   m.hp-=dmg;m.hurtT=0.35;
   const l=Math.hypot(kx,kz);if(l){m.vel.x=kx/l*6;m.vel.z=kz/l*6;m.vel.y=Math.max(m.vel.y,4.5);}
   const D=MOBS[m.type];
@@ -2291,7 +2306,7 @@ function mobTarget(p){
   const me={pos:player.pos,id:null,hunt:mode==='survival'&&!player.dead,eye:camera.position};
   let best=null,bd=1e9,near=Math.hypot(player.pos.x-p.x,player.pos.z-p.z);
   if(me.hunt){best=me;bd=near;}
-  if(MP.role==='host')for(const rp of MP.players.values()){const d=Math.hypot(rp.tp.x-p.x,rp.tp.z-p.z);near=Math.min(near,d);
+  if(MP.role==='host'||MP.role==='net')for(const rp of MP.players.values()){const d=Math.hypot(rp.tp.x-p.x,rp.tp.z-p.z);near=Math.min(near,d);
     if(rp.mode==='survival'&&!rp.dead&&d<bd){bd=d;best={pos:rp.tp,id:rp.id,hunt:true,eye:new THREE.Vector3(rp.tp.x,rp.tp.y+1.62,rp.tp.z)};}}
   if(!best||bd>40){best=me;best.hunt=false;}
   best.near=near;return best;
@@ -2389,7 +2404,7 @@ function updateSpawner(dt){
   // villagers live in villages near the player
   for(const v of villagesNear(player.pos.x,player.pos.z,72)){
     if(Math.hypot(v.x-player.pos.x,v.z-player.pos.z)>72)continue;
-    let n=0;for(const m of mobs)if(m.home===v)n++;if(n>=v.villagers)continue;
+    let n=0;for(const m of mobs)if(m.home===v||(m.puppet&&m.type==='villager'&&Math.hypot(m.pos.x-v.x,m.pos.z-v.z)<48))n++;if(n>=v.villagers)continue;
     // pick a spot on one of the village roads (not on a roof)
     const [rdx,rdz]=[[1,0],[-1,0],[0,1],[0,-1]][Math.floor(Math.random()*4)],t=4+Math.floor(Math.random()*9);
     const sx=v.x+rdx*t,sz=v.z+rdz*t;
@@ -2554,7 +2569,7 @@ function mobRayHit(){const m=mobRay(4);return !!(m&&target&&m.t<target.t);}
 let sleeping=null;
 function trySleep(x,y,z){
   bedPos=[x,y,z];saveDirty=true;
-  if(MP.role==='client'){toast('Respawn point set (only the host can sleep through the night)');return;}
+  if(MP.remote()){toast(MP.role==='net'?'Respawn point set':'Respawn point set (only the host can sleep through the night)');return;}
   if(daylight>0.45){toast('Respawn point set (you can only sleep at night)');return;}
   for(const m of mobs)if(MOBS[m.type].hostile&&Math.hypot(m.pos.x-x-0.5,m.pos.y-y,m.pos.z-z-0.5)<8){toast('You may not rest now, there are monsters nearby');return;}
   sleeping={t:0,x,y,z,done:false};player.vel.set(0,0,0);useHold=null;mouseHeld[0]=mouseHeld[2]=false;
@@ -2798,12 +2813,14 @@ function updateMenuButtons(){
   document.getElementById('menuWorld').textContent=titleMode||!currentWorld?'':'World: '+currentWorld.name;
   const info=document.getElementById('mpInfo'),names=[...MP.players.values()].map(p=>p.name);
   document.getElementById('btnHost').style.display=!titleMode&&!MP.role?'':'none';
-  document.getElementById('btnQuit').textContent=MP.role==='client'?'Leave World':'Save & Quit to Title';
+  document.getElementById('btnQuit').textContent=MP.remote()?'Leave World':'Save & Quit to Title';
   if(MP.role==='host')info.innerHTML='Friends can join with this code:<br><b></b><br><span></span>';
   else if(MP.role==='client')info.innerHTML='Playing with friends<br><span></span>';
+  else if(MP.role==='net')info.innerHTML='On the big server<br><span></span>';
   else info.innerHTML='';
   if(MP.role==='host')info.querySelector('b').textContent=MP.code;
-  if(MP.role)info.querySelector('span').textContent=names.length?'Players: '+[MP.name,...names].join(', '):'Waiting for friends...';
+  if(MP.role==='net')info.querySelector('span').textContent='Players online: '+(MP.online||1)+'/100'+(names.length?' · near you: '+names.slice(0,8).join(', '):'');
+  else if(MP.role)info.querySelector('span').textContent=names.length?'Players: '+[MP.name,...names].join(', '):'Waiting for friends...';
 }
 function lock(){
   audioInit();
@@ -3026,7 +3043,8 @@ function serializeWorld(){
 const worldInfo=()=>({id:currentWorld.id,name:currentWorld.name,mode,seed:SEED,created:currentWorld.created,lastPlayed:Date.now()});
 let saving=false;
 async function save(){
-  if(!currentWorld||saving||MP.role==='client')return; // a friend's world is saved by the hostsaving=true;
+  if(!currentWorld||saving||MP.remote())return; // a friend's world is saved by the host, the big server's by the server
+  saving=true;
   try{await Store.save(currentWorld.id,serializeWorld(),worldInfo());saveDirty=false;}
   catch(e){console.warn('save failed',e);toast('Could not save: '+(e.message||e));}
   saving=false;
@@ -3086,7 +3104,7 @@ function enterTitle(){
   menu.style.display='flex';worldsEl.style.display='none';updateMenuButtons();invChanged();
 }
 async function quitToTitle(){
-  if(MP.role==='client'){MP.leave();if(document.pointerLockElement)document.exitPointerLock();enterTitle();return;}
+  if(MP.remote()){MP.leave();if(document.pointerLockElement)document.exitPointerLock();enterTitle();return;}
   await save();if(MP.role==='host'){MP.sysChat('The host closed the world');setTimeout(()=>MP.reset(),300);}if(document.pointerLockElement)document.exitPointerLock();enterTitle();}
 // move old single-save worlds (from earlier versions) into a save slot
 async function migrateOld(){
@@ -3098,8 +3116,8 @@ async function migrateOld(){
 setInterval(()=>{if(currentWorld&&!titleMode&&(saveDirty||locked))save();},15000);
 document.addEventListener('visibilitychange',()=>{if(document.hidden&&currentWorld)save();});
 window.addEventListener('beforeunload',()=>{
-  if(MP.role==='client')MP.sendMe();
-  if(!currentWorld||MP.role==='client')return;const ds=JSON.stringify(serializeWorld()),is=JSON.stringify(worldInfo()),id=encodeURIComponent(currentWorld.id);
+  if(MP.remote())MP.sendMe();
+  if(!currentWorld||MP.remote())return;const ds=JSON.stringify(serializeWorld()),is=JSON.stringify(worldInfo()),id=encodeURIComponent(currentWorld.id);
   if(Store.kind==='browser'){try{localStorage.setItem('bc_world_'+currentWorld.id,ds);localStorage.setItem('bc_info_'+currentWorld.id,is);}catch(e){}}
   else if(Store.kind==='server'&&navigator.sendBeacon){navigator.sendBeacon(`api/save?slot=${id}&kind=data`,new Blob([ds],{type:'application/json'}));
     navigator.sendBeacon(`api/save?slot=${id}&kind=info`,new Blob([is],{type:'application/json'}));}
@@ -3278,15 +3296,15 @@ function snapshotMobs(){
     m.hurtT>0?1:0,+(m.fuse||0).toFixed(2),m.prof?PROF_KEYS.indexOf(m.prof):-1]);
   return out;
 }
-function applyMobSnapshot(list){
+function applyMobSnapshot(list){ // entries: [owner, nid, type, x, y, z, yaw, hurt, fuse, profession]
   const seen=new Set();
   for(const s of list){
-    const [nid,ti,x,y,z,yaw,hurt,fuse,pi]=s;seen.add(nid);
-    let m=mobs.find(o=>o.puppet&&o.nid===nid);
-    if(!m){const type=MOB_TYPES[ti];if(!type)continue;m=spawnMob(type,x,y,z,{puppet:true,nid,prof:pi>=0?PROF_KEYS[pi]:undefined});m.yaw=yaw;m.tp=new THREE.Vector3(x,y,z);}
+    const [owner,nid,ti,x,y,z,yaw,hurt,fuse,pi]=s;seen.add(owner+':'+nid);
+    let m=mobs.find(o=>o.puppet&&o.nid===nid&&o.owner===owner);
+    if(!m){const type=MOB_TYPES[ti];if(!type)continue;m=spawnMob(type,x,y,z,{puppet:true,nid,owner,prof:pi>=0?PROF_KEYS[pi]:undefined});m.yaw=yaw;m.tp=new THREE.Vector3(x,y,z);}
     m.tp.set(x,y,z);m.tyaw=yaw;if(hurt&&m.hurtT<=0)m.hurtT=0.3;m.fuse=fuse;
   }
-  for(const m of [...mobs])if(m.puppet&&!seen.has(m.nid))removeMob(m);
+  for(const m of [...mobs])if(m.puppet&&!seen.has(m.owner+':'+m.nid))removeMob(m);
 }
 function updatePuppets(dt){
   for(const m of mobs){if(!m.puppet)continue;
@@ -3301,10 +3319,12 @@ const MP_SEND_RATE=0.1;
 Object.assign(MP,{peer:null,conn:null,conns:new Map(),players:new Map(),code:null,hostName:'',outB:new Map(),tickT:0,blockT:0,meT:0,far:false,leaving:false,
   // send to the host (client) or to every friend (host), optionally skipping one connection
   send(msg,except){
-    if(MP.role==='client'){if(MP.conn&&MP.conn.open)try{MP.conn.send(msg);}catch(e){}}
+    if(MP.remote()){if(MP.conn&&MP.conn.open)try{MP.conn.send(msg);}catch(e){}}
     else if(MP.role==='host')for(const [id,c] of MP.conns)if(id!==except&&c.open)try{c.send(msg);}catch(e){}
   },
-  sendTo(id,msg){const c=MP.conns.get(id);if(c&&c.open)try{c.send(msg);}catch(e){}},
+  sendTo(id,msg){ // one player: the host sends directly, a friend sends to the host, the big server forwards it
+    if(MP.role==='host'){const c=MP.conns.get(id);if(c&&c.open)try{c.send(msg);}catch(e){}}
+    else if(MP.role==='net')MP.send(Object.assign({to:id},msg));else MP.send(msg);},
   noteBlock(x,y,z){MP.outB.set(wk(x,y,z),[x,y,z]);},
   fx(msg){if(MP.role)MP.send(Object.assign({t:'fx'},msg));},
   async host(){
@@ -3368,22 +3388,45 @@ Object.assign(MP,{peer:null,conn:null,conns:new Map(),players:new Map(),code:nul
         if(d.t==='welcome'){if(done)return;done=true;MP.role='client';MP.code=code;MP.enterRemoteWorld(d);res();return;}
         if(MP.role==='client')MP.onMessage(d,'host');
       });
-      c.on('close',()=>{if(!done)return fail('The connection closed.');MP.lost();});
+      c.on('close',()=>{if(!done)return fail('The connection closed.');if(MP.conn===c)MP.lost();});
       setTimeout(()=>fail('Could not reach that world. Your friend\'s network may be blocking it.'),20000);
     });
   },
+  // the big server: a WebSocket that speaks JSON
+  joinServer(url,name){
+    MP.name=setMpName(name);url=serverUrl(url);
+    if(!url)return Promise.reject(new Error('Type the server address.'));
+    let token='';try{token=localStorage.getItem('bc_token')||'';if(!token){token=Math.random().toString(36).slice(2)+Math.random().toString(36).slice(2);localStorage.setItem('bc_token',token);}}catch(e){token='t'+Date.now()+Math.random();}
+    return new Promise((res,rej)=>{
+      let ws;try{ws=new WebSocket(url);}catch(e){rej(new Error('That server address is not valid.'));return;}
+      const c={open:false,send(o){if(ws.readyState===1)ws.send(JSON.stringify(o));},close(){try{ws.close();}catch(e){}}};
+      MP.conn=c;let done=false,welcome=null,got=0;
+      const fail=m=>{if(done)return;done=true;if(MP.conn===c)MP.reset();else c.close();rej(new Error(m));};
+      const finish=()=>{if(done)return;done=true;MP.role='net';try{localStorage.setItem('bc_server',url);}catch(e){}MP.enterRemoteWorld(welcome);res();};
+      ws.onopen=()=>{c.open=true;c.send({t:'hello',name:MP.name,token,v:1});};
+      ws.onmessage=e=>{let d;try{d=JSON.parse(e.data);}catch(err){return;}
+        if(d.t==='deny')return fail(d.why);
+        if(d.t==='welcome'){welcome=d;if(!d.parts)finish();return;}
+        if(d.t==='mods'&&welcome&&!done){welcome.world.mods.push(...d.mods);if(++got>=welcome.parts)finish();return;}
+        if(MP.role==='net')MP.onMessage(d,d.from||'server');};
+      ws.onclose=()=>{c.open=false;if(!done)fail('Could not connect to the server. Check the address, or the server may be offline.');else if(MP.conn===c)MP.lost();};
+      setTimeout(()=>fail('The server did not answer.'),25000);
+    });
+  },
   enterRemoteWorld(d){
-    const w=d.world,y=d.you;MP.hostName=d.host;MP.name=d.name;MP.selfId=d.id;
+    const w=d.world,y=d.you;MP.hostName=d.host||'';MP.name=d.name;MP.selfId=d.id;MP.online=d.online||1;
     const s={v:3,name:w.name,seed:w.seed,mods:w.mods,meta:w.meta,chests:w.chests,time:w.time,spawn:w.spawn,clock:w.clock,mode:w.mode,
       inv:y?y.inv:[],armor:y?y.armor:[],hp:y?y.hp:20,food:y?y.food:20,sat:y?y.sat:5,bed:y?y.bed:null,
-      player:y&&y.player?y.player:{x:d.at[0],y:d.at[1],z:d.at[2],yaw:0,pitch:0}};
+      player:y&&y.player?y.player:d.at?{x:d.at[0],y:d.at[1],z:d.at[2],yaw:0,pitch:0}:{x:0,y:0,z:0,yaw:0,pitch:0}};
     const role=MP.role;applyWorld(s,null);MP.role=role;
-    currentWorld.name=d.host+'\'s world';
+    if(!(y&&y.player)&&!d.at)respawn(); // first time on the big server: start at its spawn
+    currentWorld.name=d.host?d.host+'\'s world':(d.server||'Big Server');
     if(!y&&mode==='creative')[B.GRASS,B.DIRT,B.STONE,B.COBBLE,B.PLANKS,B.LOG,B.GLASS,B.BRICK,B.TORCH].forEach((id,i)=>inv[i]={id,count:64,dmg:0});
     invChanged();
-    addRemote('host',d.host);
+    if(d.host)addRemote('host',d.host);
     document.getElementById('mpScreen').style.display='none';
-    startPlaying();chatLine('Joined '+d.host+'\'s world. Press T to chat.','#ffff55');
+    startPlaying();chatLine('Joined '+currentWorld.name+'. Press T to chat.','#ffff55');
+    if(!d.host)chatLine('Players online: '+MP.online+'/100','#ffff55');
   },
   onMessage(d,from){
     switch(d.t){
@@ -3391,7 +3434,11 @@ Object.assign(MP,{peer:null,conn:null,conns:new Map(),players:new Map(),code:nul
       case 'b':MP.applyBlocks(d.l);break;
       case 'tick':{
         dayTime=d.time;
-        for(const e of d.pl){if(e[0]===MP.selfId)continue;let rp=MP.players.get(e[0]);if(!rp)rp=addRemote(e[0],e[1]);setRemoteState(rp,e.slice(2));}
+        const now=performance.now();if(d.online)MP.online=d.online;
+        for(const e of d.pl){if(e[0]===MP.selfId)continue;let rp=MP.players.get(e[0]);if(!rp)rp=addRemote(e[0],e[1]);setRemoteState(rp,e.slice(2));rp.seen=now;}
+        if(MP.role==='net'){ // the big server only sends players and mobs near you
+          for(const rp of [...MP.players.values()])if(now-(rp.seen||0)>3000)removeRemote(rp.id);
+          applyMobSnapshot(d.mobs);break;}
         const hp_=MP.players.get('host');
         const far=hp_&&Math.hypot(hp_.tp.x-player.pos.x,hp_.tp.z-player.pos.z)>Math.max(80,(renderDist-1)*16);
         if(far!==MP.far){MP.far=far;for(const m of [...mobs])if(!!m.puppet===far)removeMob(m);}
@@ -3428,7 +3475,7 @@ Object.assign(MP,{peer:null,conn:null,conns:new Map(),players:new Map(),code:nul
     return [+player.pos.x.toFixed(2),+player.pos.y.toFixed(2),+player.pos.z.toFixed(2),+player.yaw.toFixed(2),+player.pitch.toFixed(2),
       s?s.id:0,mode==='creative'?1:0,player.dead?1:0,swing>0.8?1:0,sneaking?1:0];},
   update(dt){
-    updateRemotes(dt);if(MP.role==='client')updatePuppets(dt);
+    updateRemotes(dt);if(MP.remote())updatePuppets(dt);
     MP.blockT-=dt;
     if(MP.blockT<=0&&MP.outB.size){MP.blockT=0.05;const l=[];
       for(const [k,[x,y,z]] of MP.outB){let id=getBlock(x,y,z);const c=chunks.get(ckey(x>>4,z>>4));
@@ -3440,17 +3487,21 @@ Object.assign(MP,{peer:null,conn:null,conns:new Map(),players:new Map(),code:nul
       if(MP.role==='host'){
         const pl=[['host',MP.name,...MP.myState()]];
         for(const rp of MP.players.values())pl.push([rp.id,rp.name,rp.tp.x,rp.tp.y,rp.tp.z,rp.tyaw,rp.pitch,rp.held,rp.mode==='creative'?1:0,rp.dead?1:0,rp.sw|0,rp.sneak?1:0]);
-        MP.send({t:'tick',time:dayTime,pl,mobs:snapshotMobs()});
-      }else MP.send({t:'st',s:MP.myState()});
+        MP.send({t:'tick',time:dayTime,pl,mobs:snapshotMobs().map(e=>['host',...e])});
+      }else if(MP.role==='net')MP.send({t:'st',s:MP.myState(),m:snapshotMobs()}); // the server answers with a 'tick'
+      else MP.send({t:'st',s:MP.myState()});
     }
-    if(MP.role==='client'){MP.meT-=dt;if(MP.meT<=0){MP.meT=5;MP.sendMe();}}
+    if(MP.remote()){MP.meT-=dt;if(MP.meT<=0){MP.meT=5;MP.sendMe();}}
   },
   sendMe(){if(titleMode)return; // a copy, because leaving clears the inventory right after this
     MP.send({t:'me',p:JSON.parse(JSON.stringify({inv,armor,hp,food,sat,bed:bedPos,player:{x:player.pos.x,y:player.pos.y,z:player.pos.z,yaw:player.yaw,pitch:player.pitch}}))});},
   sysChat(text){chatLine(text,'#ffff55');MP.send({t:'chat',text,color:'#ffff55'});},
-  chat(text){const line='<'+MP.name+'> '+text;chatLine(line);MP.send({t:'chat',text:line});},
-  lost(){if(MP.leaving||MP.role!=='client')return;MP.reset();enterTitle();openMpScreen('The connection to the host was lost (they may have closed their world).');},
-  leave(){if(MP.role==='client'){MP.sendMe();MP.leaving=true;setTimeout(()=>{MP.reset();},300);}},
+  chat(text){const line='<'+MP.name+'> '+text;chatLine(line);MP.send(MP.role==='net'?{t:'chat',raw:text}:{t:'chat',text:line});},
+  lost(){if(MP.leaving||!MP.remote())return;const net=MP.role==='net';MP.reset();enterTitle();
+    openMpScreen(net?'Lost the connection to the server.':'The connection to the host was lost (they may have closed their world).');},
+  leave(){ // say goodbye, then close this connection a moment later (a new one may already be starting)
+    if(!MP.remote())return;MP.sendMe();const c=MP.conn,pe=MP.peer;MP.conn=null;MP.peer=null;MP.reset();
+    setTimeout(()=>{try{if(c)c.close();}catch(e){}try{if(pe)pe.destroy();}catch(e){}},300);},
   reset(){
     try{if(MP.conn)MP.conn.close();}catch(e){}try{if(MP.peer)MP.peer.destroy();}catch(e){}
     for(const id of [...MP.players.keys()])removeRemote(id);
@@ -3476,10 +3527,36 @@ function closeChat(send){
 }
 
 // ---- multiplayer screen ----
+// "blockcraft.name.workers.dev" / "https://..." / "ws://1.2.3.4:8080/ws" -> a WebSocket URL ending in /ws
+function serverUrl(a){
+  a=(a||'').trim();if(!a)return '';
+  if(!/^[a-z]+:\/\//i.test(a))a=(/^(localhost|\d+\.\d+\.\d+\.\d+)(:|$)/.test(a)?'ws://':'wss://')+a;
+  a=a.replace(/^http:/i,'ws:').replace(/^https:/i,'wss:');
+  try{const u=new URL(a);if(u.pathname==='/'||u.pathname==='')u.pathname='/ws';return u.toString();}catch(e){return '';}
+}
+let statusReq=0;
+async function checkServer(){
+  const el=document.getElementById('mpStatus'),url=serverUrl(document.getElementById('mpServer').value),my=++statusReq;
+  if(!url){el.textContent=DEFAULT_SERVER?'':'No big server is set up yet - type an address, or see README.txt.';el.style.color='#ccc';return;}
+  el.textContent='Checking...';el.style.color='#ccc';
+  try{const r=await fetch(url.replace(/^ws/,'http').replace(/\/ws$/,'/status'),{cache:'no-store'});const j=await r.json();
+    if(my!==statusReq)return;el.textContent='Online - '+j.online+'/'+j.max+' players';el.style.color='#9f9';}
+  catch(e){if(my!==statusReq)return;el.textContent='Can\'t reach this server right now.';el.style.color='#f99';}
+}
 function openMpScreen(msg){
   const el=document.getElementById('mpScreen');el.style.display='flex';
   document.getElementById('mpName').value=mpName();document.getElementById('mpMsg').textContent=msg||'';
+  let sv='';try{sv=localStorage.getItem('bc_server')||'';}catch(e){}
+  document.getElementById('mpServer').value=sv||DEFAULT_SERVER;checkServer();
 }
+document.getElementById('mpServer').addEventListener('change',checkServer);
+document.getElementById('btnJoinServer').onclick=async()=>{
+  const msg=document.getElementById('mpMsg'),btn=document.getElementById('btnJoinServer');
+  if(btn.disabled)return;btn.disabled=true;msg.textContent='Connecting to the server...';
+  try{await MP.joinServer(document.getElementById('mpServer').value,document.getElementById('mpName').value);}
+  catch(e){msg.textContent='Could not join: '+(e.message||e);}
+  btn.disabled=false;
+};
 document.getElementById('btnMulti').onclick=()=>{audioInit();openMpScreen('');};
 document.getElementById('btnMpBack').onclick=()=>document.getElementById('mpScreen').style.display='none';
 document.getElementById('btnJoin').onclick=async()=>{
@@ -3530,7 +3607,7 @@ function frame(now){
   if(active||mpSim){
     if(MP.role!=='client'||MP.far){updateMobs(dt);updateSpawner(dt);}
     updateArrows(dt);updatePrimed(dt);updateFurnaces(dt);
-    if(MP.role!=='client')updateCrops(dt);
+    if(!MP.remote())updateCrops(dt); // the host or the big server grows crops
   }
   if(MP.role)MP.update(dt);
   updateWater(dt);
