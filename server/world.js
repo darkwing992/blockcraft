@@ -8,6 +8,7 @@ export const SERVER_PROTO = 2; // 2 = accounts with passwords (1 = old games, wh
 const NEAR = 96;            // players/mobs farther away than this aren't sent to you
 const WHEAT = 46, WHEAT_YOUNG = 48, CHEST = 35;
 const NAME_RE = /^[A-Za-z0-9_ \-]{1,16}$/;
+const MAX_CLOUD_WORLDS = 30, MAX_CLOUD_BYTES = 30 * 1024 * 1024, CLOUD_PART = 120000; // cloud saves: worlds per account, size of one (gzipped) world, bytes per stored part
 
 export class World {
   // store: { get(key), put(key, value), delete(key), list(prefix) -> Map }  (all async)
@@ -188,16 +189,80 @@ export class World {
     await this.flush(false);
   }
 
-  // Sign up:  { t:'hello', signup:true, name, pass, token }  -> makes the account (the name is then taken forever)
-  // Log in:   { t:'hello', name, pass, token }                 -> checks the password and remembers this computer
-  //           { t:'hello', name, token }                       -> a computer that logged in before
-  async hello(c, d) {
-    const deny = (why, code) => { this.out(c, { t: 'deny', why, code }); setTimeout(() => { try { c.close(); } catch (e) { } }, 300); };
-    if (d.v !== SERVER_PROTO && d.v !== 1) return deny('This server needs a newer BlockCraft. Update your game.');
+  // ---- cloud saves (HTTP): /api/login, /api/cloud ... ----
+  // req = { method, path, query: URLSearchParams, header(name), json(), bytes() }  ->  { status, json } or { status, bytes }
+  async api(req) {
+    const bad = (status, why) => ({ status, json: { error: why } });
+    try {
+      if (req.path === '/api/login' && req.method === 'POST') {
+        let d; try { d = await req.json(); } catch (e) { return bad(400, 'Bad request.'); }
+        if (!d || typeof d !== 'object') return bad(400, 'Bad request.');
+        const a = await this.auth({ name: d.name, pass: d.pass, token: d.token, signup: !!d.signup, v: SERVER_PROTO });
+        if (a.why) return bad(a.code === 'badpass' || a.code === 'needpass' ? 401 : 400, a.why);
+        if (!a.p.hash) return bad(400, 'This name has no password yet. Sign up to give it one.');
+        await this.flush(true);
+        return { status: 200, json: { ok: true, name: a.p.name } };
+      }
+      // everything else needs a logged-in computer: x-bc-name + x-bc-token
+      const key = String(req.header('x-bc-name') || '').trim().toLowerCase(), token = String(req.header('x-bc-token') || '');
+      const p = this.players.get(key);
+      if (!p || !p.hash || token.length < 8 || !p.tokens.includes(token)) return bad(401, 'Please log in again.');
+      const index = async () => (await this.store.get('wl:' + key)) || [];
+      if (req.path === '/api/cloud' && req.method === 'GET') {
+        return { status: 200, json: { name: p.name, save: (await this.store.get('a:' + key)) || {}, worlds: await index() } };
+      }
+      if (req.path === '/api/cloud/ach' && req.method === 'POST') { // merge achievements, biomes and PvP keys from this computer
+        let d; try { d = await req.json(); } catch (e) { return bad(400, 'Bad request.'); }
+        const cur = (await this.store.get('a:' + key)) || {};
+        const merge = (a, b, pick) => { const o = { ...(a || {}) }; if (b && typeof b === 'object') for (const k of Object.keys(b).slice(0, 300)) if (typeof k === 'string' && k.length < 40) o[k] = k in o ? pick(o[k], b[k]) : b[k]; return o; };
+        const out = {
+          ach: merge(cur.ach, d.ach, (x, y) => Math.min(+x || Date.now(), +y || Date.now())),
+          biomes: merge(cur.biomes, d.biomes, x => x),
+          keys: merge(cur.keys, d.keys, x => x), // first one wins: it is the key that owns that PvP name
+        };
+        if (JSON.stringify(out).length > 60000) return bad(413, 'Too much data.');
+        await this.store.put('a:' + key, out);
+        return { status: 200, json: out };
+      }
+      const id = String(req.query.get('id') || '');
+      if (!/^[A-Za-z0-9_\-]{1,64}$/.test(id)) return bad(400, 'Bad world id.');
+      const list = await index(), i = list.findIndex(w => w.id === id);
+      if (req.path === '/api/cloud/world' && req.method === 'GET') {
+        if (i < 0) return bad(404, 'That world is not in the cloud.');
+        const parts = []; let n = 0;
+        for (let k = 0; k < list[i].parts; k++) { const b = await this.store.getBin('wd:' + key + ':' + id + ':' + k); if (!b) return bad(500, 'Part of that world is missing.'); parts.push(b); n += b.length; }
+        const all = new Uint8Array(n); let o = 0; for (const b of parts) { all.set(b, o); o += b.length; }
+        return { status: 200, bytes: all };
+      }
+      if (req.path === '/api/cloud/world' && req.method === 'POST') { // the world file (gzipped JSON), info in x-bc-info
+        let info; try { info = JSON.parse(decodeURIComponent(req.header('x-bc-info') || '')); } catch (e) { return bad(400, 'Bad world info.'); }
+        if (!info || typeof info !== 'object' || JSON.stringify(info).length > 2000) return bad(400, 'Bad world info.');
+        if (i < 0 && list.length >= MAX_CLOUD_WORLDS) return bad(413, 'Your cloud is full (' + MAX_CLOUD_WORLDS + ' worlds). Delete one first.');
+        const data = await req.bytes();
+        if (!data.length || data.length > MAX_CLOUD_BYTES) return bad(413, 'That world is too big for the cloud.');
+        const parts = Math.ceil(data.length / CLOUD_PART);
+        for (let k = 0; k < parts; k++) await this.store.putBin('wd:' + key + ':' + id + ':' + k, data.slice(k * CLOUD_PART, (k + 1) * CLOUD_PART));
+        const old = i >= 0 ? list[i].parts : 0;
+        for (let k = parts; k < old; k++) await this.store.delete('wd:' + key + ':' + id + ':' + k);
+        const entry = { ...info, id, parts, size: data.length, cloudTime: Date.now() };
+        if (i >= 0) list[i] = entry; else list.push(entry);
+        await this.store.put('wl:' + key, list);
+        return { status: 200, json: { ok: true, world: entry } };
+      }
+      if (req.path === '/api/cloud/delete' && req.method === 'POST') {
+        if (i >= 0) { for (let k = 0; k < list[i].parts; k++) await this.store.delete('wd:' + key + ':' + id + ':' + k); list.splice(i, 1); await this.store.put('wl:' + key, list); }
+        return { status: 200, json: { ok: true } };
+      }
+      return bad(404, 'Not found.');
+    } catch (e) { console.log('api error', e); return bad(500, 'The server had a problem: ' + (e.message || e)); }
+  }
+
+  // checks a name + password (or a computer that logged in before). Returns { p, key } or { why, code }.
+  async auth(d) {
+    const deny = (why, code) => ({ why, code });
     const name = String(d.name || '').trim(), token = String(d.token || ''), pass = typeof d.pass === 'string' ? d.pass : '';
     if (!NAME_RE.test(name)) return deny('Pick a name with only letters, numbers, spaces, _ or - (up to 16).');
     if (token.length < 8 || token.length > 64) return deny('Bad login token.');
-    if (this.online() >= MAX_PLAYERS) return deny('The server is full (' + MAX_PLAYERS + '/' + MAX_PLAYERS + ' players). Try again later.');
     const key = name.toLowerCase(), now = Date.now();
     const f = this.fails.get(key);
     if (f && f.until > now) return deny('Too many wrong passwords for ' + name + '. Wait a minute and try again.');
@@ -223,6 +288,19 @@ export class World {
       if (!p) return deny(d.v === 1 ? 'Update BlockCraft to sign up for an account.' : 'There is no account called ' + name + '. Click Sign Up to make one.', 'noacct');
       if (!p.tokens.includes(token)) return deny(p.hash ? 'Type your password to log in on this computer.' : 'The name ' + p.name + ' belongs to another player.', 'needpass');
     }
+    return { p, key };
+  }
+
+  // Sign up:  { t:'hello', signup:true, name, pass, token }  -> makes the account (the name is then taken forever)
+  // Log in:   { t:'hello', name, pass, token }                 -> checks the password and remembers this computer
+  //           { t:'hello', name, token }                       -> a computer that logged in before
+  async hello(c, d) {
+    const deny = (why, code) => { this.out(c, { t: 'deny', why, code }); setTimeout(() => { try { c.close(); } catch (e) { } }, 300); };
+    if (d.v !== SERVER_PROTO && d.v !== 1) return deny('This server needs a newer BlockCraft. Update your game.');
+    if (this.online() >= MAX_PLAYERS) return deny('The server is full (' + MAX_PLAYERS + '/' + MAX_PLAYERS + ' players). Try again later.');
+    const a = await this.auth(d);
+    if (a.why) return deny(a.why, a.code);
+    const p = a.p, key = a.key;
     for (const o of [...this.clients.values()]) if (o.key === key) {
       // the same player again (e.g. rejoined quickly or from another computer): drop the old connection
       this.clients.delete(o.id); this.broadcast({ t: 'left', id: o.id }, o); try { o.close(); } catch (e) { }

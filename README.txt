@@ -100,6 +100,19 @@ THE END
   they heal the dragon. Beat it and an exit portal with the Dragon Egg appears.
   (The End is single player only.)
 
+ACCOUNTS AND CLOUD SAVES (version 4.8)
+  Click "Log In" at the top left of the title screen. Make an account (name + password) or log in
+  with the one you made for the big server - it is the same account. While you are logged in:
+  - your achievements (and the biomes you found, and your PvP name) are saved in the cloud
+  - every world you play is uploaded to the cloud (about once a minute, and when you quit)
+  - on another computer, log in and your worlds show up in Singleplayer with a cloud mark - click Play
+  "Upload All My Worlds" (on the account screen) sends the worlds already on this computer.
+  Deleting a world deletes the cloud copy too. Up to 30 worlds per account.
+  The cloud lives on the big server, so run "Deploy Big Server.bat" after updating.
+  You can also log in from the launcher (version 4.9 / launcher 2.6): click the blue Log In button at the top
+  (or the cloud on the side bar). The launcher and the game share the login (saves\account.json keeps your
+  name and a login key - never your password), so logging in or out in one does it in the other.
+
 RANKED PVP AND THE LEADERBOARD (version 4.7)
   "Find a Match" duels are ranked: everyone starts at 1000 rating, winning gives points and losing
   takes them away (beating a better player gives more). Ranks: Bronze, Silver (950), Gold (1100),

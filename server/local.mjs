@@ -26,13 +26,26 @@ const store = {
   async put(k, v) { data[k] = v; saveSoon(); },
   async delete(k) { delete data[k]; saveSoon(); },
   async list(prefix) { return new Map(Object.entries(data).filter(([k]) => k.startsWith(prefix))); },
+  async getBin(k) { return typeof data[k] === 'string' ? new Uint8Array(Buffer.from(data[k], 'base64')) : null; }, // binary (cloud world parts) kept as base64
+  async putBin(k, v) { data[k] = Buffer.from(v).toString('base64'); saveSoon(); },
 };
 
 const world = new World(store);
 const arena = new Arena(store); // PvP ratings are kept in server-data.json too (keys 'pvp:<name>')
 await world.load(); await arena.ready;
 
-const server = http.createServer((req, res) => {
+const CORS = { 'Access-Control-Allow-Origin': '*', 'Access-Control-Allow-Methods': 'GET, POST', 'Access-Control-Allow-Headers': '*' };
+const server = http.createServer(async (req, res) => {
+  if (req.method === 'OPTIONS') { res.writeHead(204, CORS); res.end(); return; }
+  if ((req.url || '').startsWith('/api/')) { // cloud saves (log in, achievements, worlds)
+    const u = new URL(req.url, 'http://x');
+    const body = () => new Promise((ok, no) => { const b = []; let n = 0; req.on('data', d => { n += d.length; if (n > 40 * 1024 * 1024) { no(new Error('too big')); req.destroy(); } else b.push(d); }); req.on('end', () => ok(Buffer.concat(b))); req.on('error', no); });
+    const r = await world.api({ method: req.method, path: u.pathname, query: u.searchParams, header: n => req.headers[n.toLowerCase()],
+      json: async () => JSON.parse((await body()).toString('utf8')), bytes: async () => new Uint8Array(await body()) });
+    if (r.bytes) { res.writeHead(r.status, { ...CORS, 'Content-Type': 'application/octet-stream' }); res.end(Buffer.from(r.bytes)); }
+    else { res.writeHead(r.status, { ...CORS, 'Content-Type': 'application/json' }); res.end(JSON.stringify(r.json)); }
+    return;
+  }
   if ((req.url || '').startsWith('/pvp/leaderboard')) { const q = new URL(req.url, 'http://x').searchParams; res.writeHead(200, { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' }); res.end(JSON.stringify(arena.leaderboard(q.get('name')))); return; }
   if (req.url === '/pvp/status') { res.writeHead(200, { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' }); res.end(JSON.stringify(arena.status())); return; }
   if (req.url === '/status') { res.writeHead(200, { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' }); res.end(JSON.stringify(world.status())); return; }

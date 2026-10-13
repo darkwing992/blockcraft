@@ -151,6 +151,18 @@
   #titleBtns .btn { width: min(460px, 86vw); padding: 17px 11px 21px; font-size: 23px; margin: 7px; }
   #titleSkin { display: none; position: absolute; right: 6vw; bottom: 9vh; text-align: center; font-family: Consolas, monospace; }
   body.title #titleSkin { display: block; }
+  #acctBar { display: none; position: absolute; left: 12px; top: 12px; align-items: center; gap: 10px; font-family: Consolas, monospace; color: #ddd; text-shadow: 2px 2px #000; font-size: 15px; }
+  body.title #acctBar { display: flex; }
+  #acctBar .cloud { font-size: 20px; } #acctBar b { color: #8fd0ff; }
+  #acctScreen { display: none; background: rgba(8,10,18,.97); z-index: 9; }
+  #acctPanel { width: min(560px, 94vw); font-family: Consolas, monospace; text-align: center; }
+  #acctPanel h2 { font-size: 32px; margin: 4px 0 10px; color: #8fd0ff; text-shadow: 3px 3px 0 #000; letter-spacing: 2px; }
+  #acctPanel p { color: #ccc; font-size: 13px; line-height: 1.5; margin: 4px 0 10px; }
+  #acctPanel label { display: flex; justify-content: space-between; align-items: center; gap: 10px; margin: 8px auto; width: 380px; max-width: 100%; color: #ddd; }
+  #acctPanel input { flex: 1; max-width: 230px; padding: 6px; font: 16px Consolas, monospace; background: #000; color: #fff; border: 2px solid #a0a0a0; }
+  #acctMsg { min-height: 22px; color: #ffd75e; margin: 8px 0; font-size: 14px; }
+  #acctIn, #acctOut { display: none; }
+  .wcloud { color: #8fd0ff; font-size: 12px; margin-left: 6px; }
   body.title:not(.settingsOpen) #menu .settings, body.title:not(.settingsOpen) #menu .help { display: none; }
   body.settingsOpen #titleBtns, body.settingsOpen #titleSkin, body.settingsOpen #splash { display: none !important; }
   #btnSettingsDone { display: none; } body.title.settingsOpen #btnSettingsDone { display: block; }
@@ -385,6 +397,7 @@
   <h1 id="title">BLOCKCRAFT</h1>
   <div class="sub" id="splash">Now with infinite worlds!</div>
   <div id="titleBtns" class="col"><button class="btn" id="btnSingle">Singleplayer</button><button class="btn" id="btnMulti">Multiplayer</button><button class="btn" id="btnMinigames">Minigames</button><button class="btn" id="btnSettings">Settings</button><button class="btn" id="btnAchT">Achievements</button></div>
+  <div id="acctBar"><span class="cloud">&#9729;</span><span id="acctText"></span><button class="btn sm" id="btnAcct">Log In</button></div>
   <div id="titleSkin"><div id="titleSkinName"></div><canvas id="titleSkinCv" width="64" height="128"></canvas><button class="btn" id="btnSkins">Skins</button></div>
   <div id="verLabel" style="position:absolute;left:10px;bottom:8px;color:#ddd;font:14px monospace;text-shadow:2px 2px #000;pointer-events:none"></div>
   <div id="pauseBtns" class="col">
@@ -509,6 +522,31 @@
     <button class="btn" id="btnPvpBack">Back</button>
   </div>
 </div>
+<div id="acctScreen" class="overlay">
+  <div id="acctPanel">
+    <h2>&#9729; YOUR ACCOUNT</h2>
+    <div id="acctOut">
+      <p>Log in to keep your <b>achievements</b> and <b>worlds</b> in the cloud. Play on another computer, log in, and they are all there!
+        It is the same account as the big server (if you made one there, use that name and password).</p>
+      <label>Name <input id="acName" maxlength="16" autocomplete="username"></label>
+      <label>Password <input id="acPass" type="password" maxlength="64" autocomplete="current-password"></label>
+      <label id="acPass2Row" style="display:none">Password again <input id="acPass2" type="password" maxlength="64" autocomplete="new-password"></label>
+      <div id="acctMsg"></div>
+      <button class="btn" id="btnAcLogin">Log In</button>
+      <button class="btn" id="btnAcSignup">Create a New Account</button>
+      <p class="mpHint">Names: letters, numbers, spaces, _ and - (up to 16). Passwords: at least 6 characters.
+        Don't use a password from another website, and remember it - it can't be reset.</p>
+    </div>
+    <div id="acctIn">
+      <p id="acctInfo"></p>
+      <div id="acctMsg2" style="min-height:22px;color:#ffd75e;margin:8px 0;font-size:14px"></div>
+      <button class="btn" id="btnAcSync">Sync Now</button>
+      <button class="btn" id="btnAcUpload">Upload All My Worlds</button>
+      <button class="btn" id="btnAcLogout">Log Out</button>
+    </div>
+    <button class="btn" id="btnAcBack">Back</button>
+  </div>
+</div>
 <div id="lbScreen" class="overlay">
   <h2>LEADERBOARD</h2>
   <div id="lbSub">Ranked PvP: win random matches to gain rating, lose to drop. Beating a higher-rated player gives more points.<br>
@@ -604,7 +642,7 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 <script>
 'use strict';
-const GAME_VERSION='4.7';
+const GAME_VERSION='4.9';
 const DEFAULT_SERVER='wss://blockcraft-server.austinhodgins2014-e99.workers.dev/ws'; // the big server's address (set by "Deploy Big Server.bat")
 let PV=null; // the PvP duel you're in (null = none)
 let ZM=null,flashOn=true,zLife=0,flickT=0;
@@ -5319,7 +5357,7 @@ let achDone={};try{achDone=JSON.parse(localStorage.getItem('bc_ach')||'{}')||{};
 const achQueue=[];let achShowing=false;
 function achieve(k){
   if(achDone[k])return;const a=ACH.find(q=>q[0]===k);if(!a)return;
-  achDone[k]=Date.now();try{localStorage.setItem('bc_ach',JSON.stringify(achDone));}catch(e){}
+  achDone[k]=Date.now();try{localStorage.setItem('bc_ach',JSON.stringify(achDone));}catch(e){}if(window.Cloud)Cloud.achSoon();
   achQueue.push(a);if(!achShowing)nextAchToast();
 }
 function nextAchToast(){
@@ -5341,7 +5379,7 @@ let bioT=0,bioSeen={};try{bioSeen=JSON.parse(localStorage.getItem('bc_biomes')||
 function biomeTick(dt){
   if((bioT-=dt)>0||ZM||PV||dim!=='overworld'||!player.spawned)return;bioT=1.5;
   const b=column(Math.floor(player.pos.x),Math.floor(player.pos.z)).biome;if(!BIOME_NAMES[b]||bioSeen[b])return;
-  bioSeen[b]=1;try{localStorage.setItem('bc_biomes',JSON.stringify(bioSeen));}catch(e){}
+  bioSeen[b]=1;try{localStorage.setItem('bc_biomes',JSON.stringify(bioSeen));}catch(e){}if(window.Cloud)Cloud.achSoon();
   if(b==='cherry'||b==='badlands'||b==='mushroom'){achieve(b);toast('New biome: '+BIOME_NAMES[b]+'!');}
   if(Object.keys(bioSeen).length>=8)achieve('explorer');
 }
@@ -5995,7 +6033,7 @@ let saving=false;
 async function save(){
   if(!currentWorld||saving||MP.remote()||PV)return; // a friend's world is saved by the host, the big server's by the server
   saving=true;
-  try{await Store.save(currentWorld.id,serializeWorld(),worldInfo());saveDirty=false;}
+  try{const data=serializeWorld(),info=worldInfo();await Store.save(currentWorld.id,data,info);saveDirty=false;Cloud.queueWorld(currentWorld.id,data,info);}
   catch(e){console.warn('save failed',e);toast('Could not save: '+(e.message||e));}
   saving=false;
 }
@@ -6066,11 +6104,12 @@ function enterTitle(){
   player.pos.set(spawnPoint[0],top+6,spawnPoint[2]);player.spawned=true;player.pitch=-0.18;dayTime=0.27;
   menu.style.display='flex';worldsEl.style.display='none';updateMenuButtons();invChanged();
   if(typeof updateTitleSkin==='function')setTimeout(()=>{updateTitleSkin();syncLauncherSkin();},0);
+  if(window.Cloud)setTimeout(()=>{renderAcct();syncLauncherAccount();},0);
 }
 async function quitToTitle(){document.getElementById('pvpClick').style.display='none';
   if(PV){pvpSend({t:'leave'});PV=null;if(document.pointerLockElement)document.exitPointerLock();enterTitle();return;}
   if(MP.remote()){MP.leave();if(document.pointerLockElement)document.exitPointerLock();enterTitle();return;}
-  await save();if(MP.role==='host'){MP.sysChat('The host closed the world');setTimeout(()=>MP.reset(),300);}if(document.pointerLockElement)document.exitPointerLock();enterTitle();}
+  await save();Cloud.flush();if(MP.role==='host'){MP.sysChat('The host closed the world');setTimeout(()=>MP.reset(),300);}if(document.pointerLockElement)document.exitPointerLock();enterTitle();}
 // move old single-save worlds (from earlier versions) into a save slot
 async function migrateOld(){
   try{const old=localStorage.getItem('blockcraft_world');if(!old||localStorage.getItem('bc_migrated'))return;
@@ -6089,6 +6128,122 @@ window.addEventListener('beforeunload',()=>{
     navigator.sendBeacon(`api/save?slot=${id}&kind=info`,new Blob([is],{type:'application/json'}));}
 });
 
+
+// =====================================================================
+//  Account + cloud saves (achievements and worlds kept on the big server under your account)
+// =====================================================================
+function mpToken(){let t='';try{t=localStorage.getItem('bc_token')||'';if(!t){t=Math.random().toString(36).slice(2)+Math.random().toString(36).slice(2);localStorage.setItem('bc_token',t);}}catch(e){t='t'+Date.now()+Math.random();}return t;}
+async function gzipText(str){const st=new Blob([str]).stream().pipeThrough(new CompressionStream('gzip'));return new Uint8Array(await new Response(st).arrayBuffer());}
+async function gunzipText(buf){const st=new Blob([buf]).stream().pipeThrough(new DecompressionStream('gzip'));return await new Response(st).text();}
+var Cloud={
+  pending:null,timer:null,lastUp:0,status:'',list:null,
+  base(){let sv='';try{sv=localStorage.getItem('bc_server')||'';}catch(e){}const u=serverUrl(sv||DEFAULT_SERVER);return u?u.replace(/^ws/,'http').replace(/\/ws$/,''):'';},
+  name(){try{return localStorage.getItem('bc_acct')||'';}catch(e){return '';}},
+  on(){return !!this.name()&&!!this.base();},
+  async req(path,o={}){
+    const b=this.base();if(!b)throw new Error('No server is set up yet.');
+    const h={...(o.headers||{})};if(this.name()){h['x-bc-name']=this.name();h['x-bc-token']=mpToken();}
+    let r;try{r=await fetch(b+path,{method:o.method||'GET',body:o.body,headers:h,cache:'no-store'});}
+    catch(e){throw new Error('Could not reach the cloud. Check your internet (or run "Deploy Big Server.bat").');}
+    if(!r.ok){let m='The cloud said no ('+r.status+').';try{m=(await r.json()).error||m;}catch(e){}
+      if(r.status===401&&path!=='/api/login'&&this.name()){this.logout(true);m='Please log in again.';}
+      throw new Error(m);}
+    return o.raw?r:r.json();
+  },
+  async login(name,pass,signup){
+    const j=await this.req('/api/login',{method:'POST',body:JSON.stringify({name,pass,token:mpToken(),signup:!!signup})});
+    try{localStorage.setItem('bc_acct',j.name);}catch(e){}setMpName(j.name);pushLauncherAccount();
+    await this.syncAch().catch(()=>{});renderAcct();return j;
+  },
+  logout(quiet){try{localStorage.removeItem('bc_acct');}catch(e){}this.list=null;renderAcct();pushLauncherAccount();if(!quiet)sfx('click');},
+  localKeys(){const o={};try{for(let i=0;i<localStorage.length;i++){const k=localStorage.key(i);if(k.startsWith('bc_pvpkey_'))o[k]=localStorage.getItem(k);}}catch(e){}return o;},
+  async syncAch(){ // merge achievements / biomes / PvP name keys both ways
+    if(!this.on())return;
+    const j=await this.req('/api/cloud/ach',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({ach:achDone,biomes:bioSeen,keys:this.localKeys()})});
+    for(const k in j.ach||{})if(!achDone[k]&&ACH.some(a=>a[0]===k))achDone[k]=j.ach[k];
+    for(const k in j.biomes||{})bioSeen[k]=1;
+    try{localStorage.setItem('bc_ach',JSON.stringify(achDone));localStorage.setItem('bc_biomes',JSON.stringify(bioSeen));
+      for(const k in j.keys||{})if(k.startsWith('bc_pvpkey_')&&!localStorage.getItem(k))localStorage.setItem(k,j.keys[k]);}catch(e){}
+  },
+  achSoon(){if(!this.on())return;clearTimeout(this.achT);this.achT=setTimeout(()=>this.syncAch().catch(()=>{}),3000);},
+  async worlds(){if(!this.on())return [];const j=await this.req('/api/cloud');this.list=j.worlds||[];return this.list;},
+  // worlds: the newest save is uploaded at most once a minute while you play, and right away when you quit
+  queueWorld(id,data,info){
+    if(!this.on())return;this.pending={id,data,info};if(this.timer)return;
+    const wait=Math.max(1500,60000-(Date.now()-this.lastUp));this.timer=setTimeout(()=>this.flush(),wait);
+  },
+  async flush(){
+    clearTimeout(this.timer);this.timer=null;const w=this.pending;if(!w||!this.on())return;this.pending=null;
+    try{await this.upload(w.id,w.data,w.info);this.status='Saved to the cloud '+new Date().toLocaleTimeString();}
+    catch(e){this.status='Cloud save failed: '+(e.message||e);if(!this.pending)this.pending=w;}
+  },
+  async upload(id,data,info){
+    if(typeof CompressionStream==='undefined')throw new Error('This browser is too old for cloud saves.');
+    const body=await gzipText(typeof data==='string'?data:JSON.stringify(data));this.lastUp=Date.now();
+    const j=await this.req('/api/cloud/world?id='+encodeURIComponent(id),{method:'POST',body,headers:{'Content-Type':'application/octet-stream','x-bc-info':encodeURIComponent(JSON.stringify(info))}});
+    if(this.list){const i=this.list.findIndex(w=>w.id===id);if(i>=0)this.list[i]=j.world;else this.list.push(j.world);}return j.world;
+  },
+  async download(id){const r=await this.req('/api/cloud/world?id='+encodeURIComponent(id),{raw:true});return JSON.parse(await gunzipText(await r.arrayBuffer()));},
+  async remove(id){await this.req('/api/cloud/delete?id='+encodeURIComponent(id),{method:'POST'});if(this.list)this.list=this.list.filter(w=>w.id!==id);},
+};
+const escA=t=>String(t).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+function renderAcct(){
+  const n=Cloud.name();document.getElementById('acctText').innerHTML=n?'Logged in as <b>'+escA(n)+'</b>':'Not logged in';
+  document.getElementById('btnAcct').textContent=n?'Account':'Log In';
+  document.getElementById('acctIn').style.display=n?'block':'none';document.getElementById('acctOut').style.display=n?'none':'block';
+  if(n)document.getElementById('acctInfo').innerHTML=`You are logged in as <b>${escA(n)}</b>. Your achievements and worlds are saved in the cloud.<br>`+
+    `${Object.keys(achDone).length} / ${ACH.length} achievements`+(Cloud.list?` &middot; ${Cloud.list.length} world${Cloud.list.length===1?'':'s'} in the cloud`:'')+(Cloud.status?'<br><span style="color:#9f9">'+escA(Cloud.status)+'</span>':'');
+}
+function openAcct(){
+  document.getElementById('acctScreen').style.display='flex';sfx('click');
+  document.getElementById('acctMsg').textContent='';document.getElementById('acctMsg2').textContent='';
+  document.getElementById('acName').value=Cloud.name()||mpName();document.getElementById('acPass').value='';document.getElementById('acPass2').value='';
+  document.getElementById('acPass2Row').style.display='none';document.getElementById('btnAcSignup').textContent='Create a New Account';
+  renderAcct();if(Cloud.on())Cloud.worlds().then(renderAcct).catch(e=>{document.getElementById('acctMsg2').textContent=e.message;});
+}
+document.getElementById('btnAcct').onclick=openAcct;
+document.getElementById('btnAcBack').onclick=()=>{document.getElementById('acctScreen').style.display='none';sfx('click');if(worldsEl.style.display==='flex')renderWorldList();};
+async function acctGo(signup){
+  const msg=document.getElementById('acctMsg'),name=document.getElementById('acName').value.trim(),p1=document.getElementById('acPass').value;
+  if(!/^[A-Za-z0-9_ \-]{1,16}$/.test(name)){msg.textContent='Pick a name with only letters, numbers, spaces, _ or - (up to 16).';return;}
+  if(p1.length<6){msg.textContent='Passwords have at least 6 characters.';return;}
+  if(signup){const row=document.getElementById('acPass2Row');
+    if(row.style.display==='none'){row.style.display='flex';document.getElementById('btnAcSignup').textContent='Create Account';msg.textContent='Type your new password again to make the account.';document.getElementById('acPass2').focus();return;}
+    if(document.getElementById('acPass2').value!==p1){msg.textContent='The two passwords are different. Type them again.';return;}}
+  msg.textContent=signup?'Creating your account...':'Logging in...';
+  try{await Cloud.login(name,p1,signup);document.getElementById('acPass').value=document.getElementById('acPass2').value='';
+    sfx('levelup');document.getElementById('acctMsg2').textContent=signup?'Welcome, '+Cloud.name()+'! Your account is made.':'Welcome back, '+Cloud.name()+'!';
+    Cloud.worlds().then(renderAcct).catch(()=>{});}
+  catch(e){msg.textContent=e.message||String(e);}
+}
+document.getElementById('btnAcLogin').onclick=()=>acctGo(false);
+document.getElementById('btnAcSignup').onclick=()=>acctGo(true);
+document.getElementById('acPass').addEventListener('keydown',e=>{if(e.code==='Enter')acctGo(document.getElementById('acPass2Row').style.display!=='none');});
+document.getElementById('acPass2').addEventListener('keydown',e=>{if(e.code==='Enter')acctGo(true);});
+document.getElementById('btnAcLogout').onclick=()=>{Cloud.logout();document.getElementById('acctMsg').textContent='Logged out. Your worlds stay on this computer too.';};
+document.getElementById('btnAcSync').onclick=async()=>{const m=document.getElementById('acctMsg2');m.textContent='Syncing...';
+  try{await Cloud.syncAch();await Cloud.flush();await Cloud.worlds();renderAcct();m.textContent='All synced!';}catch(e){m.textContent=e.message||String(e);}};
+document.getElementById('btnAcUpload').onclick=async()=>{const m=document.getElementById('acctMsg2');
+  try{const list=await Store.list();let n=0;for(const w of list){m.textContent='Uploading '+w.name+'... ('+(++n)+'/'+list.length+')';await Cloud.upload(w.id,await Store.load(w.id),w);}
+    await Cloud.worlds();renderAcct();m.textContent=list.length?'Uploaded '+list.length+' world'+(list.length===1?'':'s')+'!':'You have no worlds on this computer yet.';}
+  catch(e){m.textContent=e.message||String(e);}};
+// the launcher has an Account page too: both share the file saves/account.json (name + login key, never the password)
+async function syncLauncherAccount(){
+  if(Store.kind!=='server')return;
+  try{const r=await fetch('api/account',{cache:'no-store'});if(!r.ok)return;const j=await r.json();
+    if(j.name&&j.token){if(Cloud.name()!==j.name||mpToken()!==j.token){try{localStorage.setItem('bc_token',j.token);localStorage.setItem('bc_acct',j.name);}catch(e){}
+        setMpName(j.name);renderAcct();Cloud.syncAch().catch(()=>{});}}
+    else if(j.exists){if(Cloud.name()){try{localStorage.removeItem('bc_acct');}catch(e){}Cloud.list=null;renderAcct();}} // logged out in the launcher
+    else if(Cloud.name())pushLauncherAccount(); // the launcher doesn't know yet
+  }catch(e){}
+}
+function pushLauncherAccount(){
+  if(Store.kind!=='server')return;
+  fetch('api/account',{method:'POST',body:JSON.stringify(Cloud.name()?{name:Cloud.name(),token:mpToken()}:{})}).catch(()=>{});
+}
+renderAcct();
+setTimeout(()=>{if(Cloud.on())Cloud.syncAch().catch(()=>{});},2500);
+
 // ---- World selection screen ----
 const worldsEl=document.getElementById('worlds'),worldListEl=document.getElementById('worldList'),createForm=document.getElementById('createForm');
 let newMode='survival',pendingDelete=null;
@@ -6104,6 +6259,12 @@ async function renderWorldList(){
   lb.textContent=Store.kind==='folder'?'Change Save Folder...':Store.pendingDir?'Reconnect Save Folder':'Choose Save Folder...';
   worldListEl.innerHTML='<div class="wempty">Loading...</div>';
   let list=[];try{list=await Store.list();}catch(e){alertBox('Could not read saves: '+(e.message||e));}
+  // worlds in the cloud: ones that are only there, and ones played more recently on another computer
+  const cloud=new Map();
+  if(Cloud.on()){try{for(const w of await Cloud.worlds())cloud.set(w.id,w);}catch(e){alertBox(e.message||String(e));}}
+  for(const [id,cw] of cloud)if(!list.some(w=>w.id===id))list.push({...cw,onlyCloud:true});
+  for(const w of list){const cw=cloud.get(w.id);w.inCloud=!!cw;w.cloudNewer=!!(cw&&!w.onlyCloud&&(cw.lastPlayed||0)>(w.lastPlayed||0)+2000);}
+  document.getElementById('storageInfo').textContent=Store.label()+(Cloud.on()?' Logged in as '+Cloud.name()+': worlds are also saved in the cloud.':'');
   list.sort((a,b)=>(b.lastPlayed||0)-(a.lastPlayed||0));
   worldListEl.innerHTML='';
   if(!list.length)worldListEl.innerHTML='<div class="wempty">No worlds yet - create one!</div>';
@@ -6111,13 +6272,21 @@ async function renderWorldList(){
     const d=document.createElement('div');d.className='world';
     const esc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
     const zmeta=w.zm?`<span style="color:#f55">Zombie Apocalypse</span> &middot; ${ZMAP_NAME[w.zm.map]||''} &middot; ${w.zm.style==='waves'?'Waves'+(w.zm.wave?' (wave '+w.zm.wave+')':''):'Survival'}`:(w.mode==='creative'?'Creative':'Survival');
-    d.innerHTML=`<div class="winfo"><div class="wname">${esc(w.name)}</div><div class="wmeta">${zmeta} &middot; played ${ago(w.lastPlayed||0)} &middot; seed ${w.seed}</div></div>
+    const ctag=w.onlyCloud?'<span class="wcloud">&#9729; in the cloud</span>':w.cloudNewer?'<span class="wcloud">&#9729; newer in the cloud</span>':w.inCloud?'<span class="wcloud">&#9729;</span>':'';
+    d.innerHTML=`<div class="winfo"><div class="wname">${esc(w.name)}${ctag}</div><div class="wmeta">${zmeta} &middot; played ${ago(w.lastPlayed||0)} &middot; seed ${w.seed}</div></div>
       <div class="wbtns"><button class="btn sm play">Play</button><button class="btn sm exp" title="Download this world as a file"${EMBEDDED?' hidden':''}>Export</button><button class="btn sm del">${pendingDelete===w.id?'Sure?':'Delete'}</button></div>`;
-    d.querySelector('.play').onclick=()=>openWorld(w.id);
+    const play=async()=>{
+      if(w.onlyCloud||w.cloudNewer){try{alertBox('Downloading "'+w.name+'" from the cloud...');const data=await Cloud.download(w.id);
+          const {onlyCloud,inCloud,cloudNewer,parts,size,cloudTime,...info}=w;await Store.save(w.id,data,info);}
+        catch(e){alertBox('Could not download that world: '+(e.message||e));return;}}
+      openWorld(w.id);};
+    d.querySelector('.play').onclick=play;
+    if(w.onlyCloud)d.querySelector('.exp').hidden=true;
     d.querySelector('.exp').onclick=()=>exportWorld(w);
+    if(pendingDelete===w.id&&w.inCloud)d.querySelector('.del').textContent='Sure? (cloud too)';
     d.querySelector('.del').onclick=async()=>{if(pendingDelete!==w.id){pendingDelete=w.id;renderWorldList();return;}
-      pendingDelete=null;await Store.remove(w.id);renderWorldList();};
-    d.ondblclick=()=>openWorld(w.id);
+      pendingDelete=null;if(!w.onlyCloud)await Store.remove(w.id);if(w.inCloud)try{await Cloud.remove(w.id);}catch(e){alertBox(e.message||String(e));}renderWorldList();};
+    d.ondblclick=play;
     worldListEl.appendChild(d);
   }
 }
@@ -6159,14 +6328,14 @@ document.getElementById('btnWorldsBack').onclick=()=>{worldsEl.style.display='no
 // =====================================================================
 //  Main loop
 // =====================================================================
-const splashes=['Now with infinite worlds!','Now with 3D items!','Zombie Apocalypse!','1v1 me bro!','Custom skins!','Cherry blossoms!','Gain levels!','Achievement get!','Watch out for bees!','Knock knock!','Climb the leaderboard!','Import your Minecraft skin!','PvP duels!','Don\'t go out in the fog...','Bring a flashlight!','Controller supported!','Now on phones!','Defeat the Ender Dragon!','The End is near!','Iron golems guard villages!','Watch out for cobwebs!','Now with the Nether!','Don\'t stare at Endermen!','Tame a wolf!','Climb the ladder!','Spooky pumpkins!','Press F5!','Crafting tables!','Craft it like you mean it!','Diamonds are rare now!','Beds are 2 blocks now!','100% procedurally generated!','Punch trees!','Also try the real thing!','Made of cubes!','Look up at night!',
+const splashes=['Now with infinite worlds!','Now with 3D items!','Zombie Apocalypse!','1v1 me bro!','Custom skins!','Cherry blossoms!','Gain levels!','Achievement get!','Watch out for bees!','Knock knock!','Climb the leaderboard!','Saved in the cloud!','Import your Minecraft skin!','PvP duels!','Don\'t go out in the fog...','Bring a flashlight!','Controller supported!','Now on phones!','Defeat the Ender Dragon!','The End is near!','Iron golems guard villages!','Watch out for cobwebs!','Now with the Nether!','Don\'t stare at Endermen!','Tame a wolf!','Climb the ladder!','Spooky pumpkins!','Press F5!','Crafting tables!','Craft it like you mean it!','Diamonds are rare now!','Beds are 2 blocks now!','100% procedurally generated!','Punch trees!','Also try the real thing!','Made of cubes!','Look up at night!',
   'Caves included!','Beware of creepers!','Torches not included!','Oink!','Moo!','Craft your own tools!','Survive the night!','Water flows!','Don\'t starve!','Sssss...'];
 document.getElementById('splash').textContent=splashes[Math.floor(Math.random()*splashes.length)];
 document.getElementById('verLabel').textContent='BlockCraft '+GAME_VERSION;
 loadSettings();
 enterTitle();
 setTimeout(()=>{const h=location.hash.slice(1),b={zombies:'btnZombie',pvp:'btnPvp',skins:'btnSkins',minigames:'btnMinigames'}[h];if(b){if(h!=='skins'&&h!=='minigames')document.getElementById('btnMinigames').click();document.getElementById(b).click();}},300);
-(async()=>{await Store.init();await migrateOld();if(worldsEl.style.display==='flex')renderWorldList();syncLauncherSkin();})();
+(async()=>{await Store.init();await migrateOld();await syncLauncherAccount();if(worldsEl.style.display==='flex')renderWorldList();syncLauncherSkin();})();
 
 let last=performance.now(),fpsAcc=0,fpsN=0,fps=0,lastEyeWater=false;
 const debugEl=document.getElementById('debug'),uwEl=document.getElementById('underwater'),loadEl=document.getElementById('loading');

@@ -16,6 +16,8 @@ export class BlockCraftServer {
         put: (k, v) => s.put(k, v),
         delete: k => s.delete(k),
         list: prefix => s.list({ prefix }),
+        getBin: async k => { const v = await s.get(k); return v ? new Uint8Array(v) : null; },
+        putBin: (k, v) => s.put(k, v),
       });
       this.loading = this.world.load();
     }
@@ -26,6 +28,12 @@ export class BlockCraftServer {
     const url = new URL(req.url);
     if (url.pathname.startsWith('/pvp')) return this.pvp(req, url);
     await this.ensureWorld();
+    if (url.pathname.startsWith('/api/')) {
+      const r = await this.world.api({ method: req.method, path: url.pathname, query: url.searchParams, header: n => req.headers.get(n),
+        json: () => req.json(), bytes: async () => new Uint8Array(await req.arrayBuffer()) });
+      if (r.bytes) return new Response(r.bytes, { status: r.status, headers: { ...CORS, 'Content-Type': 'application/octet-stream' } });
+      return new Response(JSON.stringify(r.json), { status: r.status, headers: CORS });
+    }
     if (url.pathname === '/status') return new Response(JSON.stringify(this.world.status()), { headers: CORS });
     if (req.headers.get('Upgrade') !== 'websocket') return new Response('BlockCraft server is running. Join it from the game: Multiplayer > Join Server.', { status: 200 });
     const [client, server] = Object.values(new WebSocketPair());
@@ -57,7 +65,7 @@ export class BlockCraftServer {
 
 export default {
   fetch(req, env) {
-    if (req.method === 'OPTIONS') return new Response(null, { headers: { ...CORS, 'Access-Control-Allow-Methods': 'GET', 'Access-Control-Allow-Headers': '*' } });
+    if (req.method === 'OPTIONS') return new Response(null, { headers: { ...CORS, 'Access-Control-Allow-Methods': 'GET, POST', 'Access-Control-Allow-Headers': '*' } });
     const pvp = new URL(req.url).pathname.startsWith('/pvp');
     const stub = env.WORLD.get(env.WORLD.idFromName(pvp ? 'pvp' : 'main'));
     return stub.fetch(req);

@@ -26,14 +26,14 @@ using System.Windows.Forms;
 [assembly: AssemblyTitle("BlockCraft Launcher")]
 [assembly: AssemblyProduct("BlockCraft")]
 [assembly: AssemblyDescription("Launcher and save server for BlockCraft")]
-[assembly: AssemblyVersion("2.5.0.0")]
-[assembly: AssemblyFileVersion("2.5.0.0")]
+[assembly: AssemblyVersion("2.6.0.0")]
+[assembly: AssemblyFileVersion("2.6.0.0")]
 
 namespace BlockCraft
 {
     static class Program
     {
-        public const string LauncherVersion = "2.5";
+        public const string LauncherVersion = "2.6";
 
         [STAThread]
         static int Main(string[] args)
@@ -291,6 +291,92 @@ namespace BlockCraft
     //  /            -> the newest game (index.html), worlds in saves\
     //  /v/<id>/     -> an old version, worlds in saves\old-versions\<id>\
     // ------------------------------------------------------------------
+    // Your BlockCraft account (cloud saves), shared by the launcher and the game: saves\account.json = {"name":..,"token":..}
+    // or {} when logged out. The password is never kept, only the login key (token) the server remembers.
+    static class AccountStore
+    {
+        static readonly object Lock = new object();
+        public static string FileIn(string saves) { return Path.Combine(saves, "account.json"); }
+        public static bool Valid(string name, string token)
+        {
+            return name != null && token != null && Regex.IsMatch(name, "^[A-Za-z0-9_ \\-]{1,16}$") && token.Length >= 8 && token.Length <= 64 && Regex.IsMatch(token, "^[A-Za-z0-9_.\\-]+$");
+        }
+        // returns null if there is no file yet, otherwise { name, token } (both "" when logged out)
+        public static string[] Read(string saves)
+        {
+            string f = FileIn(saves);
+            lock (Lock)
+            {
+                if (!File.Exists(f)) return null;
+                try
+                {
+                    var d = new JavaScriptSerializer().Deserialize<Dictionary<string, object>>(File.ReadAllText(f));
+                    object n, t; d.TryGetValue("name", out n); d.TryGetValue("token", out t);
+                    string name = n as string ?? "", token = t as string ?? "";
+                    return Valid(name, token) ? new[] { name, token } : new[] { "", "" };
+                }
+                catch { return new[] { "", "" }; }
+            }
+        }
+        public static void Write(string saves, string name, string token)
+        {
+            var d = new Dictionary<string, object>();
+            if (Valid(name, token)) { d["name"] = name; d["token"] = token; }
+            lock (Lock) { Directory.CreateDirectory(saves); File.WriteAllText(FileIn(saves), new JavaScriptSerializer().Serialize(d)); }
+        }
+        public static string NewToken()
+        {
+            var b = new byte[18]; using (var r = RandomNumberGenerator.Create()) r.GetBytes(b);
+            var sb = new StringBuilder(); foreach (byte x in b) sb.Append("abcdefghijklmnopqrstuvwxyz0123456789"[x % 36]); return sb.ToString();
+        }
+        // the big server's web address, read from the game (DEFAULT_SERVER, written by "Deploy Big Server.bat")
+        public static string CloudBase()
+        {
+            try
+            {
+                string html = File.ReadAllText(Path.Combine(Versions.RootDir, "index.html"));
+                var m = Regex.Match(html, "const DEFAULT_SERVER='([^']*)'");
+                if (!m.Success || m.Groups[1].Value == "") return "";
+                string u = m.Groups[1].Value;
+                if (u.StartsWith("wss://")) u = "https://" + u.Substring(6); else if (u.StartsWith("ws://")) u = "http://" + u.Substring(5);
+                if (u.EndsWith("/ws")) u = u.Substring(0, u.Length - 3);
+                return u.TrimEnd('/');
+            }
+            catch { return ""; }
+        }
+        // one request to the cloud; returns the answer as JSON (throws with the server's message if it says no)
+        public static Dictionary<string, object> Call(string path, string method, string body, string name, string token)
+        {
+            string b = CloudBase();
+            if (b == "") throw new Exception("No big server is set up yet (run \"Deploy Big Server.bat\").");
+            ServicePointManager.SecurityProtocol = (SecurityProtocolType)3072;
+            var req = (HttpWebRequest)WebRequest.Create(b + path);
+            req.Method = method; req.UserAgent = "BlockCraft-Launcher/" + Program.LauncherVersion; req.Timeout = 15000;
+            if (name != null) { req.Headers["x-bc-name"] = name; req.Headers["x-bc-token"] = token; }
+            if (body != null)
+            {
+                var bytes = new UTF8Encoding(false).GetBytes(body); req.ContentType = "application/json"; req.ContentLength = bytes.Length;
+                using (var s = req.GetRequestStream()) s.Write(bytes, 0, bytes.Length);
+            }
+            string text; int code;
+            try { using (var r = (HttpWebResponse)req.GetResponse()) { code = (int)r.StatusCode; using (var sr = new StreamReader(r.GetResponseStream())) text = sr.ReadToEnd(); } }
+            catch (WebException e)
+            {
+                var r = e.Response as HttpWebResponse;
+                if (r == null) throw new Exception("Could not reach the cloud. Check your internet connection.");
+                code = (int)r.StatusCode; using (var sr = new StreamReader(r.GetResponseStream())) text = sr.ReadToEnd();
+            }
+            Dictionary<string, object> d;
+            try { d = new JavaScriptSerializer().Deserialize<Dictionary<string, object>>(text); } catch { d = new Dictionary<string, object>(); }
+            if (code < 200 || code >= 300)
+            {
+                object why; d.TryGetValue("error", out why);
+                throw new Exception(why as string ?? ("The cloud said no (" + code + "). If you just updated, run \"Deploy Big Server.bat\"."));
+            }
+            return d;
+        }
+    }
+
     class GameServer
     {
         static readonly UTF8Encoding Utf8 = new UTF8Encoding(false);
@@ -299,7 +385,7 @@ namespace BlockCraft
         public int Port;
         public string Root;
         public string Saves;
-        public event Action Saved, SkinChanged;
+        public event Action Saved, SkinChanged, AccountChanged;
         readonly object fileLock = new object();
 
         public bool Start(int firstPort)
@@ -434,6 +520,34 @@ namespace BlockCraft
                         string s = "";
                         lock (fileLock) { if (File.Exists(file)) s = File.ReadAllText(file, Utf8).Trim(); }
                         SendText(ctx, 200, "text/plain; charset=utf-8", s);
+                    }
+                }
+                else if (path == "/api/account")
+                {
+                    // the cloud-save login, shared with the launcher's Account page
+                    if (req.HttpMethod == "POST")
+                    {
+                        string body;
+                        using (var reader = new StreamReader(req.InputStream, Utf8)) body = reader.ReadToEnd();
+                        string name = "", token = "";
+                        try
+                        {
+                            var d = new JavaScriptSerializer().Deserialize<Dictionary<string, object>>(body);
+                            object n, t; if (d != null) { d.TryGetValue("name", out n); d.TryGetValue("token", out t); name = n as string ?? ""; token = t as string ?? ""; }
+                        }
+                        catch { SendText(ctx, 400, "text/plain", "bad account"); return; }
+                        if (name != "" && !AccountStore.Valid(name, token)) { SendText(ctx, 400, "text/plain", "bad account"); return; }
+                        AccountStore.Write(Saves, name, token);
+                        SendText(ctx, 200, "application/json", "{\"ok\":true}");
+                        var h = AccountChanged; if (h != null) h();
+                    }
+                    else
+                    {
+                        var a = AccountStore.Read(Saves);
+                        var d = new Dictionary<string, object>();
+                        d["exists"] = a != null;
+                        if (a != null && a[0] != "") { d["name"] = a[0]; d["token"] = a[1]; }
+                        SendText(ctx, 200, "application/json", new JavaScriptSerializer().Serialize(d));
                     }
                 }
                 else if (path == "/api/save")
@@ -923,7 +1037,10 @@ namespace BlockCraft
         readonly FancyButton play, updates;
         readonly LinkLabel newLauncher;
         readonly HeroPanel hero;
-        readonly Panel versionList, newsList, mgPage, verPage, skinPage, skinGrid;
+        readonly Panel versionList, newsList, mgPage, verPage, skinPage, skinGrid, acctPage;
+        FancyButton acctTop, acLogin, acSignup, acLogout, acRefresh;
+        TextBox acName, acPass, acPass2;
+        Label acInfo, acMsg, acNameLabel, acPassLabel, acPass2Label;
         readonly SkinPreview skinPreview;
         readonly Label skinMsg;
         readonly FancyButton skinTab;
@@ -962,6 +1079,7 @@ namespace BlockCraft
             sideNav.Add(sideBtn("", "Minigames", 84, Color.FromArgb(26, 26, 32), delegate { ShowPage(1); }));
             sideNav.Add(sideBtn("", "All versions", 146, Color.FromArgb(26, 26, 32), delegate { ShowPage(2); }));
             sideNav.Add(sideBtn("\uE77B", "Skins", 208, Color.FromArgb(26, 26, 32), delegate { ShowPage(3); }));
+            sideNav.Add(sideBtn("", "Account (cloud saves)", 394, Color.FromArgb(26, 26, 32), delegate { ShowPage(4); }));
             sideBtn("", "Open the saves folder", 270, Color.FromArgb(26, 26, 32), delegate { OpenSaves(); });
             sideBtn("", "Check for updates", 332, Color.FromArgb(26, 26, 32), delegate { CheckForUpdates(true); });
             sideBtn("", "Quit", 580, Color.FromArgb(26, 26, 32), delegate { Close(); });
@@ -981,6 +1099,8 @@ namespace BlockCraft
             updates.Click += delegate { CheckForUpdates(true); }; Controls.Add(updates);
             var savesTop = new FancyButton("Saves"); savesTop.Glyph = ""; savesTop.Base = Color.FromArgb(232, 180, 40); savesTop.ForeColor = Color.FromArgb(40, 30, 0); savesTop.TextSize = 13;
             savesTop.Bounds = new Rectangle(1010, 22, 150, 56); savesTop.Click += delegate { OpenSaves(); }; Controls.Add(savesTop);
+            acctTop = new FancyButton("Log In"); acctTop.Glyph = ""; acctTop.Base = UI.Blue; acctTop.TextSize = 12; acctTop.Bounds = new Rectangle(700, 22, 140, 56);
+            acctTop.Click += delegate { ShowPage(4); }; Controls.Add(acctTop); new ToolTip().SetToolTip(acctTop, "Your account: cloud saves for achievements and worlds");
 
             // ---- hero banner with the version picker ----
             hero = new HeroPanel(); hero.Bounds = new Rectangle(100, 98, 700, 330); Controls.Add(hero);
@@ -1034,6 +1154,38 @@ namespace BlockCraft
             skinMsg.Text = "Works with Minecraft Java skins (64x64, old 64x32, or HD). Your skin shows in the game, to friends, on the big server and in PvP.";
             skinPage.Controls.Add(skinMsg);
             if (server != null) server.SkinChanged += delegate { try { BeginInvoke((Action)delegate { RefreshSkin(); }); } catch { } };
+            // ---- the Account page (log in for cloud saves; the game uses the same login) ----
+            acctPage = new Panel(); acctPage.BackColor = UI.Bg; acctPage.Bounds = new Rectangle(100, 98, 700, 556); acctPage.Visible = false; Controls.Add(acctPage);
+            var acCard = new CardPanel(); acCard.Fill = UI.Card; acCard.Radius = 16; acCard.Bounds = new Rectangle(0, 0, 700, 540); acctPage.Controls.Add(acCard);
+            var acTitle = new Label(); acTitle.Text = "YOUR ACCOUNT"; acTitle.Font = UI.F(22f, true); acTitle.ForeColor = Color.FromArgb(143, 208, 255); acTitle.BackColor = UI.Card;
+            acTitle.Bounds = new Rectangle(30, 24, 640, 46); acCard.Controls.Add(acTitle);
+            acInfo = new Label(); acInfo.Font = UI.F(10.5f, false); acInfo.ForeColor = UI.Muted; acInfo.BackColor = UI.Card; acInfo.Bounds = new Rectangle(32, 74, 636, 70);
+            acCard.Controls.Add(acInfo);
+            Func<string, int, Label> acLabel = (txt, y) => { var l = new Label(); l.Text = txt; l.Font = UI.F(11f, true); l.ForeColor = UI.Text; l.BackColor = UI.Card; l.Bounds = new Rectangle(32, y + 4, 170, 26); acCard.Controls.Add(l); return l; };
+            Func<int, bool, TextBox> acBox = (y, pw) => { var t = new TextBox(); t.Font = UI.F(12f, false); t.BackColor = Color.FromArgb(8, 8, 10); t.ForeColor = UI.Text; t.BorderStyle = BorderStyle.FixedSingle;
+                t.Bounds = new Rectangle(210, y, 300, 30); t.MaxLength = pw ? 64 : 16; if (pw) t.UseSystemPasswordChar = true; acCard.Controls.Add(t); return t; };
+            acNameLabel = acLabel("Name", 156); acName = acBox(156, false);
+            acPassLabel = acLabel("Password", 198); acPass = acBox(198, true);
+            acPass2Label = acLabel("Password again", 240); acPass2 = acBox(240, true);
+            acLogin = new FancyButton("Log In"); acLogin.Base = UI.Green; acLogin.PixelTex = true; acLogin.TextSize = 13; acLogin.Bounds = new Rectangle(32, 296, 230, 52);
+            acLogin.Click += delegate { AccountGo(false); }; acCard.Controls.Add(acLogin);
+            acSignup = new FancyButton("Create Account"); acSignup.Base = UI.Blue; acSignup.TextSize = 13; acSignup.Bounds = new Rectangle(274, 296, 236, 52);
+            acSignup.Click += delegate { AccountGo(true); }; acCard.Controls.Add(acSignup);
+            acLogout = new FancyButton("Log Out"); acLogout.Base = Color.FromArgb(150, 50, 50); acLogout.TextSize = 13; acLogout.Bounds = new Rectangle(32, 296, 230, 52);
+            acLogout.Click += delegate { AccountLogout(); }; acCard.Controls.Add(acLogout);
+            acRefresh = new FancyButton("Refresh"); acRefresh.Base = Color.FromArgb(40, 40, 48); acRefresh.TextSize = 13; acRefresh.Bounds = new Rectangle(274, 296, 236, 52);
+            acRefresh.Click += delegate { RefreshAccount(true); }; acCard.Controls.Add(acRefresh);
+            acMsg = new Label(); acMsg.Font = UI.F(10.5f, false); acMsg.ForeColor = Color.FromArgb(255, 215, 94); acMsg.BackColor = UI.Card; acMsg.Bounds = new Rectangle(32, 360, 636, 60);
+            acCard.Controls.Add(acMsg);
+            var acHint = new Label(); acHint.Font = UI.F(9.5f, false); acHint.ForeColor = UI.Muted; acHint.BackColor = UI.Card; acHint.Bounds = new Rectangle(32, 428, 636, 100);
+            acHint.Text = "Logged in, your achievements and worlds are saved in the cloud, so they are on every computer you log in on. " +
+                "It is the same account as the big server.\nNames: letters, numbers, spaces, _ and - (up to 16). Passwords: at least 6 characters - " +
+                "don't use a password from another website, and remember it (it can't be reset).";
+            acCard.Controls.Add(acHint);
+            acPass.KeyDown += (o, e) => { if (e.KeyCode == Keys.Enter) { e.SuppressKeyPress = true; AccountGo(acPass2.Visible); } };
+            acPass2.KeyDown += (o, e) => { if (e.KeyCode == Keys.Enter) { e.SuppressKeyPress = true; AccountGo(true); } };
+            if (server != null) server.AccountChanged += delegate { try { BeginInvoke((Action)delegate { RefreshAccount(false); }); } catch { } };
+            RefreshAccount(false);
 
             // ---- bottom buttons ----
             var savesBtn = new FancyButton("Open Saves Folder"); savesBtn.Glyph = ""; savesBtn.Base = UI.Orange; savesBtn.PixelTex = true; savesBtn.TextSize = 12;
@@ -1186,10 +1338,97 @@ namespace BlockCraft
             }
         }
 
+        string SavesDir { get { return server != null ? server.Saves : Path.Combine(Versions.RootDir, "saves"); } }
+        string[] Account() { var a = AccountStore.Read(SavesDir); return a != null && a[0] != "" ? a : null; }
+
+        // shows the logged-in / logged-out version of the Account page, and the name on the top button
+        void RefreshAccount(bool fetch)
+        {
+            var a = Account();
+            acctTop.Text = a != null ? a[0] : "Log In"; acctTop.Invalidate();
+            foreach (Control c in new Control[] { acNameLabel, acName, acPassLabel, acPass, acLogin, acSignup }) c.Visible = a == null;
+            acPass2.Visible = acPass2Label.Visible = a == null && signingUp;
+            acLogout.Visible = acRefresh.Visible = a != null;
+            if (a == null)
+            {
+                acInfo.Text = "Log in to keep your achievements and worlds in the cloud. You can log in here or in the game - it is the same login.";
+                if (acName.Text == "") { try { acName.Text = File.Exists(Path.Combine(SavesDir, "name.txt")) ? File.ReadAllText(Path.Combine(SavesDir, "name.txt")).Trim() : ""; } catch { } }
+                return;
+            }
+            acInfo.Text = "You are logged in as " + a[0] + ". Your achievements and worlds are saved in the cloud.";
+            if (!fetch) return;
+            acInfo.Text += "\nChecking the cloud...";
+            string name = a[0], token = a[1];
+            ThreadPool.QueueUserWorkItem(delegate
+            {
+                string text; bool err = false;
+                try
+                {
+                    var d = AccountStore.Call("/api/cloud", "GET", null, name, token);
+                    int worlds = 0, ach = 0; object w, s;
+                    if (d.TryGetValue("worlds", out w) && w is System.Collections.ArrayList) worlds = ((System.Collections.ArrayList)w).Count;
+                    if (d.TryGetValue("save", out s) && s is Dictionary<string, object>) { object x; if (((Dictionary<string, object>)s).TryGetValue("ach", out x) && x is Dictionary<string, object>) ach = ((Dictionary<string, object>)x).Count; }
+                    text = "In the cloud: " + ach + " achievement" + (ach == 1 ? "" : "s") + " and " + worlds + " world" + (worlds == 1 ? "" : "s") + ".";
+                }
+                catch (Exception e)
+                {
+                    text = e.Message; err = true;
+                    if (e.Message.StartsWith("Please log in")) { AccountStore.Write(SavesDir, "", ""); }
+                }
+                try { BeginInvoke((Action)delegate { RefreshAccount(false); if (err) acMsg.Text = text; else if (Account() != null) acInfo.Text += "\n" + text; }); } catch { }
+            });
+        }
+
+        bool signingUp;
+        void AccountGo(bool signup)
+        {
+            string name = acName.Text.Trim(), pass = acPass.Text;
+            if (!Regex.IsMatch(name, "^[A-Za-z0-9_ \\-]{1,16}$")) { acMsg.Text = "Pick a name with only letters, numbers, spaces, _ or - (up to 16)."; return; }
+            if (pass.Length < 6) { acMsg.Text = "Passwords have at least 6 characters."; return; }
+            if (signup && !signingUp) { signingUp = true; RefreshAccount(false); acMsg.Text = "Type your new password again to make the account."; acPass2.Focus(); return; }
+            if (signup && acPass2.Text != pass) { acMsg.Text = "The two passwords are different. Type them again."; return; }
+            acMsg.Text = signup ? "Creating your account..." : "Logging in...";
+            acLogin.Enabled = acSignup.Enabled = false;
+            var old = AccountStore.Read(SavesDir);
+            string token = old != null && old[1] != "" ? old[1] : AccountStore.NewToken();
+            string body = new JavaScriptSerializer().Serialize(new Dictionary<string, object> { { "name", name }, { "pass", pass }, { "token", token }, { "signup", signup } });
+            ThreadPool.QueueUserWorkItem(delegate
+            {
+                string msg; bool ok = false;
+                try
+                {
+                    var d = AccountStore.Call("/api/login", "POST", body, null, null);
+                    object n; string real = d.TryGetValue("name", out n) && n is string ? (string)n : name;
+                    AccountStore.Write(SavesDir, real, token);
+                    msg = signup ? "Welcome, " + real + "! Your account is made." : "Welcome back, " + real + "!";
+                    ok = true;
+                }
+                catch (Exception e) { msg = e.Message; }
+                try
+                {
+                    BeginInvoke((Action)delegate
+                    {
+                        acLogin.Enabled = acSignup.Enabled = true;
+                        if (ok) { acPass.Text = acPass2.Text = ""; signingUp = false; RefreshAccount(true); msg += " The game logs in by itself the next time it starts (or goes back to its title screen)."; }
+                        acMsg.Text = msg;
+                    });
+                }
+                catch { }
+            });
+        }
+
+        void AccountLogout()
+        {
+            AccountStore.Write(SavesDir, "", "");
+            acMsg.Text = "Logged out. Your worlds stay on this computer too.";
+            RefreshAccount(false);
+        }
+
         public void ShowPage(int n)
         {
             foreach (var c in homeCtrls) c.Visible = n == 0;
-            mgPage.Visible = n == 1; verPage.Visible = n == 2; skinPage.Visible = n == 3;
+            mgPage.Visible = n == 1; verPage.Visible = n == 2; skinPage.Visible = n == 3; acctPage.Visible = n == 4;
+            if (n == 4) { acMsg.Text = ""; signingUp = false; RefreshAccount(true); }
             logoTab.Base = n == 1 ? Color.FromArgb(20, 20, 24) : UI.Orange; logoTab.PixelTex = n != 1; logoTab.ForeColor = n == 1 ? Color.FromArgb(150, 150, 160) : Color.White;
             mgTab.Base = n == 1 ? UI.Orange : Color.FromArgb(20, 20, 24); mgTab.PixelTex = n == 1; mgTab.ForeColor = n == 1 ? Color.White : Color.FromArgb(150, 150, 160);
             bool lt = n == 0 || n == 2;

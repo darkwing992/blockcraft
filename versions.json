@@ -1,5 +1,7 @@
-{"latest":"4.7","launcher":"2.5",
+{"latest":"4.9","launcher":"2.6",
   "versions": [
+    {"id":"4.9","title":"Launcher Login","date":"2026-10-12","notes":"Log in from the launcher too (the new Account button). The launcher and the game share the login, so logging in or out in one does it in the other.","sha256":"70180a6d8bcfc032d98da383cf84e55ceee761d3d4545dfa01d6c7b9c919f1c8"},
+    {"id":"4.8","title":"Cloud Saves","date":"2026-10-12","notes":"Log in (top left of the title screen) to keep your achievements and worlds in the cloud. Log in on another computer and your worlds and achievements are there too. Same account as the big server.","sha256":"fde09e2d4f7727a7e977f5309272775cf1910989770e4baa0c16bc0edc55ef42"},
     {"id":"4.7","title":"Ranked Leaderboard","date":"2026-10-12","notes":"Ranked PvP: random matches change your rating (Bronze, Silver, Gold, Diamond, Champion) and there is a Leaderboard of the top 50 players. Duels with a friend code are not ranked. Your name is protected so nobody else can play as you.","sha256":"02df735cf166b570c47360d3562e0b1d95309791997bc86e913c2230c93430e0"},
     {"id":"4.6","title":"Longer Duels","date":"2026-10-12","notes":"PvP duels are now first to 3 round wins instead of 2.","sha256":"f2df863be748f46263efc732d9e187442e7c3c55971378bb55b639e528dd5407"},
     {"id":"4.5","title":"PvP Fix","date":"2026-10-12","notes":"Fixed PvP getting stuck on the MATCH FOUND! screen. Also fixed the launcher saying updates failed (publish them again).","sha256":"d9a37d9248ab6ede0d2d6869c4073ae16615aebae77a1fda76aebae2f15201a4"},
