@@ -100,6 +100,11 @@ THE END
   they heal the dragon. Beat it and an exit portal with the Dragon Egg appears.
   (The End is single player only.)
 
+DOORS (version 4.4)
+  6 planks of one kind of wood in two columns (crafting table) = 3 doors: oak, spruce or cherry.
+  Place it on the ground (it needs 2 blocks of room) and right-click to open or close it.
+  Closed doors keep zombies and other monsters out. Village houses have doors too.
+
 XP, ENCHANTING AND ACHIEVEMENTS (version 4.3)
   Defeating mobs, mining coal / lapis / diamonds / quartz, smelting and trading drop green XP orbs.
   Collect them to level up (the green bar and number above your hotbar). Dying drops your XP.

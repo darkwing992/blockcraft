@@ -581,7 +581,7 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 <script>
 'use strict';
-const GAME_VERSION='4.3';
+const GAME_VERSION='4.4';
 const DEFAULT_SERVER='wss://blockcraft-server.austinhodgins2014-e99.workers.dev/ws'; // the big server's address (set by "Deploy Big Server.bat")
 let PV=null; // the PvP duel you're in (null = none)
 let ZM=null,flashOn=true,zLife=0,flickT=0;
@@ -624,7 +624,8 @@ const B={AIR:0,GRASS:1,DIRT:2,STONE:3,SAND:4,WATER:5,LOG:6,LEAVES:7,PLANKS:8,COB
   END_STONE:88,END_PORTAL_FRAME:89,END_PORTAL:90,DRAGON_EGG:91,END_PORTAL_FRAME_EYE:92,
   ASPHALT:93,AMMO_CRATE:94,CONCRETE:95,SANDBAG:96,CRACKED_CONCRETE:97,BARRICADE:98,DARK_LOG:99,DARK_LEAVES:200,BLOOD_ASPHALT:201,BLOOD_CONCRETE:202,HELP_WALL:203, // 100-199 are items
   CHERRY_LOG:204,CHERRY_LEAVES:205,CHERRY_PLANKS:206,RED_SAND:207,TERRACOTTA:208,TERRACOTTA_RED:209,TERRACOTTA_YELLOW:210,TERRACOTTA_WHITE:211,
-  TERRACOTTA_BROWN:212,MYCELIUM:213,MUSHROOM_CAP:214,MUSHROOM_STEM:215,ENCHANTING_TABLE:216};
+  TERRACOTTA_BROWN:212,MYCELIUM:213,MUSHROOM_CAP:214,MUSHROOM_STEM:215,ENCHANTING_TABLE:216,
+  OAK_DOOR:217,OAK_DOOR_OPEN:218,SPRUCE_DOOR:219,SPRUCE_DOOR_OPEN:220,CHERRY_DOOR:221,CHERRY_DOOR_OPEN:222};
 const T={GRASS_TOP:0,GRASS_SIDE:1,DIRT:2,STONE:3,SAND:4,WATER:5,LOG_SIDE:6,LOG_TOP:7,LEAVES:8,PLANKS:9,COBBLE:10,GLASS:11,BRICK:12,
   SNOW:13,BEDROCK:14,COAL:15,IRON:16,SNOW_SIDE:17,DIAMOND:18,GRAVEL:19,CACTUS_SIDE:20,CACTUS_TOP:21,GOLD:22,TALLGRASS:23,ROSE:24,DANDELION:25,
   TORCH:26,GLOW:27,WOOL:28,TNT_SIDE:29,TNT_TOP:30,TNT_BOTTOM:31,CHEST_SIDE:32,CHEST_FRONT:33,CHEST_TOP:34,BED_TOP:35,BED_SIDE:36,
@@ -638,7 +639,8 @@ const T={GRASS_TOP:0,GRASS_SIDE:1,DIRT:2,STONE:3,SAND:4,WATER:5,LOG_SIDE:6,LOG_T
   END_STONE:102,FRAME_TOP:103,FRAME_TOP_EYE:104,FRAME_SIDE:105,END_PORTAL:106,DRAGON_EGG:107,
   ASPHALT:108,CRATE_SIDE:109,CRATE_TOP:110,CONCRETE:111,SANDBAG:112,CRACKED_CONCRETE:113,BARRICADE:114,DARK_LOG_SIDE:115,DARK_LOG_TOP:116,DARK_LEAVES:117,BLOOD_ASPHALT:118,BLOOD_CONCRETE:119,HELP_WALL:120,
   CHERRY_SIDE:121,CHERRY_TOP:122,CHERRY_LEAVES:123,CHERRY_PLANKS:124,RED_SAND:125,TERRA:126,TERRA_RED:127,TERRA_YELLOW:128,TERRA_WHITE:129,TERRA_BROWN:130,
-  MYCELIUM_TOP:131,MYCELIUM_SIDE:132,MUSH_CAP:133,MUSH_STEM:134,ENCH_TOP:135,ENCH_SIDE:136,ENCH_BOTTOM:137};
+  MYCELIUM_TOP:131,MYCELIUM_SIDE:132,MUSH_CAP:133,MUSH_STEM:134,ENCH_TOP:135,ENCH_SIDE:136,ENCH_BOTTOM:137,
+  OAKD_BOT:138,OAKD_TOP:139,OAKD_ITEM:140,SPRD_BOT:141,SPRD_TOP:142,SPRD_ITEM:143,CHRD_BOT:144,CHRD_TOP:145,CHRD_ITEM:146};
 const all=t=>[t,t,t,t,t,t];
 const tsb=(s,t,b)=>[s,s,b,t,s,s]; // face order: -x,+x,-y,+y,-z,+z
 const DEF=[];
@@ -756,6 +758,12 @@ def(B.TERRACOTTA_WHITE,'White Terracotta',all(T.TERRA_WHITE));def(B.TERRACOTTA_B
 def(B.MYCELIUM,'Mycelium',tsb(T.MYCELIUM_SIDE,T.MYCELIUM_TOP,T.DIRT));
 def(B.MUSHROOM_CAP,'Red Mushroom Block',all(T.MUSH_CAP));def(B.MUSHROOM_STEM,'Mushroom Stem',all(T.MUSH_STEM));
 def(B.ENCHANTING_TABLE,'Enchanting Table',tsb(T.ENCH_SIDE,T.ENCH_TOP,T.ENCH_BOTTOM),{emit:7});
+// doors: two blocks (meta 'pzb' bottom / 'pzt' top: the way it faces + which half); a closed and an open id for each wood
+const DOOR_TEX={};
+for(const [c,o,name,bt,tt,it] of [[B.OAK_DOOR,B.OAK_DOOR_OPEN,'Oak Door',T.OAKD_BOT,T.OAKD_TOP,T.OAKD_ITEM],[B.SPRUCE_DOOR,B.SPRUCE_DOOR_OPEN,'Spruce Door',T.SPRD_BOT,T.SPRD_TOP,T.SPRD_ITEM],
+    [B.CHERRY_DOOR,B.CHERRY_DOOR_OPEN,'Cherry Door',T.CHRD_BOT,T.CHRD_TOP,T.CHRD_ITEM]]){
+  def(c,name,all(it),{opaque:false,occ:false});def(o,name,all(it),{opaque:false,occ:false,solid:false,hidden:true});
+  DEF[c].door='closed';DEF[o].door='open';DEF[c].pair=o;DEF[o].pair=c;DEF[c].item=DEF[o].item=c;DOOR_TEX[c]=DOOR_TEX[o]={bot:bt,top:tt};}
 DEF[B.LEAVES].leaves=true;
 
 const COLS=16, ROWS=10;
@@ -1008,6 +1016,17 @@ const tileColor=[]; // average color per tile (for particles)
   fill(T.ENCH_SIDE,(x,y,r)=>y<4?vary(y===3?[90,10,20]:[140,22,30],10,r):obs(x,y,r));
   fill(T.ENCH_TOP,(x,y,r)=>{const corner=(x<3||x>12)&&(y<3||y>12);if(corner)return vary([80,228,215],16,r);
     if(x>=5&&x<=10&&y>=5&&y<=10)return (x===7||x===8)?vary([110,70,40],8,r):vary([236,226,200],8,r);return vary([150,24,34],12,r);});
+  // ---- doors (bottom half, top half with a window, and the inventory picture) ----
+  const doorTex=(col,win)=>{
+    const wood=(x,y,r)=>{const c=vary(col,10,r);if(x===7||x===8){c[0]-=10;c[1]-=10;c[2]-=8;}return c;};
+    const dark=(x,y,r)=>vary([col[0]*0.62,col[1]*0.62,col[2]*0.62],6,r);
+    const bot=(x,y,r)=>{if(x<2||x>13||y>13)return dark(x,y,r);if((x===3||x===12)&&y>=2&&y<=11||(y===2||y===11)&&x>=3&&x<=12)return dark(x,y,r);
+      if(x===12&&y===0)return [210,190,90];return wood(x,y,r);};
+    const top=(x,y,r)=>{if(x<2||x>13||y<2)return dark(x,y,r);
+      if(x>=3&&x<=12&&y>=3&&y<=10){if(x===7||x===8||y===6||y===7)return dark(x,y,r);return vary(win,8,r);}return wood(x,y,r);};
+    return {bot,top,item:(x,y,r)=>{if(x<4||x>11)return CLEAR;const lx=(x-4)*2,ly=(y*2)%16;return y<8?top(lx,ly,r):bot(lx,ly,r);}};};
+  for(const [col,b,t,i] of [[[164,124,72],T.OAKD_BOT,T.OAKD_TOP,T.OAKD_ITEM],[[104,76,48],T.SPRD_BOT,T.SPRD_TOP,T.SPRD_ITEM],[[224,166,158],T.CHRD_BOT,T.CHRD_TOP,T.CHRD_ITEM]]){
+    const d=doorTex(col,[150,190,205]);fill(b,d.bot);fill(t,d.top);fill(i,d.item);}
   fill(T.GLOW,(x,y,r)=>{const b=r<0.33?[255,236,170]:r<0.66?[230,180,90]:[170,120,60];return vary(b,20,tr());});
   actx.putImageData(img,0,0);
   for(let t=0;t<COLS*ROWS;t++){let r=0,g=0,b=0,n=0;for(let y=0;y<16;y++)for(let x=0;x<16;x++){const X=(t%COLS)*16+x,Y=Math.floor(t/COLS)*16+y,i=(Y*atlas.width+X)*4;if(d[i+3]>0){r+=d[i];g+=d[i+1];b+=d[i+2];n++;}}
@@ -1018,7 +1037,7 @@ function blockIcon(id){
   const c=document.createElement('canvas');c.width=48;c.height=52;const x=c.getContext('2d');x.imageSmoothingEnabled=false;
   const def=DEF[id];
   const tile=(t)=>[(t%COLS)*16,Math.floor(t/COLS)*16];
-  if(def.plant||def.torch||def.ladder){const [sx,sy]=tile(def.tex[0]);x.drawImage(atlas,sx,sy,16,16,4,6,40,40);return c.toDataURL();}
+  if(def.plant||def.torch||def.ladder||def.door){const [sx,sy]=tile(def.tex[0]);x.drawImage(atlas,sx,sy,16,16,4,6,40,40);return c.toDataURL();}
   // draw each face on its own canvas so the shade only covers that face
   const face=(t,m,shade)=>{const f=document.createElement('canvas');f.width=48;f.height=52;const fx=f.getContext('2d');fx.imageSmoothingEnabled=false;
     const [sx,sy]=tile(t);fx.setTransform(...m);fx.drawImage(atlas,sx,sy,16,16,0,0,16,16);
@@ -1463,7 +1482,7 @@ function buildVillage(X,Z,biome,rng){
         let id=(edgeX&&edgeZ)?S.log:S.wall;
         const mid=edgeX?(z===z0+(d>>1)||(big&&(z===z0+1||z===z0+d-2))):(x===x0+(w>>1)||(big&&(x===x0+1||x===x0+w-2)));
         if(!(edgeX&&edgeZ)&&y===base+2&&mid)id=B.GLASS;
-        if(x===dx&&z===dz&&y<=base+2)id=0;
+        if(x===dx&&z===dz&&y<=base+2){id=S.log===B.SPRUCE_LOG?B.SPRUCE_DOOR:B.OAK_DOOR;metas.push([x+','+y+','+z,{px:'nx',nx:'px',pz:'nz',nz:'pz'}[door]+(y===base+1?'b':'t')]);}
         put(x,y,z,id);
       }
     }
@@ -1857,6 +1876,18 @@ function buildMesh(c){
       P.i.push(base,base+1,base+2,base+2,base+1,base+3);
       continue;
     }
+    if(df.door){
+      const meta=blockMeta.get(wk(ox+x,y,oz+z))||'pzb',Fv=DIRV[meta.slice(0,2)]||DIRV.pz,top=meta[2]==='t',open=df.door==='open';
+      const t=top?DOOR_TEX[id].top:DOOR_TEX[id].bot,tu=(t%COLS)/COLS,tv=1-(Math.floor(t/COLS)+1)/ROWS,th=3/16,Lx=Fv[1],Lz=-Fv[0];
+      const la=open?[1-th,1]:[0,1],lb=open?[0,1]:[0,th];let x0=1,x1=0,z0=1,z1=0;
+      for(const a of la)for(const b of lb){const wx=0.5+(a-0.5)*Lx+(b-0.5)*Fv[0],wz=0.5+(a-0.5)*Lz+(b-0.5)*Fv[1];x0=Math.min(x0,wx);x1=Math.max(x1,wx);z0=Math.min(z0,wz);z1=Math.max(z1,wz);}
+      const pl=sky(x,y,z),pb=blk(x,y,z);
+      for(let f=0;f<6;f++){const F=FACES[f],base=O.p.length/3;
+        for(let k=0;k<4;k++){const cr=F.corners[k];O.p.push(ox+x+x0+cr[0]*(x1-x0),y+cr[1],oz+z+z0+cr[2]*(z1-z0));
+          const u=F.uvs[k][0],v=F.uvs[k][1];O.u.push(tu+(u*0.998+0.001)/COLS,tv+(v*0.998+0.001)/ROWS);O.c.push(Math.max(0.8,F.shade)*pl,Math.max(0.8,F.shade)*pb,0);}
+        O.i.push(base,base+1,base+2,base+2,base+1,base+3);}
+      continue;
+    }
     if(df.ladder){
       const t=df.tex[0],tu=(t%COLS)/COLS,tv=1-(Math.floor(t/COLS)+1)/ROWS,pl=sky(x,y,z),pb=blk(x,y,z);
       const m=blockMeta.get(wk(ox+x,y,oz+z))||'pz',e=0.06; // meta = which way the ladder faces (away from its wall)
@@ -1988,6 +2019,8 @@ function setBlockRaw(x,y,z,id){
   if(DEF[old].special){if(old===B.CHEST){if(MP.applying)chests.delete(wk(x,y,z));else if(typeof dropChest==='function')dropChest(x,y,z);}
     const m=blockMeta.get(wk(x,y,z))||'';blockMeta.delete(wk(x,y,z));saveDirty=true;
     if(old===B.BED&&m.length===3){const o=bedPartner(x,y,z,m);if(getBlock(o[0],o[1],o[2])===B.BED&&id!==B.BED)setBlockRaw(o[0],o[1],o[2],0);}}
+  if(DEF[old].door&&!DEF[id].door){const dk=wk(x,y,z),dm=blockMeta.get(dk)||'';blockMeta.delete(dk);
+    const oy=dm[2]==='t'?y-1:y+1;if(DEF[getBlock(x,oy,z)].door)setBlockRaw(x,oy,z,0);}
   const furn=t=>t===B.FURNACE||t===B.FURNACE_LIT;
   if(furn(old)&&!furn(id)){if(!MP.applying&&typeof dropFurnace==='function')dropFurnace(x,y,z);blockMeta.delete(wk(x,y,z));}
   if(old===B.WHEAT_YOUNG&&typeof crops!=='undefined')crops.delete(wk(x,y,z));
@@ -2365,7 +2398,7 @@ const SND_MAT={grass:[420,0.7],stone:[1700,1.1],wood:[650,2.4],sand:[2600,0.5],g
   for(const id of [B.SPRUCE_LEAVES,B.BIRCH_LEAVES,B.JUNGLE_LEAVES,B.WHEAT,B.WHEAT_YOUNG,B.FARMLAND,B.SUGAR_CANE,B.HAY_BALE,B.RED_MUSHROOM,B.BROWN_MUSHROOM,B.DEAD_BUSH])DEF[id].snd='grass';
   DEF[B.CLAY].snd='gravel';DEF[B.MELON].snd='wood';
   DEF[B.SANDSTONE].snd='stone';DEF[B.SOUL_SAND].snd='sand';
-  DEF[B.PATH].snd='gravel';for(const id of [B.CHERRY_LOG,B.CHERRY_PLANKS,B.MUSHROOM_STEM])DEF[id].snd='wood';for(const id of [B.CHERRY_LEAVES,B.MYCELIUM,B.MUSHROOM_CAP])DEF[id].snd='grass';DEF[B.RED_SAND].snd='sand';DEF[B.DARK_LOG].snd='wood';DEF[B.DARK_LEAVES].snd='grass';DEF[B.AMMO_CRATE].snd=DEF[B.BARRICADE].snd='wood';DEF[B.SANDBAG].snd='sand';
+  DEF[B.PATH].snd='gravel';for(const id of [B.CHERRY_LOG,B.CHERRY_PLANKS,B.MUSHROOM_STEM,B.OAK_DOOR,B.OAK_DOOR_OPEN,B.SPRUCE_DOOR,B.SPRUCE_DOOR_OPEN,B.CHERRY_DOOR,B.CHERRY_DOOR_OPEN])DEF[id].snd='wood';for(const id of [B.CHERRY_LEAVES,B.MYCELIUM,B.MUSHROOM_CAP])DEF[id].snd='grass';DEF[B.RED_SAND].snd='sand';DEF[B.DARK_LOG].snd='wood';DEF[B.DARK_LEAVES].snd='grass';DEF[B.AMMO_CRATE].snd=DEF[B.BARRICADE].snd='wood';DEF[B.SANDBAG].snd='sand';
   for(const k in S)for(const id of S[k])DEF[id].snd=k;}
 const mat=id=>SND_MAT[(DEF[id]&&DEF[id].snd)||'stone'];
 function sfx(name,id,vol=1){
@@ -2398,6 +2431,8 @@ function sfx(name,id,vol=1){
     case 'toolbreak':noise(0.25,2500,2,0.6);tone(1200,0.2,'square',0.05,0.4);break;
     case 'click':tone(900,0.04,'square',0.04);break;
     case 'chestopen':noise(0.35,500,1.5,0.5,'bandpass',0,0.05);tone(180,0.3,'triangle',0.08,1.3);break;
+    case 'dooropen':noise(0.18,700,1.2,0.5);tone(220,0.16,'triangle',0.06,1.4);break;
+    case 'doorclose':noise(0.12,500,1.6,0.7);tone(120,0.1,'triangle',0.09,0.7);break;
     case 'chestclose':noise(0.15,600,1.5,0.6);tone(140,0.12,'triangle',0.08,0.8);break;
     case 'hmm':tone(210,0.18,'sawtooth',0.35,1.15,0,6);tone(170,0.22,'sawtooth',0.3,0.85,0.2,6);break;
     case 'xp':tone(1400+Math.random()*900,0.09,'sine',0.07,1.3);break;
@@ -2518,7 +2553,7 @@ for(let m=0;m<3;m++)for(let p=0;p<4;p++)
     stack:1,armor:{slot:p,def:ARMOR_DEF[m][p],mat:m},dur:ARMOR_DUR[m][p]};
 function itemInfo(id){if(!isItem(id))return {name:DEF[id].name,stack:64,block:true};const it=ITEM[id];return {name:it.name,stack:it.stack||64,tool:it.tool,dur:it.dur,dmg:it.dmg,food:it.food,armor:it.armor};}
 const isItem=id=>id>=100&&id<200; // block ids are 0-99 and 200-255
-const isFlat=id=>isItem(id)||DEF[id].plant||DEF[id].torch||DEF[id].ladder;
+const isFlat=id=>isItem(id)||DEF[id].plant||DEF[id].torch||DEF[id].ladder||!!DEF[id].door;
 
 // Item sprites are 32x32. Shapes are described in 16-unit coordinates (1 unit = one Minecraft pixel) and filled
 // with per-pixel colour functions (metal bevels, wood grain, stitching), then edge-lit and outlined.
@@ -2796,6 +2831,7 @@ function shapeless(out,n,ids){RECIPES.push({out:[out,n],shapeless:ids});}
 shapeless(B.PLANKS,4,[[B.LOG,B.BIRCH_LOG,B.JUNGLE_LOG]]);
 shapeless(B.SPRUCE_PLANKS,4,[[B.SPRUCE_LOG,B.DARK_LOG]]);
 shapeless(B.CHERRY_PLANKS,4,[B.CHERRY_LOG]);
+shaped(B.OAK_DOOR,3,['PP','PP','PP'],{P:B.PLANKS});shaped(B.SPRUCE_DOOR,3,['PP','PP','PP'],{P:B.SPRUCE_PLANKS});shaped(B.CHERRY_DOOR,3,['PP','PP','PP'],{P:B.CHERRY_PLANKS});
 shaped(B.ENCHANTING_TABLE,1,[' B ','DOD','OOO'],{B:IT.BOOK,D:IT.DIAMOND,O:B.OBSIDIAN});
 shaped(IT.STICK,4,['P','P'],{P:ANY_PLANKS});
 shaped(B.CRAFTING_TABLE,1,['PP','PP'],{P:ANY_PLANKS});
@@ -2939,10 +2975,10 @@ const HARD={[B.GRASS]:0.6,[B.DIRT]:0.5,[B.STONE]:1.5,[B.SAND]:0.5,[B.LOG]:2,[B.L
   [B.LAVA]:-1,[B.OBSIDIAN]:12,[B.CLAY]:0.6,[B.RED_MUSHROOM]:0,[B.BROWN_MUSHROOM]:0,[B.MELON]:1,[B.COBWEB]:4,[B.HAY_BALE]:0.5,
   [B.BLACK_WOOL]:0.8,[B.BLUE_WOOL]:0.8,[B.COAL_BLOCK]:5,[B.EMERALD_BLOCK]:5,[B.GRANITE]:1.5,[B.DIORITE]:1.5,[B.ANDESITE]:1.5,[B.DEAD_BUSH]:0,
   [B.LAPIS_ORE]:3,[B.LAPIS_BLOCK]:3,[B.END_STONE]:3,[B.END_PORTAL_FRAME]:8,[B.END_PORTAL_FRAME_EYE]:8,[B.END_PORTAL]:-1,[B.DRAGON_EGG]:3,[B.PORTAL]:0,[B.NETHERRACK]:0.4,[B.SOUL_SAND]:0.5,[B.QUARTZ_ORE]:1.5,[B.QUARTZ_BLOCK]:1.2,[B.WHEAT]:0,[B.WHEAT_YOUNG]:0,[B.FARMLAND]:0.6,[B.SPRUCE_PLANKS]:2,[B.PATH]:0.6,
-  [B.CHERRY_LOG]:2,[B.CHERRY_LEAVES]:0.2,[B.CHERRY_PLANKS]:2,[B.RED_SAND]:0.5,[B.TERRACOTTA]:1.25,[B.TERRACOTTA_RED]:1.25,[B.TERRACOTTA_YELLOW]:1.25,[B.TERRACOTTA_WHITE]:1.25,[B.TERRACOTTA_BROWN]:1.25,[B.MYCELIUM]:0.6,[B.MUSHROOM_CAP]:0.2,[B.MUSHROOM_STEM]:0.2,[B.ENCHANTING_TABLE]:5,
+  [B.CHERRY_LOG]:2,[B.CHERRY_LEAVES]:0.2,[B.CHERRY_PLANKS]:2,[B.RED_SAND]:0.5,[B.TERRACOTTA]:1.25,[B.TERRACOTTA_RED]:1.25,[B.TERRACOTTA_YELLOW]:1.25,[B.TERRACOTTA_WHITE]:1.25,[B.TERRACOTTA_BROWN]:1.25,[B.MYCELIUM]:0.6,[B.MUSHROOM_CAP]:0.2,[B.MUSHROOM_STEM]:0.2,[B.ENCHANTING_TABLE]:5,[B.OAK_DOOR]:1.5,[B.OAK_DOOR_OPEN]:1.5,[B.SPRUCE_DOOR]:1.5,[B.SPRUCE_DOOR_OPEN]:1.5,[B.CHERRY_DOOR]:1.5,[B.CHERRY_DOOR_OPEN]:1.5,
   [B.ASPHALT]:1.5,[B.BLOOD_ASPHALT]:1.5,[B.BLOOD_CONCRETE]:2,[B.HELP_WALL]:2,[B.AMMO_CRATE]:2,[B.CONCRETE]:2,[B.SANDBAG]:1,[B.CRACKED_CONCRETE]:1.5,[B.BARRICADE]:3};
 const TOOLFOR={pick:[B.STONE,B.COBBLE,B.BRICK,B.COAL,B.IRON,B.DIAMOND,B.GOLD,B.GLOW,B.ICE,B.FURNACE,B.FURNACE_LIT,B.STONE_BRICKS,B.SANDSTONE,B.MOSSY_COBBLE,B.IRON_BLOCK,B.GOLD_BLOCK,B.DIAMOND_BLOCK,B.OBSIDIAN,B.NETHERRACK,B.QUARTZ_ORE,B.QUARTZ_BLOCK,B.COAL_BLOCK,B.EMERALD_BLOCK,B.GRANITE,B.DIORITE,B.ANDESITE,B.LAPIS_ORE,B.LAPIS_BLOCK,B.END_STONE,B.END_PORTAL_FRAME,B.END_PORTAL_FRAME_EYE,B.TERRACOTTA,B.TERRACOTTA_RED,B.TERRACOTTA_YELLOW,B.TERRACOTTA_WHITE,B.TERRACOTTA_BROWN,B.ENCHANTING_TABLE,B.ASPHALT,B.CONCRETE,B.CRACKED_CONCRETE,B.BLOOD_ASPHALT,B.BLOOD_CONCRETE,B.HELP_WALL],
-  axe:[B.CHERRY_LOG,B.CHERRY_PLANKS,B.MUSHROOM_CAP,B.MUSHROOM_STEM,B.DARK_LOG,B.AMMO_CRATE,B.BARRICADE,B.MELON,B.LOG,B.PLANKS,B.CHEST,B.CRAFTING_TABLE,B.BOOKSHELF,B.LADDER,B.PUMPKIN,B.JACK_O_LANTERN,B.SPRUCE_LOG,B.BIRCH_LOG,B.JUNGLE_LOG,B.SPRUCE_PLANKS],
+  axe:[B.OAK_DOOR,B.OAK_DOOR_OPEN,B.SPRUCE_DOOR,B.SPRUCE_DOOR_OPEN,B.CHERRY_DOOR,B.CHERRY_DOOR_OPEN,B.CHERRY_LOG,B.CHERRY_PLANKS,B.MUSHROOM_CAP,B.MUSHROOM_STEM,B.DARK_LOG,B.AMMO_CRATE,B.BARRICADE,B.MELON,B.LOG,B.PLANKS,B.CHEST,B.CRAFTING_TABLE,B.BOOKSHELF,B.LADDER,B.PUMPKIN,B.JACK_O_LANTERN,B.SPRUCE_LOG,B.BIRCH_LOG,B.JUNGLE_LOG,B.SPRUCE_PLANKS],
   shovel:[B.RED_SAND,B.MYCELIUM,B.SANDBAG,B.CLAY,B.SOUL_SAND,B.GRASS,B.DIRT,B.SAND,B.GRAVEL,B.SNOW,B.FARMLAND,B.PATH],sword:[B.CHERRY_LEAVES,B.DARK_LEAVES,B.COBWEB,B.LEAVES,B.CACTUS,B.WOOL,B.SPRUCE_LEAVES,B.BIRCH_LEAVES,B.JUNGLE_LEAVES]};
 const NEEDTIER={[B.STONE]:1,[B.COBBLE]:1,[B.BRICK]:1,[B.COAL]:1,[B.IRON]:2,[B.GOLD]:3,[B.DIAMOND]:3,[B.FURNACE]:1,[B.FURNACE_LIT]:1,[B.STONE_BRICKS]:1,[B.SANDSTONE]:1,[B.MOSSY_COBBLE]:1,[B.IRON_BLOCK]:2,[B.GOLD_BLOCK]:3,[B.DIAMOND_BLOCK]:3,[B.OBSIDIAN]:4,[B.NETHERRACK]:1,[B.COAL_BLOCK]:1,[B.EMERALD_BLOCK]:3,[B.END_STONE]:1,[B.END_PORTAL_FRAME]:1,[B.END_PORTAL_FRAME_EYE]:1,[B.LAPIS_ORE]:2,[B.LAPIS_BLOCK]:2,[B.GRANITE]:1,[B.DIORITE]:1,[B.ANDESITE]:1,[B.QUARTZ_ORE]:1,[B.QUARTZ_BLOCK]:1,[B.TERRACOTTA]:1,[B.TERRACOTTA_RED]:1,[B.TERRACOTTA_YELLOW]:1,[B.TERRACOTTA_WHITE]:1,[B.TERRACOTTA_BROWN]:1,[B.ENCHANTING_TABLE]:1,[B.ASPHALT]:1,[B.CONCRETE]:1,[B.CRACKED_CONCRETE]:1};
 function heldTool(){const s=inv[selected];return s&&isItem(s.id)?ITEM[s.id].tool:null;}
@@ -2964,6 +3000,7 @@ function dropsFor(id){
     case B.IRON:return [[IT.RAW_IRON,1]];
     case B.DIAMOND:return [[IT.DIAMOND,1]];
     case B.LEAVES:{const r=Math.random();return r<0.06?[[IT.APPLE,1]]:r<0.16?[[IT.STICK,1]]:[];}
+    case B.OAK_DOOR:case B.OAK_DOOR_OPEN:case B.SPRUCE_DOOR:case B.SPRUCE_DOOR_OPEN:case B.CHERRY_DOOR:case B.CHERRY_DOOR_OPEN:return [[DEF[id].item,1]];
     case B.MYCELIUM:return [[B.DIRT,1]];
     case B.MUSHROOM_CAP:return Math.random()<0.4?[[B.RED_MUSHROOM,1+rnd(2)]]:[];
     case B.CHERRY_LEAVES:case B.DARK_LEAVES:case B.SPRUCE_LEAVES:case B.BIRCH_LEAVES:case B.JUNGLE_LEAVES:return Math.random()<0.1?[[IT.STICK,1]]:[];
@@ -3022,7 +3059,7 @@ const furnaces=new Map(); // "x,y,z" -> {s:[input,fuel,output],burn,burnMax,cook
 const SMELT={[IT.RAW_IRON]:IT.IRON_INGOT,[B.IRON]:IT.IRON_INGOT,[B.SAND]:B.GLASS,[B.COBBLE]:B.STONE,[IT.PORK]:IT.COOKED_PORK,
   [IT.BEEF]:IT.STEAK,[IT.MUTTON]:IT.COOKED_MUTTON,[IT.CHICKEN]:IT.COOKED_CHICKEN,[B.LOG]:IT.COAL,[B.SPRUCE_LOG]:IT.COAL,[B.DARK_LOG]:IT.COAL,
   [B.BIRCH_LOG]:IT.COAL,[B.JUNGLE_LOG]:IT.COAL,[B.COAL]:IT.COAL,[B.DIAMOND]:IT.DIAMOND,[B.GRAVEL]:IT.FLINT,[B.GOLD]:IT.GOLD_INGOT,[IT.CLAY_BALL]:IT.BRICK,[IT.RAW_RABBIT]:IT.COOKED_RABBIT,[B.CLAY]:B.TERRACOTTA,[B.CHERRY_LOG]:IT.COAL,[B.RED_SAND]:B.GLASS};
-const FUEL={[IT.COAL]:80,[B.LOG]:15,[B.CHERRY_LOG]:15,[B.CHERRY_PLANKS]:15,[B.DARK_LOG]:15,[B.SPRUCE_LOG]:15,[B.BIRCH_LOG]:15,[B.JUNGLE_LOG]:15,[B.PLANKS]:15,[B.SPRUCE_PLANKS]:15,
+const FUEL={[IT.COAL]:80,[B.LOG]:15,[B.OAK_DOOR]:10,[B.SPRUCE_DOOR]:10,[B.CHERRY_DOOR]:10,[B.CHERRY_LOG]:15,[B.CHERRY_PLANKS]:15,[B.DARK_LOG]:15,[B.SPRUCE_LOG]:15,[B.BIRCH_LOG]:15,[B.JUNGLE_LOG]:15,[B.PLANKS]:15,[B.SPRUCE_PLANKS]:15,
   [IT.STICK]:5,[B.CHEST]:15,[B.CRAFTING_TABLE]:15,[B.WOOL]:5,[IT.BOW]:15,[IT.HOE]:10};
 for(const t of TOOL_TYPES)FUEL[toolId(t,1)]=10;
 const COOK_TIME=10;
@@ -4998,6 +5035,12 @@ function useItem(){
     if(px+1>p.x-PW&&px<p.x+PW&&py+1>p.y&&py<p.y+PH&&pz+1>p.z-PW&&pz<p.z+PW)return;
     for(const m of mobs)if(px+1>m.pos.x-m.w&&px<m.pos.x+m.w&&py+1>m.pos.y&&py<m.pos.y+m.h&&pz+1>m.pos.z-m.w&&pz<m.pos.z+m.w)return;
   }
+  if(DEF[id].door){const dir=Math.abs(camDir.x)>Math.abs(camDir.z)?(camDir.x>0?'px':'nx'):(camDir.z>0?'pz':'nz');
+    const up=getBlock(px,py+1,pz),p=player.pos;
+    if((up&&!DEF[up].plant)||py+1>=H||!DEF[getBlock(px,py-1,pz)].solid){toast('A door needs 2 blocks of room and something solid under it');return;}
+    if(px+1>p.x-PW&&px<p.x+PW&&py+2>p.y&&py<p.y+PH&&pz+1>p.z-PW&&pz<p.z+PW)return;
+    blockMeta.set(wk(px,py,pz),dir+'b');blockMeta.set(wk(px,py+1,pz),dir+'t');setBlockRaw(px,py+1,pz,id);
+    setBlock(px,py,pz,id);sfx('place',id);consumeHeld();swing=1;return;}
   if(id===B.BED){const dir=Math.abs(camDir.x)>Math.abs(camDir.z)?(camDir.x>0?'px':'nx'):(camDir.z>0?'pz':'nz');
     const hx=px+DIRV[dir][0],hz=pz+DIRV[dir][1],hc=getBlock(hx,py,hz);
     if((hc&&!DEF[hc].plant)||!DEF[getBlock(px,py-1,pz)].solid||!DEF[getBlock(hx,py-1,hz)].solid){toast('Not enough room for the bed');return;}
@@ -5005,6 +5048,12 @@ function useItem(){
     setBlock(px,py,pz,id);sfx('place',id);consumeHeld();swing=1;return;}
   if(DEF[id].special||DEF[id].front>=0){const dir=Math.abs(camDir.x)>Math.abs(camDir.z)?(camDir.x>0?'px':'nx'):(camDir.z>0?'pz':'nz');blockMeta.set(wk(px,py,pz),dir);}
   setBlock(px,py,pz,id);sfx('place',id);consumeHeld();swing=1;
+}
+function toggleDoor(x,y,z){
+  const id=getBlock(x,y,z);if(!DEF[id].door)return;const m=blockMeta.get(wk(x,y,z))||'pzb',by=m[2]==='t'?y-1:y,to=DEF[id].pair;
+  if(DEF[to].solid){const p=player.pos;if(x+1>p.x-PW&&x<p.x+PW&&by+2>p.y&&by<p.y+PH&&z+1>p.z-PW&&z<p.z+PW)return;} // don't shut it on yourself
+  for(const yy of [by,by+1])if(DEF[getBlock(x,yy,z)].door)setBlockRaw(x,yy,z,to);
+  flushBlocks();sfxAt(DEF[to].door==='open'?'dooropen':'doorclose',x+0.5,by+1,z+0.5);
 }
 function mobRayHit(){const m=mobRay(4);return !!(m&&target&&m.t<target.t);}
 // ---- beds & sleeping ----
@@ -5044,6 +5093,7 @@ function rightDown(){
     if(target.id===B.ENCHANTING_TABLE){openEnch(target.x,target.y,target.z);return;}
     if(isFurnace(target.id)){openFurnaceAt(target.x,target.y,target.z);return;}
     if(target.id===B.BED){trySleep(target.x,target.y,target.z);return;}
+    if(DEF[target.id].door){toggleDoor(target.x,target.y,target.z);swing=0.5;return;}
   }
   if(equipArmor())return;
   if(startUse())return;
@@ -6086,7 +6136,7 @@ document.getElementById('btnWorldsBack').onclick=()=>{worldsEl.style.display='no
 // =====================================================================
 //  Main loop
 // =====================================================================
-const splashes=['Now with infinite worlds!','Now with 3D items!','Zombie Apocalypse!','1v1 me bro!','Custom skins!','Cherry blossoms!','Gain levels!','Achievement get!','Watch out for bees!','Import your Minecraft skin!','PvP duels!','Don\'t go out in the fog...','Bring a flashlight!','Controller supported!','Now on phones!','Defeat the Ender Dragon!','The End is near!','Iron golems guard villages!','Watch out for cobwebs!','Now with the Nether!','Don\'t stare at Endermen!','Tame a wolf!','Climb the ladder!','Spooky pumpkins!','Press F5!','Crafting tables!','Craft it like you mean it!','Diamonds are rare now!','Beds are 2 blocks now!','100% procedurally generated!','Punch trees!','Also try the real thing!','Made of cubes!','Look up at night!',
+const splashes=['Now with infinite worlds!','Now with 3D items!','Zombie Apocalypse!','1v1 me bro!','Custom skins!','Cherry blossoms!','Gain levels!','Achievement get!','Watch out for bees!','Knock knock!','Import your Minecraft skin!','PvP duels!','Don\'t go out in the fog...','Bring a flashlight!','Controller supported!','Now on phones!','Defeat the Ender Dragon!','The End is near!','Iron golems guard villages!','Watch out for cobwebs!','Now with the Nether!','Don\'t stare at Endermen!','Tame a wolf!','Climb the ladder!','Spooky pumpkins!','Press F5!','Crafting tables!','Craft it like you mean it!','Diamonds are rare now!','Beds are 2 blocks now!','100% procedurally generated!','Punch trees!','Also try the real thing!','Made of cubes!','Look up at night!',
   'Caves included!','Beware of creepers!','Torches not included!','Oink!','Moo!','Craft your own tools!','Survive the night!','Water flows!','Don\'t starve!','Sssss...'];
 document.getElementById('splash').textContent=splashes[Math.floor(Math.random()*splashes.length)];
 document.getElementById('verLabel').textContent='BlockCraft '+GAME_VERSION;
