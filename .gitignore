@@ -6,3 +6,4 @@ BlockCraft-new.exe
 server/server-data.json
 server/.wrangler/
 server/node_modules/
+launcher/BlockCraft-old*.exe

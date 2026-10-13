@@ -175,6 +175,18 @@
   #mgPanel, #pvpPanel { width: min(620px, 94vw); font-family: Consolas, monospace; text-align: center; max-height: 96vh; overflow-y: auto; }
   #mgPanel h2, #pvpPanel h2 { font-size: 34px; margin: 4px 0 10px; letter-spacing: 3px; text-shadow: 3px 3px 0 #000; color: #ffd84a; }
   #pvpPanel h2 { color: #5ab0ff; }
+  #pvpMe { min-height: 22px; margin: 6px 0 2px; font-size: 15px; color: #ddd; }
+  #pvpMe b { font-size: 17px; }
+  #lbScreen { display: none; background: #070a12; z-index: 9; justify-content: flex-start; padding: 22px 10px; box-sizing: border-box; font-family: Consolas, monospace; }
+  #lbScreen h2 { font-size: 34px; margin: 4px 0 4px; letter-spacing: 3px; color: #ffd84a; text-shadow: 3px 3px 0 #000; }
+  #lbSub { color: #aaa; font-size: 13px; margin-bottom: 10px; text-align: center; max-width: min(640px, 100%); line-height: 1.5; }
+  #lbYou { margin-bottom: 10px; font-size: 15px; color: #ddd; text-align: center; }
+  #lbTable { border-collapse: collapse; width: min(640px, 100%); margin-bottom: 14px; font-size: 15px; }
+  #lbTable th { color: #8fb8ff; text-align: left; padding: 6px 8px; border-bottom: 2px solid #345; font-size: 13px; }
+  #lbTable td { padding: 6px 8px; border-bottom: 1px solid #1d2433; color: #eee; }
+  #lbTable tr.me td { background: #1d2e4a; }
+  #lbTable td.rk { width: 44px; color: #aaa; } #lbTable tr:nth-child(2) td.rk { color: #ffd84a; } #lbTable tr:nth-child(3) td.rk { color: #d8d8e0; } #lbTable tr:nth-child(4) td.rk { color: #d08a4a; }
+  .tier { display: inline-block; padding: 1px 7px; border: 2px solid currentColor; font-size: 12px; font-weight: bold; }
   .mgCard { display: block; width: 100%; margin: 8px 0; padding: 14px; text-align: left; cursor: pointer; font: 15px Consolas, monospace; color: #ddd; background: #1e1c24; border: 2px solid #4a4656; }
   .mgCard b { display: block; font-size: 22px; color: #fff; margin-bottom: 4px; } .mgCard:hover { border-color: #ffd84a; background: #2a2632; }
   .mgCard.z b { color: #ff4a4a; } .mgCard.p b { color: #5ab0ff; }
@@ -452,6 +464,7 @@
 <div id="pvpEnd" class="overlay">
   <h1 id="pvpEndTitle">YOU WIN!</h1>
   <div id="pvpEndText" class="sub" style="transform:none;color:#ddd;text-align:center;line-height:1.6"></div>
+  <div id="pvpEndRank" style="font:16px Consolas,monospace;color:#ddd;margin:2px 0 14px;text-align:center"></div>
   <button class="btn" id="btnPvpAgain">Play Again</button>
   <button class="btn" id="btnPvpMenu">Back to Title</button>
 </div>
@@ -472,7 +485,7 @@
   <div id="mgPanel">
     <h2>MINIGAMES</h2>
     <button class="mgCard z" id="btnZombie"><b>Zombie Apocalypse</b>Survive the undead alone or with up to 4 friends. 4 maps, survival or waves.</button>
-    <button class="mgCard p" id="btnPvp"><b>PvP Duels</b>1v1 other players online. Same gear, best of 3 rounds - may the best fighter win!</button>
+    <button class="mgCard p" id="btnPvp"><b>PvP Duels</b>1v1 other players online. Same gear, first to 3 round wins - may the best fighter win!</button>
     <button class="btn" id="btnMgBack">Back</button>
   </div>
 </div>
@@ -480,19 +493,29 @@
   <div id="pvpPanel">
     <h2>PVP DUELS</h2>
     <p>Fight another player 1v1 in the arena. You both get the same gear: iron sword, axe, bow, crossbow, armor and 2 golden apples.
-      First to win 2 rounds wins the duel.</p>
+      First to win 3 rounds wins the duel.</p>
     <label>Your name <input id="pvpName" maxlength="16" autocomplete="off"></label>
     <div class="zlabel" style="color:#5ab0ff">Your kit</div>
     <div class="zgrid" id="pvpKits"></div>
     <p class="mpHint">Maps: Classic Arena, Sky Islands (don't fall!), Nether Pit (mind the lava) and Forest Ruins - picked at random.</p>
     <div id="pvpStatus"></div>
-    <button class="btn" id="btnPvpFind">Find a Match</button>
+    <div id="pvpMe"></div>
+    <button class="btn" id="btnPvpFind">Find a Match (Ranked)</button>
+    <button class="btn" id="btnPvpLb">Leaderboard</button>
     <p class="mpHint">Want to fight a friend? You both type the same secret code, then click Duel a Friend.</p>
     <label>Secret code <input id="pvpCode" maxlength="8" autocomplete="off" placeholder="ABCD"></label>
-    <button class="btn" id="btnPvpFriend">Duel a Friend</button>
+    <button class="btn" id="btnPvpFriend">Duel a Friend (not ranked)</button>
     <div id="pvpMsg"></div>
     <button class="btn" id="btnPvpBack">Back</button>
   </div>
+</div>
+<div id="lbScreen" class="overlay">
+  <h2>LEADERBOARD</h2>
+  <div id="lbSub">Ranked PvP: win random matches to gain rating, lose to drop. Beating a higher-rated player gives more points.<br>
+    Bronze &middot; Silver 950 &middot; Gold 1100 &middot; Diamond 1250 &middot; Champion 1400</div>
+  <div id="lbYou"></div>
+  <table id="lbTable"></table>
+  <button class="btn" id="btnLbBack">Back</button>
 </div>
 <div id="zOver" class="overlay">
   <h1 style="color:#d01010">GAME OVER</h1>
@@ -581,7 +604,7 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 <script>
 'use strict';
-const GAME_VERSION='4.4';
+const GAME_VERSION='4.7';
 const DEFAULT_SERVER='wss://blockcraft-server.austinhodgins2014-e99.workers.dev/ws'; // the big server's address (set by "Deploy Big Server.bat")
 let PV=null; // the PvP duel you're in (null = none)
 let ZM=null,flashOn=true,zLife=0,flickT=0;
@@ -5573,7 +5596,7 @@ let ignoreMoves=0,lastMX=0,lastMY=0;
 document.addEventListener('pointerlockerror',()=>enterFree());
 document.addEventListener('pointerlockchange',()=>{
   const l=document.pointerLockElement===canvas;
-  if(l){freeMode=false;locked=true;menu.style.display='none';ignoreMoves=2;}
+  if(l){freeMode=false;locked=true;menu.style.display='none';ignoreMoves=2;document.getElementById('pvpClick').style.display='none';} // got the mouse: the 'click to fight' screen isn't needed
   else if(!invOpen&&!freeMode&&!player.dead&&!titleMode&&!chatOpen)showPause();
 });
 document.getElementById('btnPlay').onclick=()=>lock();
@@ -6044,7 +6067,7 @@ function enterTitle(){
   menu.style.display='flex';worldsEl.style.display='none';updateMenuButtons();invChanged();
   if(typeof updateTitleSkin==='function')setTimeout(()=>{updateTitleSkin();syncLauncherSkin();},0);
 }
-async function quitToTitle(){
+async function quitToTitle(){document.getElementById('pvpClick').style.display='none';
   if(PV){pvpSend({t:'leave'});PV=null;if(document.pointerLockElement)document.exitPointerLock();enterTitle();return;}
   if(MP.remote()){MP.leave();if(document.pointerLockElement)document.exitPointerLock();enterTitle();return;}
   await save();if(MP.role==='host'){MP.sysChat('The host closed the world');setTimeout(()=>MP.reset(),300);}if(document.pointerLockElement)document.exitPointerLock();enterTitle();}
@@ -6136,7 +6159,7 @@ document.getElementById('btnWorldsBack').onclick=()=>{worldsEl.style.display='no
 // =====================================================================
 //  Main loop
 // =====================================================================
-const splashes=['Now with infinite worlds!','Now with 3D items!','Zombie Apocalypse!','1v1 me bro!','Custom skins!','Cherry blossoms!','Gain levels!','Achievement get!','Watch out for bees!','Knock knock!','Import your Minecraft skin!','PvP duels!','Don\'t go out in the fog...','Bring a flashlight!','Controller supported!','Now on phones!','Defeat the Ender Dragon!','The End is near!','Iron golems guard villages!','Watch out for cobwebs!','Now with the Nether!','Don\'t stare at Endermen!','Tame a wolf!','Climb the ladder!','Spooky pumpkins!','Press F5!','Crafting tables!','Craft it like you mean it!','Diamonds are rare now!','Beds are 2 blocks now!','100% procedurally generated!','Punch trees!','Also try the real thing!','Made of cubes!','Look up at night!',
+const splashes=['Now with infinite worlds!','Now with 3D items!','Zombie Apocalypse!','1v1 me bro!','Custom skins!','Cherry blossoms!','Gain levels!','Achievement get!','Watch out for bees!','Knock knock!','Climb the leaderboard!','Import your Minecraft skin!','PvP duels!','Don\'t go out in the fog...','Bring a flashlight!','Controller supported!','Now on phones!','Defeat the Ender Dragon!','The End is near!','Iron golems guard villages!','Watch out for cobwebs!','Now with the Nether!','Don\'t stare at Endermen!','Tame a wolf!','Climb the ladder!','Spooky pumpkins!','Press F5!','Crafting tables!','Craft it like you mean it!','Diamonds are rare now!','Beds are 2 blocks now!','100% procedurally generated!','Punch trees!','Also try the real thing!','Made of cubes!','Look up at night!',
   'Caves included!','Beware of creepers!','Torches not included!','Oink!','Moo!','Craft your own tools!','Survive the night!','Water flows!','Don\'t starve!','Sssss...'];
 document.getElementById('splash').textContent=splashes[Math.floor(Math.random()*splashes.length)];
 document.getElementById('verLabel').textContent='BlockCraft '+GAME_VERSION;
@@ -6724,15 +6747,43 @@ function pvpConnect(){
     const conn={ws};pvpConn=conn;
     const fail=m=>{if(done)return;done=true;rej(new Error(m));};
     const t=setTimeout(()=>{fail('The PvP server did not answer.');try{ws.close();}catch(e){}},12000);
-    ws.onopen=()=>pvpSend({t:'hello',name:setMpName(document.getElementById('pvpName').value),v:1});
+    ws.onopen=()=>{const nm=setMpName(document.getElementById('pvpName').value);pvpSend({t:'hello',name:nm,key:pvpKeyFor(nm),v:1});};
     ws.onmessage=e=>{let d;try{d=JSON.parse(e.data);}catch(x){return;}if(d.t==='lobby'&&!done){done=true;clearTimeout(t);res();}pvpOnMessage(d);};
     ws.onclose=()=>{clearTimeout(t);fail('Could not reach the PvP server. If you run the server, update it with "Deploy Big Server.bat".');
       if(pvpConn===conn){pvpConn=null;if(PV&&PV.st!=='end'){PV.st='end';pvpShowEnd(null,true);}}};
   });
 }
+// ---- ranked leaderboard ----
+const TIERS=[['Champion',1400,'#ff6bff'],['Diamond',1250,'#5ae8ff'],['Gold',1100,'#ffd84a'],['Silver',950,'#d8d8e0'],['Bronze',-1e9,'#d08a4a']];
+const tierOf=r=>TIERS.find(t=>r>=t[1]);
+const tierTag=r=>{const t=tierOf(r);return `<span class="tier" style="color:${t[2]}">${t[0]}</span>`;};
+const escHtml=t=>String(t).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const pvpKeyName=n=>'bc_pvpkey_'+String(n||'').toLowerCase();
+function pvpKeyFor(n){try{return localStorage.getItem(pvpKeyName(n))||'';}catch(e){return '';}}
+function meText(me){
+  if(!me)return '';if(!me.w&&!me.l)return `${tierTag(me.rating)} <b>${me.rating}</b> rating &middot; win a ranked match to get on the leaderboard`;
+  return `${tierTag(me.rating)} <b>${me.rating}</b> rating &middot; rank <b>#${me.rank}</b> &middot; ${me.w} W / ${me.l} L`;}
+function pvpShowMe(me){document.getElementById('pvpMe').innerHTML=me?'Your rank: '+meText(me):'';}
+async function pvpLeaderboard(){
+  const url=pvpUrl(),scr=document.getElementById('lbScreen'),tb=document.getElementById('lbTable'),you=document.getElementById('lbYou');
+  scr.style.display='flex';sfx('click');tb.innerHTML='<tr><td>Loading...</td></tr>';you.innerHTML='';
+  if(!url){tb.innerHTML='<tr><td>No server is set up yet.</td></tr>';return;}
+  const name=document.getElementById('pvpName').value.trim()||mpName();
+  try{const r=await fetch(url.replace(/^ws/,'http')+'/leaderboard?name='+encodeURIComponent(name),{cache:'no-store'});if(!r.ok)throw 0;const j=await r.json();
+    you.innerHTML=j.you?'You ('+escHtml(j.you.name)+'): '+meText(j.you):'Play a ranked match to get your rating!';
+    let h='<tr><th>#</th><th>Player</th><th>Rank</th><th>Rating</th><th>Wins</th><th>Losses</th></tr>';
+    for(const e of j.top)h+=`<tr class="${j.you&&e.name===j.you.name?'me':''}"><td class="rk">${e.rank}</td><td>${escHtml(e.name)}</td><td>${tierTag(e.rating)}</td><td><b>${e.rating}</b></td><td>${e.w}</td><td>${e.l}</td></tr>`;
+    if(!j.top.length)h+='<tr><td colspan="6">Nobody has played a ranked match yet - be the first!</td></tr>';
+    tb.innerHTML=h;document.getElementById('lbSub').firstChild.textContent='Ranked PvP: '+j.players+' ranked player'+(j.players===1?'':'s')+'. Win random matches to gain rating, lose to drop. Beating a higher-rated player gives more points.';}
+  catch(e){tb.innerHTML='<tr><td>Could not load the leaderboard. If you run the server, update it with "Deploy Big Server.bat".</td></tr>';}
+}
+document.getElementById('btnPvpLb').onclick=pvpLeaderboard;
+document.getElementById('btnLbBack').onclick=()=>{document.getElementById('lbScreen').style.display='none';sfx('click');};
 function pvpStatusText(d){document.getElementById('pvpStatus').textContent=`Online: ${d.online} · waiting: ${d.waiting} · duels going on: ${d.duels}`;}
 async function pvpCheck(){const el=document.getElementById('pvpStatus'),url=pvpUrl();if(!url){el.textContent='';return;}
-  try{const r=await fetch(url.replace(/^ws/,'http')+'/status',{cache:'no-store'});const j=await r.json();el.style.color='#9f9';pvpStatusText(j);}
+  try{const r=await fetch(url.replace(/^ws/,'http')+'/status',{cache:'no-store'});const j=await r.json();el.style.color='#9f9';pvpStatusText(j);
+    const nm=document.getElementById('pvpName').value.trim()||mpName();
+    fetch(url.replace(/^ws/,'http')+'/leaderboard?name='+encodeURIComponent(nm),{cache:'no-store'}).then(r=>r.ok?r.json():null).then(j=>{if(j)pvpShowMe(j.you);}).catch(()=>{});}
   catch(e){el.style.color='#f99';el.textContent='The PvP server is not online right now.';}}
 async function pvpQueue(code){
   pvpMsgEl('Connecting...');pvpLastCode=code;
@@ -6741,7 +6792,9 @@ async function pvpQueue(code){
 }
 function pvpOnMessage(d){
   switch(d.t){
-    case 'lobby':pvpStatusText(d);break;
+    case 'lobby':pvpStatusText(d);if('me' in d)pvpShowMe(d.me);break;
+    case 'key':try{localStorage.setItem(pvpKeyName(d.name),d.key);}catch(e){}break; // this name is yours now
+    case 'note':pvpMsgEl(d.text);break;
     case 'waiting':pvpStatusText(d);pvpMsgEl(pvpLastCode?'Waiting for your friend to type the code '+pvpLastCode+'...':'Looking for an opponent...');
       document.getElementById('btnPvpBack').textContent='Cancel';break;
     case 'match':pvpStart(d);break;
@@ -6752,19 +6805,20 @@ function pvpOnMessage(d){
     case 'roundover':if(!PV)break;PV.score=d.score;PV.st='between';
       zBanner(d.winner===PV.you?'YOU WON THE ROUND':'YOU LOST THE ROUND','Next round in a few seconds...');sfx(d.winner===PV.you?'win':'hurt');break;
     case 'round':if(!PV)break;PV.round=d.round;PV.score=d.score;PV.st='fight';pvpRespawn();zBanner('ROUND '+d.round,'FIGHT!');sfx('horn');break;
-    case 'end':if(!PV)break;PV.score=d.score;PV.st='end';pvpShowEnd(d.winner===PV.you,d.forfeit);break;
+    case 'end':if(!PV)break;PV.score=d.score;PV.st='end';pvpShowEnd(d.winner===PV.you,d.forfeit,d);break;
   }
 }
 function pvpStart(d){
   for(const id of ['pvpScreen','mgScreen','menu'])document.getElementById(id).style.display='none';document.getElementById('btnPvpBack').textContent='Back';
   clearWorld();removeRemote('opp');
   currentWorld={id:null,name:'PvP Duel vs '+d.opp,created:Date.now()};SEED=d.seed;perlin=new Perlin(SEED);mode='survival';resetPlayerState();
-  PV={you:d.you,opp:d.opp,oppKit:d.oppKit||'classic',kit:pvpMyKit||pvpKit(),map:(d.map|0)%PVP_MAPS.length,score:d.score,round:1,st:'fight'};
+  PV={ranked:!!d.ranked,oppRating:d.oppRating,toWin:d.toWin||2,you:d.you,opp:d.opp,oppKit:d.oppKit||'classic',kit:pvpMyKit||pvpKit(),map:(d.map|0)%PVP_MAPS.length,score:d.score,round:1,st:'fight'};
   MP.skins.delete('opp');if(mySkin())setTimeout(()=>pvpSend({t:'skin',d:mySkin()}),300);
   spawnPoint=[0.5,PV.map===1?SKY_Y+1:SEA+5,d.you?18.5:-17.5];pvpRespawn();dayTime=0.28;addRemote('opp',d.opp);
   document.body.classList.add('pvp');startPlaying();
-  if(!document.pointerLockElement&&!touchMode&&!padUsed)document.getElementById('pvpClick').style.display='flex'; // the browser needs a click to take the mouse
-  zBanner('DUEL vs '+d.opp,PVP_MAPS[PV.map]+' · they are a '+(PVP_KITS[PV.oppKit]||PVP_KITS.classic).name+' · FIGHT!');sfx('horn');
+  // the browser may need a click to take the mouse: only ask if it didn't get it by itself (the lock request takes a moment)
+  setTimeout(()=>{if(PV&&!document.pointerLockElement&&!touchMode&&!padUsed)document.getElementById('pvpClick').style.display='flex';},600);
+  zBanner((d.ranked?'RANKED ':'')+'DUEL vs '+d.opp+(d.ranked&&d.oppRating!=null?' ('+d.oppRating+')':''),PVP_MAPS[PV.map]+' · they are a '+(PVP_KITS[PV.oppKit]||PVP_KITS.classic).name+' · FIGHT!');sfx('horn');
 }
 function pvpRespawn(){
   player.dead=false;hp=20;food=20;sat=0;exh=0;air=10;acidT=0;if(grab)endGrab(false); // no saturation: health comes back slowly
@@ -6797,20 +6851,25 @@ function pvpFrame(dt){
   const me=PV.score[PV.you],op=PV.score[1-PV.you];
   document.getElementById('pvpScore').innerHTML=`<span class="me"></span> ${me} - ${op} <span class="op"></span>`;
   document.querySelector('#pvpScore .me').textContent=MP.name||mpName();document.querySelector('#pvpScore .op').textContent=PV.opp;
-  document.getElementById('pvpRound').textContent=PV.st==='fight'?PVP_MAPS[PV.map]+' · round '+PV.round+' · first to 2 wins':PV.st==='between'?'Next round...':'';
+  document.getElementById('pvpRound').textContent=PV.st==='fight'?PVP_MAPS[PV.map]+' · round '+PV.round+' · first to '+PV.toWin+' wins':PV.st==='between'?'Next round...':'';
 }
-function pvpShowEnd(won,forfeit){if(won)achieve('pvp');
+function pvpShowEnd(won,forfeit,d){if(won)achieve('pvp');document.getElementById('pvpClick').style.display='none';
   const el=document.getElementById('pvpEnd');el.style.display='flex';locked=false;freeMode=false;if(document.pointerLockElement)document.exitPointerLock();
   const t=document.getElementById('pvpEndTitle');t.textContent=won===null?'DISCONNECTED':won?'YOU WIN!':'YOU LOSE';t.style.color=won?'#5aff7a':'#ff5a5a';
   const me=PV?PV.score[PV.you]:0,op=PV?PV.score[1-PV.you]:0;
   document.getElementById('pvpEndText').textContent=won===null?'The connection to the PvP server was lost.':
     `${me} - ${op} against ${PV.opp}`+(forfeit?(won?' (they left the duel)':' (you left the duel)'):'');
+  const rk=document.getElementById('pvpEndRank');
+  if(d&&d.ranked&&d.me){rk.innerHTML=`${tierTag(d.me.rating)} Rating <b>${d.me.rating}</b> <b style="color:${d.change>=0?'#5aff7a':'#ff5a5a'}">(${d.change>=0?'+':''}${d.change})</b>`+(d.me.rank?` &middot; rank #${d.me.rank}`:'');pvpShowMe(d.me);}
+  else rk.innerHTML=won===null?'':'This duel was not ranked.';
   sfx(won?'win':'zroar');
 }
 document.getElementById('btnPvp').onclick=()=>{audioInit();document.getElementById('mgScreen').style.display='none';
   document.getElementById('pvpScreen').style.display='flex';document.getElementById('pvpName').value=mpName();pvpMsgEl('');pvpCheck();renderKits();
   try{document.getElementById('pvpCode').value=localStorage.getItem('bc_pvpcode')||'';}catch(e){}};
 document.getElementById('pvpClick').onclick=()=>{document.getElementById('pvpClick').style.display='none';lock();};
+// any click on the game while the mouse is already captured also clears it (just in case)
+document.addEventListener('mousedown',()=>{if(document.pointerLockElement)document.getElementById('pvpClick').style.display='none';},true);
 document.getElementById('btnPvpFind').onclick=()=>pvpQueue('');
 document.getElementById('btnPvpFriend').onclick=()=>{const c=document.getElementById('pvpCode').value.toUpperCase().replace(/[^A-Z0-9]/g,'');
   if(c.length<2){pvpMsgEl('Type a secret code first (your friend types the same one).');return;}try{localStorage.setItem('bc_pvpcode',c);}catch(e){}pvpQueue(c);};

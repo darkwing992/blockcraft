@@ -29,10 +29,11 @@ const store = {
 };
 
 const world = new World(store);
-const arena = new Arena();
-await world.load();
+const arena = new Arena(store); // PvP ratings are kept in server-data.json too (keys 'pvp:<name>')
+await world.load(); await arena.ready;
 
 const server = http.createServer((req, res) => {
+  if ((req.url || '').startsWith('/pvp/leaderboard')) { const q = new URL(req.url, 'http://x').searchParams; res.writeHead(200, { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' }); res.end(JSON.stringify(arena.leaderboard(q.get('name')))); return; }
   if (req.url === '/pvp/status') { res.writeHead(200, { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' }); res.end(JSON.stringify(arena.status())); return; }
   if (req.url === '/status') { res.writeHead(200, { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' }); res.end(JSON.stringify(world.status())); return; }
   if (req.url === '/' || req.url.startsWith('/?') || req.url === '/index.html') {

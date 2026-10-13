@@ -28,7 +28,7 @@ $p = Start-Process -FilePath (Join-Path $PSScriptRoot 'BlockCraft.exe') -Argumen
 if ($p.ExitCode -ne 0) { Write-Host "Could not build versions.json (see manifest-error.txt)." -ForegroundColor Red; exit 1 }
 $ver = ([regex]::Match((Get-Content 'index.html' -Raw), "const GAME_VERSION='([0-9.]+)'")).Groups[1].Value
 
-$ignore = "saves/`r`n*.tmp`r`nmanifest-error.txt`r`nBlockCraft-new.exe`r`n.claude/`r`nserver/server-data.json`r`nserver/.wrangler/`r`nserver/node_modules/`r`n"
+$ignore = "saves/`r`n*.tmp`r`nmanifest-error.txt`r`nBlockCraft-new.exe`r`n.claude/`r`nserver/server-data.json`r`nserver/.wrangler/`r`nserver/node_modules/`r`nlauncher/BlockCraft-old*.exe`r`n"
 [IO.File]::WriteAllText((Join-Path $PSScriptRoot '.gitignore'), $ignore)
 
 if (-not (Test-Path '.git')) {
@@ -39,6 +39,9 @@ if (-not (Test-Path '.git')) {
 if (-not (git config user.name)) { git config user.name ($repo.Split('/')[0]) }
 if (-not (git config user.email)) { git config user.email (($repo.Split('/')[0]) + '@users.noreply.github.com') }
 
+# keep every file exactly as it is on this PC (no line-ending changes), so the checksums in versions.json match what launchers download
+[IO.File]::WriteAllText((Join-Path $PSScriptRoot '.gitattributes'), "* -text`r`n")
+git add --renormalize .
 git add -A
 git commit -q -m "BlockCraft $ver"
 if ($LASTEXITCODE -ne 0) { Write-Host "Nothing new to publish." }

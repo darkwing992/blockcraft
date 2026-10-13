@@ -26,14 +26,14 @@ using System.Windows.Forms;
 [assembly: AssemblyTitle("BlockCraft Launcher")]
 [assembly: AssemblyProduct("BlockCraft")]
 [assembly: AssemblyDescription("Launcher and save server for BlockCraft")]
-[assembly: AssemblyVersion("2.4.0.0")]
-[assembly: AssemblyFileVersion("2.4.0.0")]
+[assembly: AssemblyVersion("2.5.0.0")]
+[assembly: AssemblyFileVersion("2.5.0.0")]
 
 namespace BlockCraft
 {
     static class Program
     {
-        public const string LauncherVersion = "2.4";
+        public const string LauncherVersion = "2.5";
 
         [STAThread]
         static int Main(string[] args)
@@ -1018,7 +1018,7 @@ namespace BlockCraft
             };
             mgCard("ZOMBIE APOCALYPSE", "Survive the undead alone or with up to 4 friends.\n\n4 maps: Dark Forest, Desert, Plains and Ruined City.\nSurvival or Waves - 11 kinds of zombies.\nCrossbows, flame arrows, firecrackers and ammo crates.",
                 Color.FromArgb(200, 50, 46), Color.FromArgb(110, 20, 20), "#zombies", 0);
-            mgCard("PVP DUELS", "Fight other players 1v1 in an arena.\n\n4 maps and 6 kits - best of 3 rounds.\nFind a random match, or duel a friend by both typing the same secret code.",
+            mgCard("PVP DUELS", "Fight other players 1v1 in an arena.\n\n4 maps and 6 kits - first to 3 round wins.\nFind a random match, or duel a friend by both typing the same secret code.",
                 UI.Blue, Color.FromArgb(24, 80, 170), "#pvp", 288);
             verPage = new Panel(); verPage.BackColor = UI.Bg; verPage.Bounds = new Rectangle(100, 98, 700, 556); verPage.AutoScroll = true; verPage.Visible = false; Controls.Add(verPage);
             // ---- the Skins page ----

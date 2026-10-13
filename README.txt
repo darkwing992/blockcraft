@@ -100,6 +100,14 @@ THE END
   they heal the dragon. Beat it and an exit portal with the Dragon Egg appears.
   (The End is single player only.)
 
+RANKED PVP AND THE LEADERBOARD (version 4.7)
+  "Find a Match" duels are ranked: everyone starts at 1000 rating, winning gives points and losing
+  takes them away (beating a better player gives more). Ranks: Bronze, Silver (950), Gold (1100),
+  Diamond (1250) and Champion (1400). Click "Leaderboard" on the PvP screen to see the top 50.
+  Leaving a ranked duel counts as a loss. "Duel a Friend" (secret code) is just for fun and not ranked.
+  The first browser that plays with a name owns it on the leaderboard, so nobody can play as you
+  (use the same browser / launcher to keep your rank).
+
 DOORS (version 4.4)
   6 planks of one kind of wood in two columns (crafting table) = 3 doors: oak, spruce or cherry.
   Place it on the ground (it needs 2 blocks of room) and right-click to open or close it.
@@ -129,7 +137,7 @@ PVP DUELS (version 3.7)
   Title screen > Minigames > PvP Duels. "Find a Match" puts you against any other player who is
   waiting; or you and a friend type the same secret code and click "Duel a Friend".
   Pick a kit first: Classic, Knight, Archer, Crossbow Ranger, Berserker or Tank. The map is random:
-  Classic Arena, Sky Islands (falling off = you lose the round), Nether Pit (lava!) or Forest Ruins. First to win 2 rounds wins. You can't build or break blocks in the arena.
+  Classic Arena, Sky Islands (falling off = you lose the round), Nether Pit (lava!) or Forest Ruins. First to win 3 rounds wins. You can't build or break blocks in the arena.
   PvP runs on the big server: run "Deploy Big Server.bat" once so it has the duel server too.
   (On your own Wi-Fi, "Run Server On This PC.bat" has it as well.)
 

@@ -7,7 +7,7 @@ const CORS = { 'Access-Control-Allow-Origin': '*', 'Content-Type': 'application/
 
 export class BlockCraftServer {
   constructor(state) { this.state = state; }
-  // the world is only loaded by the 'main' object; the 'pvp' object just runs duels in memory
+  // the world is only loaded by the 'main' object; the 'pvp' object runs duels and keeps the PvP ratings
   ensureWorld() {
     if (!this.loading) {
       const s = this.state.storage;
@@ -38,9 +38,11 @@ export class BlockCraftServer {
     return new Response(null, { status: 101, webSocket: client });
   }
 
-  pvp(req, url) {
-    if (!this.arena) this.arena = new Arena();
+  async pvp(req, url) {
+    if (!this.arena) { const s = this.state.storage; this.arena = new Arena({ list: prefix => s.list({ prefix }), put: (k, v) => s.put(k, v) }); }
+    await this.arena.ready;
     if (url.pathname === '/pvp/status') return new Response(JSON.stringify(this.arena.status()), { headers: CORS });
+    if (url.pathname === '/pvp/leaderboard') return new Response(JSON.stringify(this.arena.leaderboard(url.searchParams.get('name'))), { headers: CORS });
     if (req.headers.get('Upgrade') !== 'websocket') return new Response('BlockCraft PvP server is running. Join from the game: Minigames > PvP Duels.', { status: 200 });
     const [client, server] = Object.values(new WebSocketPair());
     server.accept();
