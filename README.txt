@@ -100,6 +100,21 @@ THE END
   they heal the dragon. Beat it and an exit portal with the Dragon Egg appears.
   (The End is single player only.)
 
+XP, ENCHANTING AND ACHIEVEMENTS (version 4.3)
+  Defeating mobs, mining coal / lapis / diamonds / quartz, smelting and trading drop green XP orbs.
+  Collect them to level up (the green bar and number above your hotbar). Dying drops your XP.
+  Enchanting Table: 1 book on top, diamond - obsidian - diamond in the middle, 3 obsidian at the
+  bottom. Put a tool, weapon, bow or armor in it with lapis lazuli and pick an enchantment - it costs
+  levels and lapis. Put bookshelves around the table (one block gap) for stronger enchantments:
+  Sharpness, Efficiency, Protection, Power and Unbreaking. Enchanted items glow purple.
+  Achievements pop up in the corner when you do things for the first time. See them all with the
+  Achievements button on the title screen or in the pause menu.
+
+NEW BIOMES AND MOBS (version 4.3)
+  Cherry Groves (pink trees, bees and foxes), Badlands (striped terracotta cliffs and red sand) and
+  Mushroom Fields (giant mushrooms, mooshrooms, and no monsters ever). Foxes also live in snowy
+  forests. Smelt clay blocks into terracotta. Cherry logs make pink planks.
+
 SKINS (version 3.8)
   Title screen > Skins. Pick one of the built-in skins, or click "Import Skin (.png)" and choose a
   Minecraft Java skin file (64x64, the old 64x32, or HD - the same PNG you'd use in Minecraft;
