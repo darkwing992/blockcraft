@@ -100,6 +100,34 @@ THE END
   they heal the dragon. Beat it and an exit portal with the Dragon Egg appears.
   (The End is single player only.)
 
+THE HORDE UPDATE (version 6.3) - Zombie Apocalypse
+  New zombies: Bloaters (huge and slow - they burst into a poison cloud when they die, stay out of
+  it), Infernos (on fire, glowing in the dark - one hit sets you on fire, jump in water to put it out),
+  Climbers (climb straight up walls, so walls won't stop them) and Leapers (pounce at you from far away).
+  BOSS: The Abomination. A giant zombie with a boss health bar. It jumps and slams the ground (get away
+  from it!), calls zombies up out of the ground, smashes through walls, and gets faster when it is
+  hurt. It comes after 10 minutes in Survival (then every 15 minutes) and every 10th wave. It drops
+  diamonds, golden apples, emeralds and more. The night sky is no longer red.
+
+THE NIGHTMARE UPDATE (version 6.2) - Zombie Apocalypse only
+  Glowing eyes watch you from far away in the dark. Zombies dig up out of the ground near you.
+  Some "dead bodies" lying around are not dead - they jump up when you walk past. Zombies pound
+  on doors, planks and barricades and smash through them. Get attacked from behind and you might
+  get a jumpscare. Your flashlight flickers and dies when zombies are close, the screen goes dark
+  around the edges, and sometimes you hear footsteps running up behind you... Some zombies are huge.
+
+THE ADVENTURE UPDATE (version 6.0)
+  Weather: it rains now and then, sometimes with thunderstorms and lightning (stay away!), and it
+  snows in cold places. You can sleep through a thunderstorm.
+  Boats: 5 planks in a U shape (P . P / P P P). Right-click water to put it down, right-click it to get
+  in. W / S row, A / D turn, C gets out. Hit it to pick it back up.
+  Horses live on the plains. Right-click one with an empty hand to jump on - it bucks, keep trying
+  until it likes you (hearts). Then put a saddle on it (3 leather on top, 2 iron ingots below) and
+  ride: it goes where you look, Shift gallops, Space jumps, C gets off. Tamed horses are saved.
+  Dungeons: mossy rooms deep underground with a monster spawner and treasure chests.
+  Desert temples: sandstone pyramids. Climb down the ladder in the middle to the hidden treasure room.
+  Fish swim in the sea - hit one to catch it, cook it in a furnace.
+
 ACCOUNTS AND CLOUD SAVES (version 4.8)
   Click "Log In" at the top left of the title screen. Make an account (name + password) or log in
   with the one you made for the big server - it is the same account. While you are logged in:
