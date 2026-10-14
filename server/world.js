@@ -250,6 +250,11 @@ export class World {
         await this.flush(true);
         return { status: 200, json: { ok: true, name: a.p.name } };
       }
+      // Farm Tycoon leaderboard (anyone can look): the farmers who earned the most money
+      if (req.path === '/api/farm/top' && req.method === 'GET') {
+        const lb = (await this.store.get('farmlb')) || [], me = String(req.query.get('name') || '').toLowerCase(), i = lb.findIndex(e => e.key === me);
+        return { status: 200, json: { top: lb.slice(0, 50).map(e => ({ name: e.name, earned: e.earned })), rank: i >= 0 ? i + 1 : 0, mine: i >= 0 ? lb[i].earned : 0 } };
+      }
       // everything else needs a logged-in computer: x-bc-name + x-bc-token
       const key = String(req.header('x-bc-name') || '').trim().toLowerCase(), token = String(req.header('x-bc-token') || '');
       const p = this.players.get(key);
@@ -270,6 +275,19 @@ export class World {
         if (JSON.stringify(out).length > 60000) return bad(413, 'Too much data.');
         await this.store.put('a:' + key, out);
         return { status: 200, json: out };
+      }
+      if (req.path === '/api/farm/score' && req.method === 'POST') {
+        let d; try { d = await req.json(); } catch (e) { return bad(400, 'Bad request.'); }
+        const earned = Math.floor(Number(d && d.earned)); if (!(earned >= 0)) return bad(400, 'Bad score.');
+        const lb = (await this.store.get('farmlb')) || [], now = Date.now();
+        let e = lb.find(q => q.key === key); if (!e) { e = { name: p.name, key, earned: 0, t: now }; lb.push(e); }
+        // nobody can earn faster than this, so made-up scores only creep up slowly
+        const cap = e.earned + Math.max(0, now - e.t) / 1000 * 40 + 300, v = Math.floor(Math.min(earned, cap));
+        if (v > e.earned) { e.earned = v; e.t = now; }
+        e.name = p.name;
+        lb.sort((a, b) => b.earned - a.earned); if (lb.length > 300) lb.length = 300;
+        await this.store.put('farmlb', lb);
+        return { status: 200, json: { ok: true, earned: e.earned, rank: lb.indexOf(e) + 1 } };
       }
       const id = String(req.query.get('id') || '');
       if (!/^[A-Za-z0-9_\-]{1,64}$/.test(id)) return bad(400, 'Bad world id.');

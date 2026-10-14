@@ -100,6 +100,16 @@ THE END
   they heal the dragon. Beat it and an exit portal with the Dragon Egg appears.
   (The End is single player only.)
 
+FARM TYCOON (version 7.3) - Minigames > Farm Tycoon
+  You start with a small field, a hoe, seeds and $20. Hoe grass into farmland and right-click it with
+  wheat seeds, carrots, potatoes or pumpkin seeds. Break crops when they are ripe. Press B (or click the
+  money bar at the top) to open the shop: sell your crops, buy seeds, tools and blocks, and build
+  buildings: Farmhouse, Red Barn, Windmill, Greenhouse, Water Tower and Farm Mansion. Every building
+  makes ALL your crops grow faster. Log in to get on the leaderboard of the richest farmers (it counts
+  the total money you ever earned on your best farm). No monsters on the farm.
+  FARMHANDS (7.5): hire them in the shop (Farmhands tab, from $250, up to 8). They harvest ripe crops,
+  replant them and sell the harvest for you, and plant wheat on any empty farmland.
+
 FIND JACK (version 7.2)
   Jack is hiding somewhere deep in the caves, holding a torch (look for a light in the dark). He only
   shows up when you are deep underground, and only now and then. Walk up to him to get the rarest

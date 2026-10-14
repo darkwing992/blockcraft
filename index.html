@@ -203,7 +203,22 @@
   .tier { display: inline-block; padding: 1px 7px; border: 2px solid currentColor; font-size: 12px; font-weight: bold; }
   .mgCard { display: block; width: 100%; margin: 8px 0; padding: 14px; text-align: left; cursor: pointer; font: 15px Consolas, monospace; color: #ddd; background: #1e1c24; border: 2px solid #4a4656; }
   .mgCard b { display: block; font-size: 22px; color: #fff; margin-bottom: 4px; } .mgCard:hover { border-color: #ffd84a; background: #2a2632; }
-  .mgCard.z b { color: #ff4a4a; } .mgCard.p b { color: #5ab0ff; }
+  .mgCard.z b { color: #ff4a4a; } .mgCard.p b { color: #5ab0ff; } .mgCard.f b { color: #7ee05a; }
+  #fmScreen { background: rgba(8,14,6,.96); z-index: 5; } #fmPanel { width: min(560px, 94vw); color: #ddd; font: 15px Consolas, monospace; text-align: center; }
+  #fmPanel h2, #fmShop h2 { font: bold 30px monospace; color: #8ef06a; text-shadow: 3px 3px #000; margin: 6px 0; } #fmPanel .btn { width: 100%; }
+  .fmLbBox { max-height: 40vh; overflow-y: auto; }
+  #fmShop { z-index: 240; background: rgba(10,18,8,.94); justify-content: flex-start; padding: 16px 10px; box-sizing: border-box; font: 15px Consolas, monospace; }
+  #fmMoney { color: #ddd; margin-bottom: 8px; } #fmMoney b { color: #ffd84a; font-size: 20px; }
+  #fmTabs { display: flex; flex-wrap: wrap; gap: 6px; justify-content: center; margin-bottom: 8px; } #fmTabs .btn.on { background: #8ee88e; }
+  #fmBody { width: min(640px, 96vw); max-height: 62vh; overflow-y: auto; }
+  .fmRow { display: flex; align-items: center; gap: 10px; background: rgba(255,255,255,.06); border: 2px solid #3d5a2e; margin: 4px 0; padding: 6px 8px; }
+  .fmRow img { width: 32px; height: 32px; image-rendering: pixelated; } .fmRow .n { flex: 1; text-align: left; } .fmRow .own { color: #8ef06a; font-weight: bold; }
+  #fmShop .btn.sm:disabled { opacity: .45; } #fmShop .btn.big { width: 100%; padding: 10px; font-size: 17px; background: #ffd84a; }
+  .dim { color: #9a9a9a; font-size: 13px; }
+  table.fmLb { width: 100%; border-collapse: collapse; } .fmLb td, .fmLb th { padding: 4px 6px; border-bottom: 1px solid #333; text-align: left; } .fmLb tr.me td { color: #ffd84a; }
+  #fmHud { display: none; position: fixed; top: 10px; left: 50%; transform: translateX(-50%); z-index: 6; cursor: pointer; padding: 6px 14px; background: rgba(0,0,0,.45);
+    font: bold 17px Consolas, monospace; color: #ffd84a; text-shadow: 2px 2px 0 #000; white-space: nowrap; }
+  body.fm:not(.title) #fmHud { display: block; }
   #pvpPanel p { color: #ccc; font-size: 13px; line-height: 1.45; margin: 4px 0 8px; }
   #pvpPanel label { display: flex; justify-content: space-between; align-items: center; gap: 10px; margin: 8px auto; width: 360px; max-width: 100%; }
   #pvpPanel input { flex: 1; max-width: 220px; padding: 6px; font: 16px Consolas, monospace; background: #000; color: #fff; border: 2px solid #a0a0a0; }
@@ -533,10 +548,20 @@
   <div id="mgPanel">
     <h2>MINIGAMES</h2>
     <button class="mgCard z" id="btnZombie"><b>Zombie Apocalypse</b>Survive the undead alone or with up to 4 friends. 4 maps, survival or waves.</button>
+    <button class="mgCard f" id="btnFarm"><b>Farm Tycoon</b>Grow crops, sell them for $, and build barns, windmills and more so your farm grows faster. Climb the money leaderboard!</button>
     <button class="mgCard p" id="btnPvp"><b>PvP Duels</b>1v1 other players online. Same gear, first to 3 round wins - may the best fighter win!</button>
     <button class="btn" id="btnMgBack">Back</button>
   </div>
 </div>
+<div id="fmScreen" class="overlay" style="display:none"><div id="fmPanel"><h2>FARM TYCOON</h2>
+  <p>Plant wheat, carrots, potatoes and pumpkins. Sell them at the shop (press <b>B</b>) to earn money, buy more seeds, and build a farmhouse,
+    barn, windmill, greenhouse, water tower and a mansion - every building makes your crops grow faster.</p>
+  <h3>Richest farmers</h3><div id="fmStartLb" class="fmLbBox"></div>
+  <button class="btn" id="btnFmNew">Start a New Farm</button><p class="dim">Your farms are saved: open them again from Singleplayer.</p><button class="btn" id="btnFmBack">Back</button></div></div>
+<div id="fmShop" class="overlay" style="display:none"><h2>FARM SHOP</h2><div id="fmMoney"></div>
+  <div id="fmTabs"><button class="btn sm" data-t="sell">Sell</button><button class="btn sm" data-t="seeds">Seeds</button><button class="btn sm" data-t="build">Buildings</button><button class="btn sm" data-t="workers">Farmhands</button><button class="btn sm" data-t="tools">Tools &amp; Blocks</button><button class="btn sm" data-t="lb">Leaderboard</button></div>
+  <div id="fmBody"></div><button class="btn" id="fmBack">Back to Farming</button></div>
+<div id="fmHud"></div>
 <div id="pvpScreen" class="overlay">
   <div id="pvpPanel">
     <h2>PVP DUELS</h2>
@@ -677,9 +702,10 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 <script>
 'use strict';
-const GAME_VERSION='7.2';
+const GAME_VERSION='7.5';
 const DEFAULT_SERVER='wss://blockcraft-server.austinhodgins2014-e99.workers.dev/ws'; // the big server's address (set by "Deploy Big Server.bat")
 let PV=null; // the PvP duel you're in (null = none)
+var FM=null; // Farm Tycoon state (null in normal worlds)
 let ZM=null,flashOn=true,zLife=0,flickT=0;
 function flashFlicker(dt){flickT-=dt;if(flickT<=0&&Math.random()<dt*(0.12+(typeof zNear==='number'&&zNear<10?(1-zNear/10)*1.8:0)))flickT=0.25+Math.random()*0.5;return flickT>0?(Math.random()<0.5?0.15:0.75):1;} // zombie apocalypse settings for this world (null = a normal world)
 const MP={role:null,applying:false,seq:0,skins:new Map(),players:new Map(),conns:new Map(),outB:new Map(),remote(){return MP.role==='client'||MP.role==='net';}}; // multiplayer state (see the Multiplayer section)
@@ -721,7 +747,8 @@ const B={AIR:0,GRASS:1,DIRT:2,STONE:3,SAND:4,WATER:5,LOG:6,LEAVES:7,PLANKS:8,COB
   ASPHALT:93,AMMO_CRATE:94,CONCRETE:95,SANDBAG:96,CRACKED_CONCRETE:97,BARRICADE:98,DARK_LOG:99,DARK_LEAVES:200,BLOOD_ASPHALT:201,BLOOD_CONCRETE:202,HELP_WALL:203, // 100-199 are items
   CHERRY_LOG:204,CHERRY_LEAVES:205,CHERRY_PLANKS:206,RED_SAND:207,TERRACOTTA:208,TERRACOTTA_RED:209,TERRACOTTA_YELLOW:210,TERRACOTTA_WHITE:211,
   TERRACOTTA_BROWN:212,MYCELIUM:213,MUSHROOM_CAP:214,MUSHROOM_STEM:215,ENCHANTING_TABLE:216,
-  OAK_DOOR:217,OAK_DOOR_OPEN:218,SPRUCE_DOOR:219,SPRUCE_DOOR_OPEN:220,CHERRY_DOOR:221,CHERRY_DOOR_OPEN:222,SPAWNER:223};
+  OAK_DOOR:217,OAK_DOOR_OPEN:218,SPRUCE_DOOR:219,SPRUCE_DOOR_OPEN:220,CHERRY_DOOR:221,CHERRY_DOOR_OPEN:222,SPAWNER:223,
+  CARROT_YOUNG:224,CARROTS:225,POTATO_YOUNG:226,POTATOES:227,PUMPKIN_SPROUT:228};
 const T={GRASS_TOP:0,GRASS_SIDE:1,DIRT:2,STONE:3,SAND:4,WATER:5,LOG_SIDE:6,LOG_TOP:7,LEAVES:8,PLANKS:9,COBBLE:10,GLASS:11,BRICK:12,
   SNOW:13,BEDROCK:14,COAL:15,IRON:16,SNOW_SIDE:17,DIAMOND:18,GRAVEL:19,CACTUS_SIDE:20,CACTUS_TOP:21,GOLD:22,TALLGRASS:23,ROSE:24,DANDELION:25,
   TORCH:26,GLOW:27,WOOL:28,TNT_SIDE:29,TNT_TOP:30,TNT_BOTTOM:31,CHEST_SIDE:32,CHEST_FRONT:33,CHEST_TOP:34,BED_TOP:35,BED_SIDE:36,
@@ -736,7 +763,8 @@ const T={GRASS_TOP:0,GRASS_SIDE:1,DIRT:2,STONE:3,SAND:4,WATER:5,LOG_SIDE:6,LOG_T
   ASPHALT:108,CRATE_SIDE:109,CRATE_TOP:110,CONCRETE:111,SANDBAG:112,CRACKED_CONCRETE:113,BARRICADE:114,DARK_LOG_SIDE:115,DARK_LOG_TOP:116,DARK_LEAVES:117,BLOOD_ASPHALT:118,BLOOD_CONCRETE:119,HELP_WALL:120,
   CHERRY_SIDE:121,CHERRY_TOP:122,CHERRY_LEAVES:123,CHERRY_PLANKS:124,RED_SAND:125,TERRA:126,TERRA_RED:127,TERRA_YELLOW:128,TERRA_WHITE:129,TERRA_BROWN:130,
   MYCELIUM_TOP:131,MYCELIUM_SIDE:132,MUSH_CAP:133,MUSH_STEM:134,ENCH_TOP:135,ENCH_SIDE:136,ENCH_BOTTOM:137,
-  OAKD_BOT:138,OAKD_TOP:139,OAKD_ITEM:140,SPRD_BOT:141,SPRD_TOP:142,SPRD_ITEM:143,CHRD_BOT:144,CHRD_TOP:145,CHRD_ITEM:146,SPAWNER:147};
+  OAKD_BOT:138,OAKD_TOP:139,OAKD_ITEM:140,SPRD_BOT:141,SPRD_TOP:142,SPRD_ITEM:143,CHRD_BOT:144,CHRD_TOP:145,CHRD_ITEM:146,SPAWNER:147,
+  CARROT_YOUNG:148,CARROTS:149,POTATO_YOUNG:150,POTATOES:151,PUMPKIN_SPROUT:152};
 const all=t=>[t,t,t,t,t,t];
 const tsb=(s,t,b)=>[s,s,b,t,s,s]; // face order: -x,+x,-y,+y,-z,+z
 const DEF=[];
@@ -855,6 +883,9 @@ def(B.MYCELIUM,'Mycelium',tsb(T.MYCELIUM_SIDE,T.MYCELIUM_TOP,T.DIRT));
 def(B.MUSHROOM_CAP,'Red Mushroom Block',all(T.MUSH_CAP));def(B.MUSHROOM_STEM,'Mushroom Stem',all(T.MUSH_STEM));
 def(B.ENCHANTING_TABLE,'Enchanting Table',tsb(T.ENCH_SIDE,T.ENCH_TOP,T.ENCH_BOTTOM),{emit:7});
 def(B.SPAWNER,'Monster Spawner',all(T.SPAWNER),{opaque:false});
+def(B.CARROT_YOUNG,'Carrot Crops',all(T.CARROT_YOUNG),{opaque:false,solid:false,plant:true,hidden:true});def(B.CARROTS,'Carrots',all(T.CARROTS),{opaque:false,solid:false,plant:true,hidden:true});
+def(B.POTATO_YOUNG,'Potato Crops',all(T.POTATO_YOUNG),{opaque:false,solid:false,plant:true,hidden:true});def(B.POTATOES,'Potatoes',all(T.POTATOES),{opaque:false,solid:false,plant:true,hidden:true});
+def(B.PUMPKIN_SPROUT,'Pumpkin Sprout',all(T.PUMPKIN_SPROUT),{opaque:false,solid:false,plant:true,hidden:true});
 // doors: two blocks (meta 'pzb' bottom / 'pzt' top: the way it faces + which half); a closed and an open id for each wood
 const DOOR_TEX={};
 for(const [c,o,name,bt,tt,it] of [[B.OAK_DOOR,B.OAK_DOOR_OPEN,'Oak Door',T.OAKD_BOT,T.OAKD_TOP,T.OAKD_ITEM],[B.SPRUCE_DOOR,B.SPRUCE_DOOR_OPEN,'Spruce Door',T.SPRD_BOT,T.SPRD_TOP,T.SPRD_ITEM],
@@ -1080,6 +1111,15 @@ const tileColor=[]; // average color per tile (for particles)
     for(let k=0;k<7;k++){const bx=2+k*4.3+r()*1.5,top=3+Math.floor(r()*5);thick(T.WHEAT,bx,31,bx+(r()-0.5)*2,top+8,1,(f)=>pal(P,0.3+f*0.3));
       for(let y=top;y<top+9;y++){sp(T.WHEAT,Math.floor(bx)-1+(y&1),y,pal(P,0.75+(y&1)*0.2-(y-top)*0.03));sp(T.WHEAT,Math.floor(bx)+(y&1),y,pal(P,0.55));}}
     for(let k=0;k<8;k++){const bx=2+k*3.8+r()*1.2,h=7+Math.floor(r()*7);blade(T.WHEAT_YOUNG,bx,h,(r()-0.5)*2,STEM,47);}}
+  // carrot and potato crops (little leaves when young, bushy tops with the crop peeking out when ripe), a pumpkin sprout
+  {const r=mulberry32(48),LEAF=ramp([[28,76,20],[44,106,28],[62,136,38],[90,168,52]],6);
+    for(const [t,big] of [[T.CARROT_YOUNG,0],[T.CARROTS,1],[T.POTATO_YOUNG,0],[T.POTATOES,1]])for(let k=0;k<5;k++){const bx=3+k*6+r()*2,h=big?11+Math.floor(r()*6):5+Math.floor(r()*4);
+      for(let j=0;j<3;j++)blade(t,bx+(j-1)*1.5,h-j*2,(j-1)*1.8,LEAF,49+k);
+      if(big&&t===T.CARROTS)thick(t,bx+0.5,N-1,bx+0.5,N-4,3,(f,q)=>pal(ramp([[196,86,10],[236,128,28],[255,168,60]],4),0.35+q*0.25));
+      if(big&&t===T.POTATOES)disc(t,bx+0.8,N-2.5,2.4,1.8,(dx,dy)=>pal(ramp([[140,102,46],[186,146,78],[216,182,108]],4),0.6-(dx+dy)*0.25));}
+    const t=T.PUMPKIN_SPROUT;thick(t,15.5,N-6,15.5,12,2,(f,q)=>pal(STEM,0.3+q*0.3));
+    disc(t,10.5,13,4.5,3,(dx,dy)=>pal(LEAF,0.6-(dx+dy)*0.2));disc(t,21,11,4.5,3,(dx,dy)=>pal(LEAF,0.7-(dx+dy)*0.2));
+    disc(t,16,N-4,6,3.6,(dx,dy)=>{const rib=Math.abs(Math.sin(dx*4.5))<0.25;return pal(ramp([[110,120,30],[160,150,40],[214,150,40],[236,170,60]],5),0.7-(dx+dy)*0.2-(rib?0.25:0));});}
   // sugar cane: jointed green stalks with leaves
   {const t=T.SUGAR_CANE,P=ramp([[70,120,40],[94,148,56],[120,174,74],[148,198,96],[180,220,130]],7);
     for(const bx of [5,15,25])for(let y=0;y<N;y++){const j=wr(y+bx,10);for(let k=0;k<3;k++)sp(t,bx+k,y,pal(P,(j===0?0.85:j===1?0.15:0.45)+(k===0?0.15:k===2?-0.2:0)));
@@ -1521,6 +1561,7 @@ function isSolid(x,y,z){const id=getBlock(x,y,z);return id!==0&&DEF[id].solid;}
 
 function fbm(x,z,oct,off){let s=0,a=1,f=1,n=0;for(let i=0;i<oct;i++){s+=perlin.noise(x*f,off+i*17.13,z*f)*a;n+=a;a*=0.5;f*=2;}return s/n;}
 function column(x,z){
+  if(FM)return fmColumn(x,z);
   if(ZM)return zColumn(x,z);
   if(PV)return {h:SEA+4,biome:'arena'};
   const cont=fbm(x/420,z/420,3,0.5);
@@ -1817,6 +1858,7 @@ function paintCity(cx,cz,data,set){
 // ---------------------------------------------------------------------
 const VR=80,villageCache=new Map();
 function villageAt(rx,rz){
+  if(FM)return null;
   const key=rx+','+rz;if(villageCache.has(key))return villageCache.get(key);
   let v=null;
   if(hash3(rx,77,rz,SEED+101)<0.4){
@@ -2049,6 +2091,7 @@ function generateChunk(cx,cz){
     const {h,biome}=colAt(lx,lz);
     if(!(r<DENS[biome])||h<=SEA||h>=SEA+40)continue;
     if(ZM&&biome==='forest'&&perlin.noise(x/34,61.7,z/34)>0.18)continue; // open glades between the woods
+    if(FM&&Math.hypot(x+3,z+20)<64)continue; // Farm Tycoon: keep the farm and its building lots clear
     if(biome!=='swamp'&&h<=SEA+1)continue;
     if(isCave(x,h,z))continue;
     const r2=hash3(x,1,z,SEED+12);
@@ -2099,7 +2142,7 @@ function generateChunk(cx,cz){
     if(!a||DEF[a].plant){set(lx,h+1,lz,B.AMMO_CRATE);placeCrate(ox+lx,h+1,oz+lz,mulberry32(Math.floor(hash3(cx,80,cz,SEED+304)*1e9)));
       for(const [dx,dz] of [[1,0],[-1,0],[0,1],[1,1],[-1,1]])if(hash3(cx+dx,81,cz+dz,SEED+305)<0.6){const b=data[bidx(lx+dx,h+1,lz+dz)];
         if((!b||DEF[b].plant)&&data[bidx(lx+dx,h,lz+dz)])set(lx+dx,h+1,lz+dz,B.SANDBAG);}}}
-  paintDungeon(cx,cz,data,set,colAt);paintTemple(cx,cz,data,set,colAt);
+  if(!FM){paintDungeon(cx,cz,data,set,colAt);paintTemple(cx,cz,data,set,colAt);}
   paintVillages(cx,cz,data,(y)=>{if(y>maxY)maxY=y;});
   return finishChunk(cx,cz,data,maxY);
 }
@@ -2400,7 +2443,7 @@ function setBlockRaw(x,y,z,id){
     const oy=dm[2]==='t'?y-1:y+1;if(DEF[getBlock(x,oy,z)].door)setBlockRaw(x,oy,z,0);}
   const furn=t=>t===B.FURNACE||t===B.FURNACE_LIT;
   if(furn(old)&&!furn(id)){if(!MP.applying&&typeof dropFurnace==='function')dropFurnace(x,y,z);blockMeta.delete(wk(x,y,z));}
-  if(old===B.WHEAT_YOUNG&&typeof crops!=='undefined')crops.delete(wk(x,y,z));
+  if(CROP_GROW[old]&&typeof crops!=='undefined')crops.delete(wk(x,y,z));
   if((old===B.OBSIDIAN||old===B.PORTAL)&&id!==B.PORTAL)breakPortal(x,y,z);
   if(old===B.END_PORTAL_FRAME_EYE&&!breakingPortal){breakingPortal=true;
     for(let a=-3;a<=3;a++)for(let c=-3;c<=3;c++)if(getBlock(x+a,y,z+c)===B.END_PORTAL)setBlockRaw(x+a,y,z+c,0);breakingPortal=false;}
@@ -2800,6 +2843,7 @@ function sfx(name,id,vol=1){
     case 'hit':{const [f,q]=mat(id);noise(0.07,f,q,0.35);break;}
     case 'place':{const [f,q]=mat(id);noise(0.12,f*0.8,q,0.7);break;}
     case 'step':{const [f,q]=mat(id);noise(0.08,f*0.9,q,0.16);break;}
+    case 'coin':tone(988,0.08,'square',0.07);tone(1319,0.22,'square',0.07,1,0.08);break;
     case 'pop':tone(500+Math.random()*300,0.08,'sine',0.14,1.9);break;
     case 'hurt':tone(260,0.22,'sawtooth',0.3,0.45);noise(0.1,800,1,0.25);break;
     case 'oink':tone(330,0.1,'square',0.05,0.7);tone(280,0.13,'square',0.05,0.6,0.13);break;
@@ -2905,7 +2949,7 @@ const IT={STICK:100,COAL:101,RAW_IRON:102,IRON_INGOT:103,DIAMOND:104,PORK:105,CO
   LAVA_BUCKET:166,SLIMEBALL:167,ENDER_PEARL:168,QUARTZ:169,GHAST_TEAR:170,
   GOLDEN_SWORD:171,CLAY_BALL:172,BRICK:173,BOWL:174,MUSHROOM_STEW:175,MELON_SLICE:176,INK_SAC:177,LAPIS:178,RAW_RABBIT:179,COOKED_RABBIT:180,
   BLAZE_ROD:181,BLAZE_POWDER:182,EYE_OF_ENDER:183,
-  CROSSBOW:184,WOOD_ARROW:185,FLAME_ARROW:186,BOLT:187,FIRECRACKER:188,BANDAGE:189,CANNED_FOOD:190,CROSSBOW_LOADED:191,BOAT:192,SADDLE:193,RAW_COD:194,COOKED_COD:195};
+  CROSSBOW:184,WOOD_ARROW:185,FLAME_ARROW:186,BOLT:187,FIRECRACKER:188,BANDAGE:189,CANNED_FOOD:190,CROSSBOW_LOADED:191,BOAT:192,SADDLE:193,RAW_COD:194,COOKED_COD:195,CARROT:196,POTATO:197,PUMPKIN_SEEDS:198};
 const ITEM={};
 const TIER_NAME=['Wooden','Stone','Iron','Diamond'],TIER_SPEED=[2,4,6,8],TIER_DUR=[60,132,251,1562];
 const TIER_COL=[[168,128,72],[140,140,140],[232,232,232],[80,228,215]];
@@ -2937,6 +2981,7 @@ Object.assign(ITEM,{[IT.STICK]:{name:'Stick'},[IT.COAL]:{name:'Coal'},[IT.RAW_IR
   [IT.WOOD_ARROW]:{name:'Wooden Arrow'},[IT.FLAME_ARROW]:{name:'Flame Arrow'},[IT.BOLT]:{name:'Crossbow Bolt'},
   [IT.FIRECRACKER]:{name:'Firecracker',stack:16},[IT.BANDAGE]:{name:'Bandage',stack:16},[IT.CANNED_FOOD]:{name:'Canned Food',food:[6,7.2]},
   [IT.BOAT]:{name:'Boat',stack:1},[IT.SADDLE]:{name:'Saddle',stack:1},[IT.RAW_COD]:{name:'Raw Fish',food:[2,0.4]},[IT.COOKED_COD]:{name:'Cooked Fish',food:[5,6]}});
+Object.assign(ITEM,{[IT.CARROT]:{name:'Carrot',food:[3,3.6]},[IT.POTATO]:{name:'Potato',food:[1,0.6]},[IT.PUMPKIN_SEEDS]:{name:'Pumpkin Seeds'}});
 for(const type of TOOL_TYPES)for(let tier=1;tier<=4;tier++)
   ITEM[toolId(type,tier)]={name:TIER_NAME[tier-1]+' '+TOOL_NAME[type],stack:1,tool:{type,tier,speed:TIER_SPEED[tier-1]},dur:TIER_DUR[tier-1],dmg:TOOL_DMG[type][tier-1]};
 ITEM[IT.GOLDEN_SWORD]={name:'Golden Sword',stack:1,tool:{type:'sword',tier:2,speed:TIER_SPEED[1]},dur:32,dmg:TOOL_DMG.sword[1],pal:'gold'};
@@ -3169,6 +3214,10 @@ function itemCanvas(id){
     case IT.FLINT_STEEL:path(arcPts(6.4,6.6,3.6,30,300,16),1.6,[176,176,184]);poly([[8.6,11.6],[10,8.6],[13,8.4],[13.6,11.6],[11.2,13.6]],[62,62,70],10);break;
     case IT.WHEAT:for(const [x0,x1] of [[5.6,4.6],[8,8],[10.4,11.4]])line(x0,14,x1,6,1,[176,154,64]);
       for(const [x,y] of [[4.4,4.4],[8,3.6],[11.6,4.4]])ell(x,y,1.3,2.6,[226,192,92],12);break;
+    case IT.CARROT:poly([[11.6,2.6],[13.4,4.4],[5,13.4],[3.4,13]],(x,y)=>x+y<16?[250,150,40]:[214,110,20],10);for(const t of [0.3,0.55,0.8])line(12-7*t,4.4+7.6*t,11.4-7*t,3.4+7.6*t,0.5,[170,80,10]);
+      path([[11.6,3.4],[12,1]],1,[70,150,40]);path([[12.2,3.6],[14.4,1.8]],1,[50,130,30]);path([[12.4,4],[15,3.6]],1,[70,150,40]);break;
+    case IT.POTATO:ell(8,8.6,5.2,4.2,(x,y)=>x+y<16?[214,176,104]:[176,138,72],12,-0.4);for(const [x,y] of [[6,7],[10,9],[7.4,11]])ell(x,y,0.6,0.5,[120,90,48]);break;
+    case IT.PUMPKIN_SEEDS:for(const [x,y] of [[5,6],[9,5],[11,9],[6,10.4],[9.4,12]]){ell(x,y,1.4,0.9,[236,226,180],6,0.5);ell(x-0.4,y-0.3,0.5,0.3,[255,250,220]);}break;
     case IT.SEEDS:for(const [x,y] of [[5,7],[9,5],[11,9],[6,11],[9,12],[4,10]]){dot(x,y,[96,146,52]);dot(x+1,y,[70,116,40]);}break;
   }
   // edge lighting (from the top-left) and a dark outline
@@ -3257,6 +3306,7 @@ shapeless(IT.FLINT_STEEL,1,[IT.IRON_INGOT,IT.FLINT]);
 shaped(B.TNT,1,['GSG','SGS','GSG'],{G:IT.GUNPOWDER,S:B.SAND});
 shaped(B.WOOL,1,['SS','SS'],{S:IT.STRING});
 shaped(IT.BREAD,1,['WWW'],{W:IT.WHEAT});
+shapeless(IT.PUMPKIN_SEEDS,4,[B.PUMPKIN]);
 shaped(B.BRICK,1,['BB','BB'],{B:IT.BRICK});
 shaped(B.CLAY,1,['CC','CC'],{C:IT.CLAY_BALL});
 shaped(IT.BOWL,4,['P P',' P '],{P:ANY_PLANKS});
@@ -3413,6 +3463,8 @@ function dropsFor(id){
     case B.GLASS:case B.ICE:return [];
     case B.WHEAT:return [[IT.WHEAT,1],[IT.SEEDS,Math.floor(Math.random()*3)]];
     case B.WHEAT_YOUNG:return [[IT.SEEDS,1]];
+    case B.CARROTS:return [[IT.CARROT,2+rnd(3)]];case B.CARROT_YOUNG:return [[IT.CARROT,1]];
+    case B.POTATOES:return [[IT.POTATO,2+rnd(3)]];case B.POTATO_YOUNG:return [[IT.POTATO,1]];case B.PUMPKIN_SPROUT:return [[IT.PUMPKIN_SEEDS,1]];
     case B.FARMLAND:case B.PATH:return [[B.DIRT,1]];
     case B.FURNACE_LIT:return [[B.FURNACE,1]];
     case B.GRAVEL:return Math.random()<0.15?[[IT.FLINT,1]]:[[B.GRAVEL,1]];
@@ -3452,11 +3504,15 @@ function dropChest(x,y,z){ // called when a chest block is removed
 // ---- Crops: planted seeds grow into wheat after a while ----
 const crops=new Map(); // "x,y,z" -> world clock time when it becomes ripe
 let worldClock=0,cropT=0;
-function plantSeeds(x,y,z){setBlock(x,y,z,B.WHEAT_YOUNG);crops.set(wk(x,y,z),worldClock+60+Math.random()*120);saveDirty=true;}
+var CROP_GROW={[B.WHEAT_YOUNG]:B.WHEAT,[B.CARROT_YOUNG]:B.CARROTS,[B.POTATO_YOUNG]:B.POTATOES,[B.PUMPKIN_SPROUT]:B.PUMPKIN};
+const CROP_SEED={[IT.SEEDS]:B.WHEAT_YOUNG,[IT.CARROT]:B.CARROT_YOUNG,[IT.POTATO]:B.POTATO_YOUNG,[IT.PUMPKIN_SEEDS]:B.PUMPKIN_SPROUT};
+const CROP_TIME={[B.WHEAT_YOUNG]:[60,120],[B.CARROT_YOUNG]:[80,140],[B.POTATO_YOUNG]:[100,160],[B.PUMPKIN_SPROUT]:[150,220]};
+const cropClock=()=>FM?FM.grow:worldClock;
+function plantSeeds(x,y,z,id=B.WHEAT_YOUNG){setBlock(x,y,z,id);const [a,b]=CROP_TIME[id];crops.set(wk(x,y,z),cropClock()+(a+Math.random()*(b-a))*(FM?0.45:1));saveDirty=true;}
 function updateCrops(dt){
-  worldClock+=dt;cropT-=dt;if(cropT>0)return;cropT=1;
-  for(const [k,t] of crops){if(worldClock<t)continue;const [x,y,z]=k.split(',').map(Number);if(!chunks.has(ckey(x>>4,z>>4)))continue;
-    if(getBlock(x,y,z)===B.WHEAT_YOUNG){setBlock(x,y,z,B.WHEAT);emit(x+0.5,y+0.5,z+0.5,[0.4,1,0.4],6,0.6,1,0.6,1,-1,true);}crops.delete(k);}
+  worldClock+=dt;if(FM)FM.grow+=dt*fmSpeed();cropT-=dt;if(cropT>0)return;cropT=1;const now=cropClock();
+  for(const [k,t] of crops){if(now<t)continue;const [x,y,z]=k.split(',').map(Number);if(!chunks.has(ckey(x>>4,z>>4)))continue;
+    const to=CROP_GROW[getBlock(x,y,z)];if(to){setBlock(x,y,z,to);emit(x+0.5,y+0.5,z+0.5,[0.4,1,0.4],6,0.6,1,0.6,1,-1,true);}crops.delete(k);}
 }
 
 // ---- Furnaces: input / fuel / output, burns fuel and smelts over time ----
@@ -5874,7 +5930,7 @@ function updateSpawner(dt){
     const type=horses?'horse':wolves?'wolf':rabbits?'rabbit':PASSIVE[rnd(PASSIVE.length)],n=2+rnd(2),ho=horses?{coat:rnd(HORSE_COATS.length)}:undefined;
     for(let k=0;k<n;k++){const sx=x+0.5+(k?(Math.random()-0.5)*3:0),sz=z+0.5+(k?(Math.random()-0.5)*3:0);
       if(!entCollide(sx,y,sz,MOBS[type].w,MOBS[type].h))spawnMob(type,sx,y,sz,ho&&{...ho});}
-  }else if(mobsHostile&&hos<10&&bl<7&&sky*daylight<0.3&&Math.random()<0.6){
+  }else if(mobsHostile&&!FM&&hos<10&&bl<7&&sky*daylight<0.3&&Math.random()<0.6){
     let w=Math.random()*HOSTILE.reduce((a,h)=>a+h[1],0),type='zombie';for(const [t,p] of HOSTILE){if(w<p){type=t;break;}w-=p;}
     const hb=column(x,z).biome;if(hb==='mushroom')return; // no monsters in mushroom fields
     if(type==='slime'&&y>50&&hb!=='swamp')type='zombie'; // slimes live deep underground and in swamps
@@ -5973,7 +6029,7 @@ const AMMO_KIND={[IT.ARROW]:'arrow',[IT.WOOD_ARROW]:'wood',[IT.FLAME_ARROW]:'fla
 function nextAmmo(list){if(list===XBOW_AMMO&&countItem(IT.BOLT))return IT.BOLT;for(const s of inv)if(s&&list.includes(s.id))return s.id;return mode==='creative'?list[0]:0;}
 function startUse(){ // right mouse pressed: returns true if it started a hold action
   const id=heldItem();
-  if(isItem(id)&&ITEM[id].food&&mode==='survival'&&(food<20||id===IT.GOLDEN_APPLE)){useHold={type:'eat',t:0,id,crunch:0};return true;}
+  if(isItem(id)&&ITEM[id].food&&mode==='survival'&&(food<20||id===IT.GOLDEN_APPLE)&&!(CROP_SEED[id]&&target&&target.id===B.FARMLAND)){useHold={type:'eat',t:0,id,crunch:0};return true;}
   if(id===IT.BOW&&nextAmmo(BOW_AMMO)){useHold={type:'bow',t:0,id};return true;}
   if(id===IT.CROSSBOW_LOADED){fireCrossbow();return true;}
   if(id===IT.CROSSBOW){if(nextAmmo(XBOW_AMMO)){useHold={type:'xload',t:0,id,click:0};return true;}toast('No bolts or arrows!');return true;}
@@ -6054,8 +6110,9 @@ function useItem(){
   if(id===IT.HOE&&target&&(target.id===B.GRASS||target.id===B.DIRT||target.id===B.SNOW||target.id===B.PATH)){
     const a=getBlock(target.x,target.y+1,target.z);if(a&&!DEF[a].plant)return;
     if(a)setBlockRaw(target.x,target.y+1,target.z,0);setBlock(target.x,target.y,target.z,B.FARMLAND);sfx('till');wearHeld(1);swing=1;return;}
-  if(id===IT.SEEDS){if(target&&target.id===B.FARMLAND&&getBlock(target.x,target.y+1,target.z)===0){
-    plantSeeds(target.x,target.y+1,target.z);consumeHeld();sfx('place',B.WHEAT);swing=1;}return;}
+  if(CROP_SEED[id]&&target&&target.id===B.FARMLAND){if(getBlock(target.x,target.y+1,target.z)===0){
+    plantSeeds(target.x,target.y+1,target.z,CROP_SEED[id]);consumeHeld();sfx('place',B.WHEAT);swing=1;}return;}
+  if(id===IT.SEEDS||id===IT.PUMPKIN_SEEDS)return;
   if(!target||!s||isItem(id))return;
   let px=target.x+target.n[0],py=target.y+target.n[1],pz=target.z+target.n[2];
   if(DEF[target.id].plant){px=target.x;py=target.y;pz=target.z;}
@@ -6594,7 +6651,7 @@ function updateMenuButtons(){
   document.getElementById('tChat').style.display=MP.role?'':'none';
   document.getElementById('tLight').style.display=ZM?'':'none';document.getElementById('btnMode').style.display=ZM?'none':'';
   document.getElementById('btnQuit').textContent=PV?'Leave Duel (you lose)':MP.remote()?'Leave World':'Save & Quit to Title';
-  if(PV)document.getElementById('btnMode').style.display='none';
+  if(PV||FM)document.getElementById('btnMode').style.display='none';if(FM)document.getElementById('btnHost').style.display='none';
   document.getElementById('btnAdmin').style.display=!titleMode&&isAdmin()?'':'none';
   if(MP.role==='host')info.innerHTML='Friends can join with this code:<br><b></b><br><span></span>';
   else if(MP.role==='client')info.innerHTML='Playing with friends<br><span></span>';
@@ -6676,8 +6733,16 @@ function autoTune(dt){
 //  Touch controls (Chromebook touchscreens / tablets) - shown after the first touch
 // ---------------------------------------------------------------------
 let touchMode=false;const touchMove={x:0,y:0,active:false},padMove={x:0,y:0,active:false};
-function enableTouch(){if(touchMode)return;touchMode=true;document.body.classList.add('touch');}
+function enableTouch(){if(touchMode)return;touchMode=true;document.body.classList.add('touch');
+  if(document.pointerLockElement&&!titleMode){freeMode=true;locked=true;document.exitPointerLock();}} // let go of the mouse so the touch controls work
 window.addEventListener('touchstart',enableTouch,{passive:true});
+// touch-screen laptops (Chromebooks): switch back to keyboard + mouse as soon as you click with the mouse or
+// trackpad, or press a movement key - and grab the mouse again if you were playing with touch controls
+function disableTouch(){if(!touchMode)return;touchMode=false;document.body.classList.remove('touch');touchMove.active=false;touchMove.x=touchMove.y=0;
+  if(freeMode&&!titleMode&&!invOpen&&!chatOpen&&!player.dead&&!(padUsed&&padIndex!==null)){freeMode=false;locked=false;lock();}
+  if(typeof checkRotate==='function')checkRotate();}
+window.addEventListener('pointerdown',e=>{if(e.pointerType==='mouse')disableTouch();},true);
+window.addEventListener('keydown',e=>{if(touchMode&&/^(Key[WASDEQF]|Space|Arrow|Digit|Shift)/.test(e.code))disableTouch();},true);
 {
   const stick=document.getElementById('tStick'),knob=document.getElementById('tKnob');let stickId=null,lookId=null,lx=0,ly=0;
   stick.addEventListener('touchstart',e=>{e.preventDefault();const t=e.changedTouches[0];stickId=t.identifier;moveStick(t);},{passive:false});
@@ -6841,6 +6906,7 @@ document.addEventListener('keydown',e=>{
   if(e.code==='Escape'&&freeMode){showPause();return;}
   if(!locked)return;
   if(MP.role&&(e.code==='KeyT'||e.code==='Enter'||e.code==='Slash')){e.preventDefault();openChat();return;}
+  if(e.code==='KeyB'&&!e.repeat&&FM){e.preventDefault();openFmShop();return;}
   if(e.code==='KeyP'&&!e.repeat&&isAdmin()){e.preventDefault();showPause();if(document.pointerLockElement)document.exitPointerLock();openAdmin();return;}
   if(['Space','ArrowUp','ArrowDown','Tab'].includes(e.code)||(e.ctrlKey&&e.code!=='KeyW'))e.preventDefault();
   if(e.code==='Space'&&!e.repeat&&(mode==='creative'||ADM.fly)){const now=performance.now();if(now-lastSpace<300){player.flying=!player.flying;player.vel.y=0;}lastSpace=now;}
@@ -7012,7 +7078,7 @@ const newId=(name='World')=>(String(name).replace(/[^A-Za-z0-9]+/g,'_').replace(
 function serializeWorld(){
   const ow=packDim('overworld')||{mods:[],chests:[],meta:[],furnaces:[],crops:[]},m=ow.mods;
   return {v:3,name:currentWorld.name,created:currentWorld.created,seed:SEED,mods:m,time:dayTime,inv,armor,selected,spawn:spawnPoint,bed:bedPos,mode,hp,food,sat,
-    chests:ow.chests,meta:ow.meta,furnaces:ow.furnaces,crops:ow.crops,clock:worldClock,xp:xpTotal,weather,ents:dim==='overworld'?saveEnts():entsKeep||undefined,players:[...savedPlayers],dim,zm:ZM?{...ZM,st:ZM.st==='over'?'break':ZM.st}:undefined,nether:packDim('nether'),end:packDim('end'),endState,
+    chests:ow.chests,meta:ow.meta,furnaces:ow.furnaces,crops:ow.crops,clock:worldClock,xp:xpTotal,weather,ents:dim==='overworld'?saveEnts():entsKeep||undefined,players:[...savedPlayers],dim,zm:ZM?{...ZM,st:ZM.st==='over'?'break':ZM.st}:undefined,fm:FM||undefined,nether:packDim('nether'),end:packDim('end'),endState,
     player:{x:player.pos.x,y:player.pos.y,z:player.pos.z,yaw:player.yaw,pitch:player.pitch,flying:player.flying}};
 }
 const worldInfo=()=>({id:currentWorld.id,name:currentWorld.name,mode,seed:SEED,created:currentWorld.created,lastPlayed:Date.now(),zm:ZM?{map:ZM.map,style:ZM.style,wave:ZM.wave}:undefined});
@@ -7031,7 +7097,7 @@ function clearWorld(){
   while(projectiles.length)removeProj(0);dim='overworld';DIMS={};portalT=0;
   endState={dragonDead:false,crystals:PILLARS.map(()=>1)};while(dying.length){disposeMob(dying.pop().m);}updateBossBar(null);
   waterQ.clear();chests.clear();blockMeta.clear();bedPos=null;openChest=null;sleeping=null;useHold=null;
-  furnaces.clear();crops.clear();villageCache.clear();lotCache.clear();campCache.clear();cityFires.clear();lures.length=0;zBeacons.length=0;ZM=null;worldClock=0;openFurnace=null;tradeMob=null;ride=null;spawners.clear();spawnerState.clear();treasureChests.clear();
+  furnaces.clear();crops.clear();villageCache.clear();lotCache.clear();campCache.clear();cityFires.clear();lures.length=0;zBeacons.length=0;ZM=null;FM=null;worldClock=0;openFurnace=null;tradeMob=null;ride=null;spawners.clear();spawnerState.clear();treasureChests.clear();
   weather={k:'clear',t:240+Math.random()*600};rainLvl=0;thunderLvl=0;flashT=0;entsKeep=null;clearOrbs();xpTotal=0;furnXp=0;enchPos=null;enchSlots=[null,null];
 }
 function resetPlayerState(){selected=0;hp=20;air=10;food=20;sat=5;exh=0;player.dead=false;player.flying=false;armor.fill(null);inv.fill(null);}
@@ -7042,15 +7108,16 @@ async function createWorld(name,m,seedText,opts){
   clearWorld();const wn=name.trim()||'New World';currentWorld={id:newId(wn),name:wn,created:Date.now()};
   SEED=seed;perlin=new Perlin(seed);mode=m;resetPlayerState();
   if(opts&&opts.zm){ZM=zNewState(opts.zm);zKit();}
+  if(opts&&opts.fm)FM=fmNewState();
   if(mode==='creative')[B.GRASS,B.DIRT,B.STONE,B.COBBLE,B.PLANKS,B.LOG,B.GLASS,B.BRICK,B.TORCH].forEach((id,i)=>inv[i]={id,count:64,dmg:0});
-  spawnPoint=findSpawn();respawn();player.yaw=0;player.pitch=0;dayTime=ZM?0.42:0.3;zLife=0;
+  spawnPoint=findSpawn();if(FM)fmStart();respawn();player.yaw=0;player.pitch=0;dayTime=ZM?0.42:0.3;zLife=0;
   invChanged();statsDirty=true;await save();startPlaying();
 }
 function applyWorld(s,id){
   clearWorld();resetPlayerState();
   currentWorld={id,name:s.name||'My World',created:s.created||Date.now()};
   SEED=s.seed;perlin=new Perlin(SEED);
-  ZM=s.zm?Object.assign(zNewState(s.zm),s.zm):null;zLife=0;
+  ZM=s.zm?Object.assign(zNewState(s.zm),s.zm):null;zLife=0;FM=s.fm?Object.assign(fmNewState(),s.fm):null;
   if(ZM&&ZM.st==='over')Object.assign(ZM,{wave:0,st:'break',t:12,queue:[]});
   for(const [cx,cz,arr] of s.mods||[]){const m=new Map();for(let i=0;i<arr.length;i+=2){const b=arr[i+1];m.set(arr[i],b>=100&&b<=103?b+100:b);}mods.set(ckey(cx,cz),{cx,cz,m});}
   dayTime=s.time??0.3;selected=s.selected||0;spawnPoint=s.spawn||findSpawn();
@@ -7317,7 +7384,7 @@ document.getElementById('btnWorldsBack').onclick=()=>{worldsEl.style.display='no
 // =====================================================================
 //  Main loop
 // =====================================================================
-const splashes=['Have you found Jack?','Now in HD!','Zombies never looked so gross!','Now with infinite worlds!','Now with 3D items!','Zombie Apocalypse!','1v1 me bro!','Custom skins!','Cherry blossoms!','Gain levels!','Achievement get!','Watch out for bees!','Knock knock!','Climb the leaderboard!','Saved in the cloud!','Fresh new textures!','Giddy up!','Polly wants a cracker!','Do not look behind you.','The Abomination awaits...','Dolphins!','Row your boat!','Thunderstorms!','Dungeons!','Import your Minecraft skin!','PvP duels!','Don\'t go out in the fog...','Bring a flashlight!','Controller supported!','Now on phones!','Defeat the Ender Dragon!','The End is near!','Iron golems guard villages!','Watch out for cobwebs!','Now with the Nether!','Don\'t stare at Endermen!','Tame a wolf!','Climb the ladder!','Spooky pumpkins!','Press F5!','Crafting tables!','Craft it like you mean it!','Diamonds are rare now!','Beds are 2 blocks now!','100% procedurally generated!','Punch trees!','Also try the real thing!','Made of cubes!','Look up at night!',
+const splashes=['Farm Tycoon!','Have you found Jack?','Now in HD!','Zombies never looked so gross!','Now with infinite worlds!','Now with 3D items!','Zombie Apocalypse!','1v1 me bro!','Custom skins!','Cherry blossoms!','Gain levels!','Achievement get!','Watch out for bees!','Knock knock!','Climb the leaderboard!','Saved in the cloud!','Fresh new textures!','Giddy up!','Polly wants a cracker!','Do not look behind you.','The Abomination awaits...','Dolphins!','Row your boat!','Thunderstorms!','Dungeons!','Import your Minecraft skin!','PvP duels!','Don\'t go out in the fog...','Bring a flashlight!','Controller supported!','Now on phones!','Defeat the Ender Dragon!','The End is near!','Iron golems guard villages!','Watch out for cobwebs!','Now with the Nether!','Don\'t stare at Endermen!','Tame a wolf!','Climb the ladder!','Spooky pumpkins!','Press F5!','Crafting tables!','Craft it like you mean it!','Diamonds are rare now!','Beds are 2 blocks now!','100% procedurally generated!','Punch trees!','Also try the real thing!','Made of cubes!','Look up at night!',
   'Caves included!','Beware of creepers!','Torches not included!','Oink!','Moo!','Craft your own tools!','Survive the night!','Water flows!','Don\'t starve!','Sssss...'];
 document.getElementById('splash').textContent=splashes[Math.floor(Math.random()*splashes.length)];
 document.getElementById('verLabel').textContent='BlockCraft '+GAME_VERSION;
@@ -8124,7 +8191,7 @@ function frame(now){
   updateParticles(dt);
   updateHeld(dt,moving);
   if(invDirty){invDirty=false;renderHotbar();if(invOpen)renderInventory();achInvCheck();}
-  updateOrbs(dt);biomeTick(dt);updateWeather(dt);updateSpawners(dt);adminTick();jackTick(dt);zFarEyes();zDread(dt);zHazards(dt);
+  updateOrbs(dt);biomeTick(dt);updateWeather(dt);updateSpawners(dt);adminTick();jackTick(dt);fmTick();fmWorkersTick(dt);zFarEyes();zDread(dt);zHazards(dt);
   if(statsDirty)renderStats();
   if(showDebug){
     const p=player.pos;const col=column(Math.floor(p.x),Math.floor(p.z));
@@ -8167,6 +8234,185 @@ function thirdPerson(dt){
   return saved;
 }
 requestAnimationFrame(frame);
+// =====================================================================
+//  Farm Tycoon (minigame): grow crops, sell them for money ($), buy seeds, and buy farm buildings
+//  that make everything grow faster. Total money earned goes on an online leaderboard.
+// =====================================================================
+for(const id of [B.CARROT_YOUNG,B.CARROTS,B.POTATO_YOUNG,B.POTATOES,B.PUMPKIN_SPROUT]){HARD[id]=0;DEF[id].snd='grass';}
+const FM_SELL=[[IT.WHEAT,3],[IT.CARROT,4],[IT.POTATO,5],[B.PUMPKIN,25],[B.HAY_BALE,30],[IT.BREAD,11],[B.MELON,20]];
+const FM_BUY=[['Wheat Seeds x8',IT.SEEDS,8,10],['Carrots x8 (plant them!)',IT.CARROT,8,25],['Potatoes x8 (plant them!)',IT.POTATO,8,40],['Pumpkin Seeds x4',IT.PUMPKIN_SEEDS,4,90]];
+const FM_TOOLS=[['Hoe',IT.HOE,1,15],['Water Bucket',IT.WATER_BUCKET,1,20],['Bread x5',IT.BREAD,5,15],['Torches x16',B.TORCH,16,10],['Dirt x32',B.DIRT,32,10],
+  ['Oak Planks x64',B.PLANKS,64,30],['Glass x32',B.GLASS,32,30],['Bricks x64',B.BRICK,64,60],['Oak Doors x2',B.OAK_DOOR,2,15],['Cobblestone x64',B.COBBLE,64,20]];
+// buildings: [key, name, price, speed bonus, x, z (where it is built), what it is]
+const FM_BUILD=[['house','Cozy Farmhouse',150,0.3,-22,-3,'A little house for the farmer.'],['barn','Red Barn',400,0.4,15,-3,'Room for tools and hay.'],
+  ['mill','Windmill',900,0.5,-20,-22,'Grinds grain - crops grow faster.'],['green','Greenhouse',2000,0.6,13,-24,'Keeps the plants warm.'],
+  ['tower','Water Tower',4500,0.7,-3,-30,'Water for every field.'],['mansion','Farm Mansion',10000,1.0,-8,-52,'The biggest farm in the land!']];
+let fmLbT=null;
+function fmNewState(){return {money:20,earned:0,grow:0,built:[],noLb:false,workers:0};}
+function fmSpeed(){if(!FM)return 1;let s=1;for(const b of FM_BUILD)if(FM.built.includes(b[0]))s+=b[3];return s;}
+const FM_H=SEA+4;
+function fmColumn(x,z){const d=Math.hypot(x+3,z+20);if(d<70)return {h:FM_H,biome:'plains'};
+  return {h:Math.max(FM_H,Math.floor(FM_H+(d-70)*0.06*(fbm(x/90,z/90,4,10.5)+0.6)*3)),biome:'plains'};}
+const fmMoney=n=>'$'+Math.floor(n).toLocaleString('en-US');
+// the starting farm: a field with water through the middle, a path and a market stall
+function fmStart(){
+  const w=(x,y,z,id)=>writeBlock(x,y,z,id),h=FM_H;
+  for(let x=-8;x<=8;x++)for(let z=-8;z<=8;z++){for(let y=h+1;y<h+8;y++)w(x,y,z,0);
+    const edge=Math.abs(x)===8||Math.abs(z)===8;w(x,h,z,edge?B.PATH:x===0?B.WATER:B.FARMLAND);}
+  for(let x=-7;x<=7;x++)if(x)for(let z=-7;z<=7;z+=2){w(x,h+1,z,B.WHEAT_YOUNG);crops.set(wk(x,h+1,z),3+Math.random()*25);}
+  for(let z=9;z<=14;z++)for(let x=-1;x<=1;x++)w(x,h,z,B.PATH);
+  // the market stall (press B anywhere to open the shop)
+  for(const [x,z] of [[4,11],[8,11],[4,14],[8,14]])for(let y=h+1;y<=h+3;y++)w(x,y,z,B.LOG);
+  for(let x=4;x<=8;x++)for(let z=11;z<=14;z++)w(x,h+4,z,(x+z)%2?B.RED_WOOL:B.WOOL);
+  for(let x=5;x<=7;x++)w(x,h+1,11,B.HAY_BALE);w(6,h+2,11,B.PUMPKIN);w(5,h+2,11,B.MELON);
+  flushBlocks();spawnPoint=[0.5,h+1,11.5];
+  inv.fill(null);[[IT.HOE,1],[IT.SEEDS,16],[IT.CARROT,4],[IT.BREAD,5]].forEach(([id,n],i)=>inv[i]={id,count:n,dmg:0});
+}
+// ---- the buildings ----
+function fmBuild(key){
+  const b=FM_BUILD.find(q=>q[0]===key);if(!b)return;const X=b[4],Z=b[5],Y=FM_H+1,w=(x,y,z,id)=>writeBlock(X+x,Y+y,Z+z,id);
+  const box=(x0,y0,z0,x1,y1,z1,id,hollow)=>{for(let x=x0;x<=x1;x++)for(let y=y0;y<=y1;y++)for(let z=z0;z<=z1;z++){
+    if(hollow&&x>x0&&x<x1&&z>z0&&z<z1&&(hollow===2||y>y0))continue;w(x,y,z,id);}};
+  const clear=(x0,z0,x1,z1,hh)=>{for(let x=x0;x<=x1;x++)for(let z=z0;z<=z1;z++){writeBlock(X+x,FM_H,Z+z,B.GRASS);for(let y=0;y<hh;y++)w(x,y,z,0);}};
+  const gable=(x0,x1,z0,z1,y,id)=>{for(let k=0;x0+k<=x1-k;k++){for(let z=z0;z<=z1;z++){w(x0+k,y+k,z,id);w(x1-k,y+k,z,id);}}};
+  if(key==='house'){clear(-1,-1,7,7,10);box(0,0,0,6,0,6,B.PLANKS);box(0,1,0,6,3,6,B.PLANKS,1);
+    for(const [x,z] of [[0,0],[6,0],[0,6],[6,6]])box(x,1,z,x,3,z,B.LOG);
+    for(const x of [2,4])w(x,2,6,B.GLASS);w(0,2,3,B.GLASS);w(6,2,3,B.GLASS);w(3,1,6,0);w(3,2,6,0);
+    gable(-1,7,-1,7,4,B.SPRUCE_PLANKS);box(1,4,1,5,4,5,0);box(5,4,1,5,7,1,B.BRICK);w(1,1,1,B.BED);w(5,1,1,B.CRAFTING_TABLE);w(5,1,2,B.FURNACE);w(1,1,5,B.BOOKSHELF);}
+  else if(key==='barn'){clear(-1,-1,9,8,11);box(0,0,0,8,0,7,B.PLANKS);box(0,1,0,8,4,7,B.RED_WOOL,1);
+    for(const [x,z] of [[0,0],[8,0],[0,7],[8,7]])box(x,1,z,x,4,z,B.WOOL);box(3,1,7,5,3,7,0);box(3,4,7,5,4,7,B.WOOL);
+    gable(-1,9,-1,8,5,B.SPRUCE_PLANKS);for(let x=1;x<=7;x++)w(x,5,0,B.RED_WOOL);
+    for(const [x,z,y] of [[1,1,1],[2,1,1],[1,2,1],[1,1,2],[7,1,1],[7,2,1]])w(x,y,z,B.HAY_BALE);}
+  else if(key==='mill'){clear(-3,-3,5,5,16);box(0,0,0,2,9,2,B.STONE_BRICKS,1);box(-1,10,-1,3,10,3,B.SPRUCE_PLANKS);box(0,11,0,2,11,2,B.SPRUCE_PLANKS);w(1,12,1,B.SPRUCE_PLANKS);
+    w(1,1,2,0);w(1,2,2,0);for(let k=-4;k<=4;k++){w(1+k,7,3,B.WOOL);w(1,7+k,3,B.WOOL);}w(1,7,3,B.LOG);}
+  else if(key==='green'){clear(-1,-1,9,7,8);box(0,0,0,8,0,6,B.STONE_BRICKS);box(0,1,0,8,3,6,B.GLASS,1);box(0,4,0,8,4,6,B.GLASS);w(4,1,6,0);w(4,2,6,0);
+    for(let x=1;x<=7;x++)for(let z=1;z<=5;z++){if(z===3){w(x,0,z,B.WATER);continue;}w(x,0,z,B.FARMLAND);w(x,1,z,(x+z)%3?B.WHEAT:B.ROSE);}}
+  else if(key==='tower'){clear(-1,-1,6,6,16);for(const [x,z] of [[0,0],[5,0],[0,5],[5,5]])box(x,0,z,x,6,z,B.LOG);box(0,7,0,5,7,5,B.PLANKS);
+    box(1,8,1,4,11,4,B.BLUE_WOOL,1);box(1,12,1,4,12,4,B.SPRUCE_PLANKS);for(let y=0;y<=6;y++)w(2,y,-1,B.LADDER);}
+  else if(key==='mansion'){clear(-2,-2,16,12,16);box(0,0,0,14,0,10,B.STONE_BRICKS);for(const f of [0,1]){const y=1+f*4;box(0,y,0,14,y+3,10,B.QUARTZ_BLOCK,1);
+      for(let x=2;x<=12;x+=2){w(x,y+1,0,B.GLASS);w(x,y+2,0,B.GLASS);w(x,y+1,10,B.GLASS);w(x,y+2,10,B.GLASS);}box(1,y+3,1,13,y+3,9,B.PLANKS);}
+    box(0,9,0,14,9,10,B.GOLD_BLOCK,1);box(-1,10,-1,15,10,11,B.STONE_BRICKS);for(const x of [0,14])for(const z of [0,10])box(x,1,z,x,9,z,B.GOLD_BLOCK);
+    box(6,1,10,8,3,10,0);for(let x=6;x<=8;x++)for(let z=11;z<=13;z++)writeBlock(X+x,FM_H,Z+z,B.STONE_BRICKS);w(5,1,11,B.TORCH);w(9,1,11,B.TORCH);}
+  flushBlocks();
+}
+// ---- the shop (press B) ----
+let fmTab='sell';
+function openFmShop(tab){if(!FM||titleMode)return;if(tab)fmTab=tab;if(document.pointerLockElement)document.exitPointerLock();locked=false;
+  document.getElementById('fmShop').style.display='flex';renderFmShop();}
+function closeFmShop(play){document.getElementById('fmShop').style.display='none';if(play)lock();}
+function fmEarn(n){FM.money+=n;FM.earned+=n;saveDirty=true;fmLbSoon();}
+function renderFmShop(){
+  const el=document.getElementById('fmBody');
+  document.getElementById('fmMoney').innerHTML=`<b>${fmMoney(FM.money)}</b> &nbsp;·&nbsp; crops grow <b>x${fmSpeed().toFixed(1)}</b> faster &nbsp;·&nbsp; earned in total: ${fmMoney(FM.earned)}`;
+  for(const b of document.querySelectorAll('#fmTabs button'))b.classList.toggle('on',b.dataset.t===fmTab);
+  const row=(icon,name,right)=>`<div class="fmRow"><img src="${ICON[icon]||''}"><span class="n">${name}</span>${right}</div>`;
+  if(fmTab==='sell'){let any=false,html='';
+    for(const [id,p] of FM_SELL){const n=countItem(id);if(!n)continue;any=true;
+      html+=row(id,`${itemInfo(id).name} <span class="dim">x${n} · ${fmMoney(p)} each</span>`,`<button class="btn sm" data-sell="${id}">Sell all for ${fmMoney(n*p)}</button>`);}
+    el.innerHTML=(any?`<button class="btn sm big" data-sell="all">Sell All Crops</button>`+html:'<p class="dim">You have nothing to sell yet. Grow wheat, carrots, potatoes and pumpkins, then come back!</p>')+
+      '<p class="dim">Prices: '+FM_SELL.map(([id,p])=>itemInfo(id).name+' '+fmMoney(p)).join(' · ')+'</p>';}
+  else if(fmTab==='seeds'||fmTab==='tools'){el.innerHTML=(fmTab==='seeds'?FM_BUY:FM_TOOLS).map(([name,id,n,p],i)=>row(id,name,`<button class="btn sm" data-buy="${fmTab}:${i}" ${FM.money<p?'disabled':''}>Buy ${fmMoney(p)}</button>`)).join('')+
+    (fmTab==='seeds'?'<p class="dim">Hoe grass into farmland, then right-click it with seeds, carrots or potatoes. Break crops when they look ripe. Pumpkins grow from pumpkin seeds (craft a pumpkin into 4 seeds).</p>':'');}
+  else if(fmTab==='build'){el.innerHTML=FM_BUILD.map(([k,name,p,bonus,,,desc])=>{const has=FM.built.includes(k);
+      return row({house:B.PLANKS,barn:B.RED_WOOL,mill:B.WOOL,green:B.GLASS,tower:B.BLUE_WOOL,mansion:B.QUARTZ_BLOCK}[k],`<b>${name}</b> <span class="dim">+${Math.round(bonus*100)}% crop speed · ${desc}</span>`,has?'<span class="own">Built!</span>':`<button class="btn sm" data-build="${k}" ${FM.money<p?'disabled':''}>Build ${fmMoney(p)}</button>`);}).join('')+
+      '<p class="dim">Buildings appear around your farm. Each one makes all your crops grow faster.</p>';}
+  else if(fmTab==='workers'){const n=FM.workers||0,cost=fmWorkerCost(n);
+    el.innerHTML=`<p>Farmhands walk around your farm, <b>harvest ripe crops, replant them and sell the harvest for you</b> - even while you do something else.
+      They also plant wheat on empty farmland. Hire more to farm faster!</p>`+
+      Array.from({length:n},(_,i)=>row(IT.HOE,'Farmhand '+FM_WORKER_NAMES[i%FM_WORKER_NAMES.length],'<span class="own">Working</span>')).join('')+
+      (n<FM_MAX_WORKERS?row(IT.WHEAT,`<b>Hire a farmhand</b> <span class="dim">(${n}/${FM_MAX_WORKERS} hired)</span>`,`<button class="btn sm" data-hire="1" ${FM.money<cost?'disabled':''}>Hire ${fmMoney(cost)}</button>`):'<p class="own">Your farm is fully staffed!</p>');}
+  else if(fmTab==='lb'){el.innerHTML='<p class="dim">Loading the leaderboard...</p>';fmLeaderboard(el);}
+}
+function fmSellItem(id){const p=(FM_SELL.find(q=>q[0]===id)||[])[1];if(!p)return 0;let n=0;
+  for(let i=0;i<inv.length;i++){const s=inv[i];if(s&&s.id===id){n+=s.count;inv[i]=null;}}return n*p;}
+document.getElementById('fmShop').onclick=e=>{
+  const t=e.target.closest('button');if(!t)return;
+  if(t.dataset.t){fmTab=t.dataset.t;sfx('click');renderFmShop();return;}
+  if(t.id==='fmBack'){closeFmShop(true);return;}
+  if(t.dataset.sell){const ids=t.dataset.sell==='all'?FM_SELL.map(q=>q[0]).filter(id=>id!==IT.BREAD):[+t.dataset.sell];let v=0;for(const id of ids)v+=fmSellItem(id);
+    if(v>0){fmEarn(v);invChanged();sfx('coin');toast('Sold for '+fmMoney(v)+'!');}renderFmShop();return;}
+  if(t.dataset.buy){const [list,i]=t.dataset.buy.split(':'),[name,id,n,p]=(list==='seeds'?FM_BUY:FM_TOOLS)[+i];if(FM.money<p)return;
+    FM.money-=p;addItem(id,n);invChanged();sfx('pop');saveDirty=true;renderFmShop();return;}
+  if(t.dataset.hire){const n=FM.workers||0,cost=fmWorkerCost(n);if(n>=FM_MAX_WORKERS||FM.money<cost)return;
+    FM.money-=cost;FM.workers=n+1;saveDirty=true;sfx('win');toast('Farmhand '+FM_WORKER_NAMES[n%FM_WORKER_NAMES.length]+' is ready to work!');renderFmShop();return;}
+  if(t.dataset.build){const b=FM_BUILD.find(q=>q[0]===t.dataset.build);if(!b||FM.built.includes(b[0])||FM.money<b[2])return;
+    FM.money-=b[2];FM.built.push(b[0]);fmBuild(b[0]);saveDirty=true;sfx('win');toast(b[1]+' built! Crops now grow x'+fmSpeed().toFixed(1)+' faster.');renderFmShop();return;}
+};
+// ---- the leaderboard (total money earned) ----
+function fmLbSoon(){if(!FM||FM.noLb||!Cloud.on())return;clearTimeout(fmLbT);fmLbT=setTimeout(()=>{if(FM)Cloud.req('/api/farm/score',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({earned:Math.floor(FM.earned)})}).catch(()=>{});},8000);}
+async function fmLeaderboard(el){
+  const esc=t=>String(t).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+  try{const b=Cloud.base();if(!b)throw new Error('No server is set up yet.');
+    let r;try{r=await fetch(b+'/api/farm/top?name='+encodeURIComponent(Cloud.name()),{cache:'no-store'});}catch(e){throw new Error('Could not reach the leaderboard. Check your internet.');}if(!r.ok)throw new Error('The leaderboard is not on the server yet (run "Deploy Big Server.bat").');
+    const j=await r.json(),me=Cloud.name().toLowerCase();
+    el.innerHTML='<table class="fmLb"><tr><th>#</th><th>Farmer</th><th>Money earned</th></tr>'+(j.top||[]).map((e,i)=>`<tr class="${e.name.toLowerCase()===me?'me':''}"><td>${i+1}</td><td>${esc(e.name)}</td><td>${fmMoney(e.earned)}</td></tr>`).join('')+'</table>'+
+      (j.rank>50?`<p>You are #${j.rank} with ${fmMoney(j.mine)}.</p>`:'')+(!(j.top||[]).length?'<p class="dim">Nobody is on it yet - be the first!</p>':'')+
+      (Cloud.on()?(FM&&FM.noLb?'<p class="dim">This farm used the admin panel, so it does not count for the leaderboard.</p>':'<p class="dim">Your best farm counts. Scores update a few seconds after you sell.</p>'):'<p class="dim">Log in on the title screen to get on the leaderboard!</p>');}
+  catch(e){el.innerHTML='<p class="dim">'+esc(e.message||e)+'</p>';}
+}
+// ---- every frame: the money display ----
+let fmShown=false;
+function fmTick(){
+  const on=!!FM&&!titleMode;if(on!==fmShown){fmShown=on;document.body.classList.toggle('fm',on);}
+  if(on){const t=fmMoney(FM.money)+'   ·   crops x'+fmSpeed().toFixed(1)+' speed'+(FM.workers?'   ·   '+FM.workers+' farmhand'+(FM.workers>1?'s':''):'')+'   ·   [B] Shop',el=document.getElementById('fmHud');if(el.textContent!==t)el.textContent=t;}
+}
+document.getElementById('fmHud').onclick=()=>openFmShop();
+document.getElementById('btnFarm').onclick=()=>{audioInit();document.getElementById('mgScreen').style.display='none';document.getElementById('fmScreen').style.display='flex';
+  fmLeaderboard(document.getElementById('fmStartLb'));};
+document.getElementById('btnFmBack').onclick=()=>{document.getElementById('fmScreen').style.display='none';document.getElementById('mgScreen').style.display='flex';};
+document.getElementById('btnFmNew').onclick=async()=>{document.getElementById('fmScreen').style.display='none';
+  const n=(await Store.list()).filter(w=>/^Farm Tycoon/.test(w.name)).length;await createWorld('Farm Tycoon'+(n?' '+(n+1):''),'survival','',{fm:true});
+  toast('Welcome to your farm! Press B to open the shop.');};
+// ---- farmhands: hired workers who harvest ripe crops, replant them and sell the harvest for you ----
+const FM_WORKER_NAMES=['Bob','Rosie','Hank','Lily','Gus','Mabel','Earl','Daisy'],FM_MAX_WORKERS=8;
+const fmWorkerCost=n=>250*Math.pow(2,n);
+// what a ripe crop is worth, and what to replant it with
+const FM_HARVEST={[B.WHEAT]:[B.WHEAT_YOUNG,3],[B.CARROTS]:[B.CARROT_YOUNG,12],[B.POTATOES]:[B.POTATO_YOUNG,15],[B.PUMPKIN]:[B.PUMPKIN_SPROUT,25]};
+let fmWorkers=[];
+function fmGroundY(x,z){for(let y=FM_H+6;y>FM_H-3;y--){const id=getBlock(Math.floor(x),y-1,Math.floor(z));if(id&&(DEF[id].solid||id===B.FARMLAND))return y;}return FM_H+1;}
+function fmSpawnWorker(i){
+  const name='Farmhand '+FM_WORKER_NAMES[i%FM_WORKER_NAMES.length],model=buildPlayerModel(name),tag=nameTag(name);tag.position.y=2.25;model.g.add(tag);
+  const hat=new THREE.Mesh(new THREE.BoxGeometry(0.62,0.08,0.62),new THREE.MeshBasicMaterial({color:0xe8c860}));hat.position.y=0.27;model.head.add(hat);
+  const top=new THREE.Mesh(new THREE.BoxGeometry(0.36,0.14,0.36),new THREE.MeshBasicMaterial({color:0xd8b048}));top.position.y=0.36;model.head.add(top);
+  scene.add(model.g);
+  const mats=[];model.g.traverse(o=>{if(o.material&&o!==tag)mats.push(...[].concat(o.material));});
+  const x=spawnPoint[0]+(Math.random()-0.5)*6,z=spawnPoint[2]-2+(Math.random()-0.5)*4;
+  fmWorkers.push({model,tag,mats,pos:new THREE.Vector3(x,fmGroundY(x,z),z),yaw:0,walk:0,target:null,think:Math.random(),work:0,swing:0});
+}
+function fmClearWorkers(){for(const w of fmWorkers){scene.remove(w.model.g);w.model.g.traverse(o=>{if(o.geometry&&!o.userData.shared)o.geometry.dispose();});}fmWorkers=[];}
+// find the nearest ripe crop (or empty farmland to plant) that no other farmhand is going for
+function fmFindJob(w){
+  const taken=new Set(fmWorkers.filter(o=>o!==w&&o.target).map(o=>o.target.k));let best=null,bd=1e9;
+  const cx=Math.floor(w.pos.x),cz=Math.floor(w.pos.z),R=28;
+  for(let x=cx-R;x<=cx+R;x++)for(let z=cz-R;z<=cz+R;z++)for(let y=FM_H;y<=FM_H+2;y++){const id=getBlock(x,y,z);
+    let kind=null;if(FM_HARVEST[id]&&(id!==B.PUMPKIN||getBlock(x,y-1,z)===B.FARMLAND))kind='harvest';else if(id===B.FARMLAND&&!getBlock(x,y+1,z))kind='plant';
+    if(!kind)continue;const py=kind==='plant'?y+1:y,k=x+','+py+','+z;if(taken.has(k))continue;
+    const d=Math.hypot(x+0.5-w.pos.x,z+0.5-w.pos.z)+(kind==='plant'?6:0);if(d<bd){bd=d;best={x,y:py,z,k,kind};}}
+  return best;
+}
+function fmWorkersTick(dt){
+  const want=FM&&!titleMode&&dim==='overworld'?Math.min(FM.workers||0,FM_MAX_WORKERS):0;
+  if(!want){if(fmWorkers.length)fmClearWorkers();return;}
+  while(fmWorkers.length<want)fmSpawnWorker(fmWorkers.length);
+  for(const w of fmWorkers){const M=w.model;
+    if(!w.target){w.think-=dt;if(w.think<=0){w.think=1+Math.random();w.target=fmFindJob(w);}}
+    let moving=false;
+    if(w.target){const t=w.target,dx=t.x+0.5-w.pos.x,dz=t.z+0.5-w.pos.z,d=Math.hypot(dx,dz);w.yaw=Math.atan2(dx,dz);
+      if(d>1.1){const step=Math.min(d-1,2.6*Math.min(dt,0.1));w.pos.x+=dx/d*step;w.pos.z+=dz/d*step;moving=true;}
+      else{w.work+=dt;w.swing=Math.max(w.swing,0.3);
+        if(w.work>0.7){w.work=0;const id=getBlock(t.x,t.y,t.z);
+          if(t.kind==='harvest'&&FM_HARVEST[id]){const [young,price]=FM_HARVEST[id];setBlock(t.x,t.y,t.z,0);plantSeeds(t.x,t.y,t.z,young);
+            const v=Math.round(price*(1+(FM.built.includes('barn')?0.1:0)));fmEarn(v);emit(t.x+0.5,t.y+0.8,t.z+0.5,[1,0.85,0.25],8,0.4,2,0.7,2,-1,true);}
+          else if(t.kind==='plant'&&!id&&getBlock(t.x,t.y-1,t.z)===B.FARMLAND){plantSeeds(t.x,t.y,t.z,B.WHEAT_YOUNG);}
+          w.target=null;w.think=0.3;}}
+      if(d>60)w.target=null;}
+    w.pos.y+=(fmGroundY(w.pos.x,w.pos.z)-w.pos.y)*Math.min(1,dt*10);
+    w.walk+=moving?dt*8:0;w.swing=Math.max(0,w.swing-dt);const sw=moving?Math.sin(w.walk)*0.6:0;
+    M.legs[0].rotation.x=sw;M.legs[1].rotation.x=-sw;M.arms[1].rotation.x=-sw*0.8;
+    M.arms[0].rotation.x=w.swing>0?-1.2+Math.sin(performance.now()/90)*0.6:sw*0.8;
+    M.g.position.copy(w.pos);M.g.rotation.y=w.yaw;
+    const l=lightAt(w.pos.x,w.pos.y+1.2,w.pos.z);for(const mt of w.mats)mt.color.setScalar(Math.max(0.35,l));}
+}
 // =====================================================================
 //  Jack: a secret player hiding deep in the caves (a fan asked to be in the game!). He only shows
 //  up when you are underground, holding a torch. Walk up to him for the rarest achievement.
@@ -8231,7 +8477,7 @@ function admBuild(){
   for(const k of Object.keys(MOBS).filter(k=>!['boat','end_crystal','ender_dragon'].includes(k)).sort()){const o=document.createElement('option');o.value=k;o.textContent=MOBS[k].name||k.replace(/_/g,' ');sel.appendChild(o);}
   const box=document.getElementById('admItems');
   for(const id of ALL_ITEMS){const im=document.createElement('img');im.src=ICON[id];im.title=itemInfo(id).name;im.dataset.id=id;im.dataset.name=itemInfo(id).name.toLowerCase();box.appendChild(im);}
-  box.onclick=e=>{const id=+e.target.dataset.id;if(!id)return;const n=itemInfo(id).stack||64;addItem(id,n);invChanged();sfx('pop');admMsg('Gave you '+n+' '+itemInfo(id).name);};
+  box.onclick=e=>{const id=+e.target.dataset.id;if(!id)return;if(FM)FM.noLb=true;const n=itemInfo(id).stack||64;addItem(id,n);invChanged();sfx('pop');admMsg('Gave you '+n+' '+itemInfo(id).name);};
   document.getElementById('admFind').oninput=e=>{const q=e.target.value.trim().toLowerCase();for(const im of box.children)im.style.display=!q||im.dataset.name.includes(q)?'':'none';};
   document.getElementById('admBody').onclick=e=>{const b=e.target.closest('button[data-a]');if(b)admDo(b.dataset.a,b.dataset.v,b);};
   document.getElementById('admPlayers').onclick=document.getElementById('admBanned').onclick=e=>{const b=e.target.closest('button[data-p]');if(b)admPlayer(b.dataset.p,b.dataset.id,b);};
@@ -8264,7 +8510,7 @@ function admDo(a,v,b){
     case 'heal':hp=20;food=20;sat=20;statsDirty=true;admMsg('Healed and fed.');break;
     case 'xp':{const {L}=levelInfo();xpTotal=xpAtLevel(L+10);statsDirty=true;saveDirty=true;admMsg('You are now level '+(L+10)+'.');break;}
     case 'clearinv':if(!admSure(b,a))return;inv.fill(null);invChanged();admMsg('Inventory emptied.');break;
-    case 'mode':if(ZM||PV)return admMsg('Not in minigames.');setMode(v);updateModeBtn();if(ADM.fly)player.flying=true;break;
+    case 'mode':if(ZM||PV||FM)return admMsg('Not in minigames.');setMode(v);updateModeBtn();if(ADM.fly)player.flying=true;break;
     case 'time':
       if(net){MP.send({t:'admin',a:'time',v:+v});admMsg('Changed the time for the whole server.');}
       else if(client)admMsg('Only the person hosting this world can change the time.');
