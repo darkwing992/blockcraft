@@ -100,6 +100,24 @@ THE END
   they heal the dragon. Beat it and an exit portal with the Dragon Egg appears.
   (The End is single player only.)
 
+ADMIN PANEL (version 7.1) - only for the account "darkwing"
+  Log in as darkwing, then press P in a world (or click Admin Panel in the pause menu).
+  You: fly (even in survival), god mode, super speed, heal, +10 levels, switch game mode.
+  World: change the time and weather, spawn any mob, remove all mobs, teleport anywhere,
+  and click any item to get a full stack of it. Zombie Apocalypse: next wave, kill all zombies,
+  summon The Abomination. On the big server: list of everyone online, go to them or bring them to
+  you, kick, ban and unban, and send announcements. The server checks that it really is the
+  darkwing account, so nobody else can kick or ban (run "Deploy Big Server.bat" once for this).
+
+THE HD UPDATE (version 7.0)
+  Every texture in the game is redone. All blocks are now 32x32 pixels instead of 16x16, so they are
+  twice as sharp, with new art for everything: tree bark, stone, ores, bricks, leaves, flowers, sand,
+  water (with light rippling on it), glowstone, lava, doors and more. Far-away blocks now fade smoothly
+  instead of sparkling. Zombie Apocalypse zombies are completely re-textured: rotting skin with veins,
+  bruises and open wounds, dark eye sockets with glowing eyes, broken teeth, ribs showing, and torn,
+  bloody, muddy clothes. Animals and other mobs got sharper faces and fur, and there is a new sun and
+  moon and better cracks when you break blocks.
+
 THE HORDE UPDATE (version 6.3) - Zombie Apocalypse
   New zombies: Bloaters (huge and slow - they burst into a poison cloud when they die, stay out of
   it), Infernos (on fire, glowing in the dark - one hit sets you on fire, jump in water to put it out),

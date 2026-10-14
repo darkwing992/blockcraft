@@ -8,6 +8,7 @@ export const SERVER_PROTO = 2; // 2 = accounts with passwords (1 = old games, wh
 const NEAR = 96;            // players/mobs farther away than this aren't sent to you
 const WHEAT = 46, WHEAT_YOUNG = 48, CHEST = 35;
 const NAME_RE = /^[A-Za-z0-9_ \-]{1,16}$/;
+export const ADMINS = ['darkwing']; // accounts (lower-case names) that can use the admin panel
 const MAX_CLOUD_WORLDS = 30, MAX_CLOUD_BYTES = 30 * 1024 * 1024, CLOUD_PART = 120000; // cloud saves: worlds per account, size of one (gzipped) world, bytes per stored part
 
 export class World {
@@ -131,7 +132,7 @@ export class World {
           pl.push([o.id, o.name, ...o.st]);
           for (const m of o.mobs) if (Math.abs(m[2] - c.st[0]) < NEAR && Math.abs(m[4] - c.st[2]) < NEAR) mobs.push([o.id, ...m]);
         }
-        this.out(c, { t: 'tick', time: this.time(), pl, mobs, online: this.online() });
+        this.out(c, { t: 'tick', time: this.time(), pl, mobs, online: this.online(), w: this.wx && this.wx.until > now ? this.wx.k : undefined });
         break;
       }
       case 'b': {
@@ -159,7 +160,8 @@ export class World {
       case 'chat': {
         const t = String(d.raw || '').replace(/[\u0000-\u001f]/g, '').trim().slice(0, 120);
         if (!t || now - c.chatT < 700) return; c.chatT = now;
-        this.broadcast({ t: 'chat', text: '<' + c.name + '> ' + t }, c);
+        if (this.isAdmin(c)) this.broadcast({ t: 'chat', text: '<[Admin] ' + c.name + '> ' + t, color: '#ffb0ff' }, c);
+        else this.broadcast({ t: 'chat', text: '<' + c.name + '> ' + t }, c);
         break;
       }
       case 'hit': case 'hurt': case 'loot': {
@@ -184,9 +186,54 @@ export class World {
         for (const o of this.clients.values()) if (o !== c && o.name && this.near(c, o)) try { o.send(s); } catch (e) { }
         break;
       }
+      case 'admin': await this.admin(c, d); break;
     }
     this.growCrops();
     await this.flush(false);
+  }
+
+  // ---- the admin panel: only accounts in ADMINS (with a password) can do these ----
+  isAdmin(c) { const p = c.key && this.players.get(c.key); return !!(p && p.hash && ADMINS.includes(c.key)); }
+  async admin(c, d) {
+    const say = text => this.out(c, { t: 'chat', text, color: '#ff8cff' });
+    if (!this.isAdmin(c)) return say('Only admins can do that.');
+    const target = typeof d.id === 'string' ? this.clients.get(d.id) : null;
+    switch (d.a) {
+      case 'list':
+        this.out(c, { t: 'adminlist', l: [...this.clients.values()].filter(o => o.name).map(o => [o.id, o.name, ...(o.st ? o.st.slice(0, 3).map(v => Math.round(v)) : [0, 0, 0])]),
+          banned: [...this.players.values()].filter(p => p.banned).map(p => p.name) });
+        break;
+      case 'kick': case 'ban': {
+        if (!target || !target.name || target === c || ADMINS.includes(target.key)) return say('You can not ' + d.a + ' that player.');
+        if (d.a === 'ban') { const p = this.players.get(target.key); if (p) { p.banned = true; this.mark('p:', target.key); await this.flush(true); } }
+        this.out(target, { t: 'kicked', why: d.a === 'ban' ? 'You were banned from this server by an admin.' : 'You were kicked from the server by an admin.' });
+        setTimeout(() => { try { target.close(); } catch (e) { } }, 300);
+        this.broadcast({ t: 'chat', text: target.name + ' was ' + (d.a === 'ban' ? 'banned' : 'kicked') + ' by an admin.', color: '#ff5555' });
+        break;
+      }
+      case 'unban': {
+        const key = String(d.name || '').toLowerCase(), p = this.players.get(key);
+        if (p && p.banned) { delete p.banned; this.mark('p:', key); await this.flush(true); say(p.name + ' is not banned any more.'); }
+        break;
+      }
+      case 'say': {
+        const t = String(d.text || '').replace(/[\u0000-\u001f]/g, '').trim().slice(0, 160);
+        if (t) this.broadcast({ t: 'chat', text: '[ADMIN] ' + t, color: '#ff55ff' });
+        break;
+      }
+      case 'time': {
+        const v = Number(d.v); if (!(v >= 0 && v < 1)) return;
+        this.info.t0 = v; this.info.epoch = Date.now(); await this.store.put('world', this.info);
+        this.broadcast({ t: 'chat', text: 'An admin changed the time.', color: '#ff8cff' });
+        break;
+      }
+      case 'weather': // lasts 10 minutes, then the normal weather comes back
+        this.wx = ['rain', 'thunder', 'clear'].includes(d.k) ? { k: d.k, until: Date.now() + 600000 } : null;
+        break;
+      case 'bring': // pull a player over to you
+        if (target && target.name && c.st) this.out(target, { t: 'tpme', p: c.st.slice(0, 3) });
+        break;
+    }
   }
 
   // ---- cloud saves (HTTP): /api/login, /api/cloud ... ----
@@ -301,6 +348,7 @@ export class World {
     const a = await this.auth(d);
     if (a.why) return deny(a.why, a.code);
     const p = a.p, key = a.key;
+    if (p.banned) return deny('You are banned from this server.', 'banned');
     for (const o of [...this.clients.values()]) if (o.key === key) {
       // the same player again (e.g. rejoined quickly or from another computer): drop the old connection
       this.clients.delete(o.id); this.broadcast({ t: 'left', id: o.id }, o); try { o.close(); } catch (e) { }

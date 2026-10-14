@@ -288,6 +288,22 @@
   #achToast .t1 { color: #ffd84a; } #achToast .t2 { color: #fff; }
   #achScreen { z-index: 250; background: rgba(10,10,14,.92); justify-content: flex-start; padding: 24px 12px; box-sizing: border-box; }
   #achScreen h2 { margin: 6px 0 2px; font: bold 28px monospace; text-shadow: 3px 3px #000; }
+  #adminScreen { z-index: 260; background: rgba(14,6,22,.94); justify-content: flex-start; padding: 16px 10px; box-sizing: border-box; }
+  #adminScreen h2 { margin: 4px 0; font: bold 28px monospace; color: #ffcf3f; text-shadow: 3px 3px #000; }
+  #admBody { width: min(900px, 100%); display: flex; flex-wrap: wrap; gap: 10px; justify-content: center; }
+  .adm { background: rgba(255,255,255,.06); border: 2px solid #6a3f8f; padding: 8px 10px; width: min(440px, 95vw); box-sizing: border-box; font: 14px monospace; }
+  .adm.wide { width: min(890px, 95vw); }
+  .adm h3 { margin: 0 0 6px; font: bold 16px monospace; color: #e7b7ff; }
+  .adm .row { display: flex; flex-wrap: wrap; gap: 5px; align-items: center; margin: 5px 0; }
+  .adm .btn.sm.on { background: #8ee88e; } .adm .btn.sm.red { background: #f08a8a; }
+  .adm input, .adm select { font: 14px monospace; padding: 5px; background: #1c1c22; color: #fff; border: 1px solid #777; }
+  .adm input.num { width: 64px; }
+  #admItems { display: flex; flex-wrap: wrap; gap: 2px; max-height: 190px; overflow-y: auto; }
+  #admItems img { width: 32px; height: 32px; image-rendering: pixelated; background: rgba(139,139,139,.3); cursor: pointer; padding: 2px; }
+  #admItems img:hover { background: #8b8b8b; }
+  #admPlayers div, #admBanned div { display: flex; gap: 4px; align-items: center; margin: 3px 0; }
+  #admInfo { min-height: 18px; color: #9f9; font: 14px monospace; margin: 6px 0 2px; }
+  #btnAdmin { background: #f1cd47; }
   #achCount { color: #bbb; font: 14px monospace; margin-bottom: 14px; }
   #achGrid { display: grid; grid-template-columns: repeat(auto-fill, minmax(230px, 1fr)); gap: 8px; width: min(980px, 100%); margin-bottom: 16px; }
   .ach { display: flex; gap: 10px; align-items: center; padding: 8px; background: #2e2e36; border: 2px solid #111; box-shadow: inset 0 0 0 2px #45454f; }
@@ -387,6 +403,22 @@
 <div id="hotbar"></div>
 <div id="xpbar"><div id="xpfill"></div><span id="xplvl"></span></div>
 <div id="achToast"><img id="achIcon"><div><div class="t1">Achievement Get!</div><div class="t2" id="achName"></div></div></div>
+<div id="adminScreen" class="overlay" style="display:none"><h2>&#9733; ADMIN PANEL &#9733;</h2><div id="admWho" style="color:#ccc;font:13px monospace"></div><div id="admInfo"></div>
+ <div id="admBody">
+  <div class="adm"><h3>You</h3><div class="row"><button class="btn sm" data-a="fly" data-label="Fly">Fly</button><button class="btn sm" data-a="god" data-label="God Mode">God Mode</button><button class="btn sm" data-a="speed" data-label="Super Speed">Super Speed</button></div>
+   <div class="row"><button class="btn sm" data-a="heal">Heal &amp; Feed</button><button class="btn sm" data-a="xp">+10 Levels</button><button class="btn sm red" data-a="clearinv">Empty Inventory</button></div>
+   <div class="row">Mode: <button class="btn sm" data-a="mode" data-v="survival">Survival</button><button class="btn sm" data-a="mode" data-v="creative">Creative</button></div></div>
+  <div class="adm"><h3>World</h3>
+   <div class="row">Time: <button class="btn sm" data-a="time" data-v="0.01">Sunrise</button><button class="btn sm" data-a="time" data-v="0.25">Noon</button><button class="btn sm" data-a="time" data-v="0.49">Sunset</button><button class="btn sm" data-a="time" data-v="0.75">Midnight</button></div>
+   <div class="row">Weather: <button class="btn sm" data-a="weather" data-v="clear">Clear</button><button class="btn sm" data-a="weather" data-v="rain">Rain</button><button class="btn sm" data-a="weather" data-v="thunder">Thunder</button></div>
+   <div class="row"><select id="admMob"></select><button class="btn sm" data-a="spawn">Spawn</button><button class="btn sm red" data-a="killmobs">Remove All Mobs</button></div>
+   <div class="row">Go to X <input id="admX" class="num"> Y <input id="admY" class="num"> Z <input id="admZ" class="num"><button class="btn sm" data-a="tp">Teleport</button><button class="btn sm" data-a="spawnpt">Spawn</button></div></div>
+  <div class="adm" id="admZombie"><h3>Zombie Apocalypse</h3><div class="row"><button class="btn sm" data-a="nextwave">Next Wave</button><button class="btn sm red" data-a="boss">Spawn The Abomination</button><button class="btn sm" data-a="killz">Kill All Zombies</button></div></div>
+  <div class="adm" id="admServer"><h3>Big Server</h3><div class="row"><input id="admSay" placeholder="Announcement to everyone" maxlength="160" style="flex:1"><button class="btn sm" data-a="say">Send</button><button class="btn sm" data-a="refresh">Refresh</button></div>
+   <div id="admPlayers"></div><div id="admBanned"></div></div>
+  <div class="adm wide"><h3>Give Items <span style="font-weight:normal;color:#aaa">(click one for a full stack)</span></h3><div class="row"><input id="admFind" placeholder="Search..." style="flex:1"></div><div id="admItems"></div></div>
+ </div>
+ <button class="btn" id="admBack">Back to Game</button><button class="btn" id="admClose">Close</button></div>
 <div id="achScreen" class="overlay" style="display:none"><h2>Achievements</h2><div id="achCount"></div><div id="achGrid"></div><button class="btn" id="achBack">Done</button></div>
 <div id="cursorItem" class="slot"></div>
 <div id="death" class="overlay">
@@ -409,6 +441,7 @@
     <button class="btn" id="btnHost">Open to Friends</button>
     <button class="btn" id="btnMode">Game Mode: Survival</button>
     <button class="btn" id="btnAch">Achievements</button>
+    <button class="btn" id="btnAdmin" style="display:none">&#9733; Admin Panel</button>
     <button class="btn" id="btnQuit">Save &amp; Quit to Title</button>
   </div>
   <div id="loading"></div>
@@ -644,7 +677,7 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 <script>
 'use strict';
-const GAME_VERSION='6.3';
+const GAME_VERSION='7.1';
 const DEFAULT_SERVER='wss://blockcraft-server.austinhodgins2014-e99.workers.dev/ws'; // the big server's address (set by "Deploy Big Server.bat")
 let PV=null; // the PvP duel you're in (null = none)
 let ZM=null,flashOn=true,zLife=0,flickT=0;
@@ -830,326 +863,560 @@ for(const [c,o,name,bt,tt,it] of [[B.OAK_DOOR,B.OAK_DOOR_OPEN,'Oak Door',T.OAKD_
   DEF[c].door='closed';DEF[o].door='open';DEF[c].pair=o;DEF[o].pair=c;DEF[c].item=DEF[o].item=c;DOOR_TEX[c]=DOOR_TEX[o]={bot:bt,top:tt};}
 DEF[B.LEAVES].leaves=true;
 
-const COLS=16, ROWS=10;
-const atlas=document.createElement('canvas'); atlas.width=COLS*16; atlas.height=ROWS*16;
+const TS=32;            // pixels per texture tile: "HD" 32x32 textures (Minecraft's are 16x16)
+const COLS=16, ROWS=16;
+const atlas=document.createElement('canvas'); atlas.width=COLS*TS; atlas.height=ROWS*TS;
 const actx=atlas.getContext('2d');
 const tileColor=[]; // average color per tile (for particles)
 (function makeTextures(){
-  const img=actx.createImageData(atlas.width,atlas.height), d=img.data;
+  const N=TS,W=atlas.width,img=actx.createImageData(W,atlas.height),d=img.data;
   const tr=mulberry32(12345);
   const cb=v=>v<0?0:v>255?255:v|0;
-  function sp(t,x,y,c){const X=(t%COLS)*16+x,Y=Math.floor(t/COLS)*16+y,i=(Y*atlas.width+X)*4;d[i]=cb(c[0]);d[i+1]=cb(c[1]);d[i+2]=cb(c[2]);d[i+3]=c.length>3?c[3]:255;}
-  function fill(t,fn){for(let y=0;y<16;y++)for(let x=0;x<16;x++)sp(t,x,y,fn(x,y,tr()));}
-  const vary=(b,v,r)=>{const n=(r-0.5)*v;return [b[0]+n,b[1]+n,b[2]+n];};
   const CLEAR=[0,0,0,0];
-  // ---- texture helpers: smooth noise that wraps every 16 pixels, and small colour palettes (like Minecraft's) ----
+  const sp=(t,x,y,c)=>{if(!c||x<0||y<0||x>=N||y>=N)return;const i=((Math.floor(t/COLS)*N+y)*W+(t%COLS)*N+x)*4;d[i]=cb(c[0]);d[i+1]=cb(c[1]);d[i+2]=cb(c[2]);d[i+3]=c.length>3?c[3]:255;};
+  const gp=(t,x,y)=>{const i=((Math.floor(t/COLS)*N+y)*W+(t%COLS)*N+x)*4;return [d[i],d[i+1],d[i+2],d[i+3]];};
+  const fill=(t,fn)=>{for(let y=0;y<N;y++)for(let x=0;x<N;x++)sp(t,x,y,fn(x,y,tr()));};
+  // ---- noise that wraps around the tile, so neighbouring blocks join up without seams ----
   const H2=(x,y,s)=>{let h=(Math.imul(x,374761393)+Math.imul(y,668265263)+Math.imul(s,1442695041))|0;h=Math.imul(h^(h>>>13),1274126177);return ((h^(h>>>16))>>>0)/4294967296;};
-  const vn=(x,y,s,cell)=>{const n=16/cell,gx=x/cell,gy=y/cell,ix=Math.floor(gx),iy=Math.floor(gy),fx=gx-ix,fy=gy-iy;
-    const g=(a,b)=>H2(((a%n)+n)%n,((b%n)+n)%n,s);const sx=fx*fx*(3-2*fx),sy=fy*fy*(3-2*fy);
+  const wr=(a,n=N)=>((a%n)+n)%n;
+  // smooth noise; cx/cy = the size of one noise cell in pixels (must divide 32)
+  const vn=(x,y,s,cx,cy=cx)=>{const nx=N/cx,ny=N/cy,gx=x/cx,gy=y/cy,ix=Math.floor(gx),iy=Math.floor(gy),fx=gx-ix,fy=gy-iy;
+    const g=(a,b)=>H2(wr(a,nx),wr(b,ny),s),sx=fx*fx*(3-2*fx),sy=fy*fy*(3-2*fy);
     return (g(ix,iy)*(1-sx)+g(ix+1,iy)*sx)*(1-sy)+(g(ix,iy+1)*(1-sx)+g(ix+1,iy+1)*sx)*sy;};
-  const fbm=(x,y,s)=>vn(x,y,s,8)*0.45+vn(x,y,s+1,4)*0.35+vn(x,y,s+2,2)*0.2;
-  const pal=(cols,t)=>{t=t<0?0:t>0.999?0.999:t;return cols[Math.floor(t*cols.length)].slice();};
+  const fbm=(x,y,s,big=16,oct=4)=>{let v=0,a=1,t=0;for(let i=0;i<oct&&big>=1;i++,big/=2){v+=vn(x,y,s+i*31,big)*a;t+=a;a*=0.55;}return v/t;};
+  // cells (stones, pebbles, clods): scattered points; for every pixel the nearest point (i) and the distance to the cell's edge (e)
+  const jpts=(gx,gy,j,seed)=>{const r=mulberry32(seed),o=[];for(let b=0;b<gy;b++)for(let a=0;a<gx;a++)o.push([(a+0.5+(r()-0.5)*j)*N/gx,(b+0.5+(r()-0.5)*j)*N/gy]);return o;};
+  const wor=(P,x,y)=>{let bi=0,bd=1e9,bx=0,by=0;const px=x+0.5,py=y+0.5;
+    for(let i=0;i<P.length;i++){let dx=px-P[i][0],dy=py-P[i][1];dx-=Math.round(dx/N)*N;dy-=Math.round(dy/N)*N;const dd=dx*dx+dy*dy;if(dd<bd){bd=dd;bi=i;bx=dx;by=dy;}}
+    let e=1e9;for(let j=0;j<P.length;j++){if(j===bi)continue;let qx=px-P[j][0],qy=py-P[j][1];qx-=Math.round(qx/N)*N;qy-=Math.round(qy/N)*N;
+      const L=Math.hypot(bx-qx,by-qy);if(L<1e-6)continue;const de=(qx*qx+qy*qy-bd)/(2*L);if(de<e)e=de;}
+    return {i:bi,d:Math.sqrt(bd),e,dx:bx,dy:by};};
+  const wmap=P=>{const A=[];for(let y=0;y<N;y++)for(let x=0;x<N;x++)A.push(wor(P,x,y));return A;};
+  // height maps: lit() = how much a pixel faces the light (which comes from the top left), so bumps look 3D
+  const fld=fn=>{const F=new Float32Array(N*N);for(let y=0;y<N;y++)for(let x=0;x<N;x++)F[y*N+x]=fn(x,y);return F;};
+  const at=(F,x,y)=>F[wr(y)*N+wr(x)];
+  const lit=(F,x,y)=>(at(F,x+1,y)-at(F,x-1,y)+at(F,x,y+1)-at(F,x,y-1))*0.5;
+  // colour ramps (dark -> light) and picking a shade, with a little ordered dithering between shades like pixel art
+  const mix=(a,b,t)=>[a[0]+(b[0]-a[0])*t,a[1]+(b[1]-a[1])*t,a[2]+(b[2]-a[2])*t];
+  const ramp=(stops,n)=>{const o=[];for(let i=0;i<n;i++){const t=i/(n-1)*(stops.length-1),k=Math.min(stops.length-2,Math.floor(t));o.push(mix(stops[k],stops[k+1],t-k));}return o;};
+  const pal=(P,t)=>{t=t<0?0:t>0.999?0.999:t;return P[Math.floor(t*P.length)].slice();};
+  const BAYER=[0,8,2,10,12,4,14,6,3,11,1,9,15,7,13,5];
+  const pd=(P,t,x,y,k=1)=>pal(P,t+((BAYER[(y&3)*4+(x&3)]+0.5)/16-0.5)*k/P.length);
   const shade=(c,k)=>[c[0]*k,c[1]*k,c[2]*k];
-  const GRASS_P=[[62,108,34],[75,126,41],[88,143,49],[101,158,57],[116,174,66]];
-  const grassFn=(x,y,r)=>{const c=pal(GRASS_P,fbm(x,y,1)*0.75+r*0.42-0.1);if(H2(x,y,2)<0.07)c[1]+=14;return c;};
-  fill(T.GRASS_TOP,grassFn);
-  const DIRT_P=[[86,59,40],[104,73,49],[121,87,59],[135,99,68],[148,110,77]];
-  const dirtFn=(x,y,r)=>{const h=H2(x,y,4);if(h<0.035)return [76,52,36];if(h>0.975)return [160,132,104];return pal(DIRT_P,fbm(x,y,5)*0.7+r*0.4-0.08);};
+  // a thin line along the middle of a noise "contour": used for cracks
+  const crackAt=(x,y,s,cx=8,cy=4,keep=0.5)=>{const v=vn(x,y,s,cx,cy),gx=(vn(x+1,y,s,cx,cy)-vn(x-1,y,s,cx,cy))/2,gy=(vn(x,y+1,s,cx,cy)-vn(x,y-1,s,cx,cy))/2;
+    return Math.abs(v-0.5)/(Math.hypot(gx,gy)+1e-4)<0.55&&vn(x,y,s+1,16)>keep;};
+  // little round stones lying in dirt etc.
+  const pebbles=(seed,n,cols,rmin=0.9,rmax=2)=>{const r=mulberry32(seed),o=[];for(let k=0;k<n;k++){const rx=rmin+r()*(rmax-rmin);o.push({x:r()*N,y:r()*N,rx,ry:rx*(0.65+r()*0.3),c:cols[Math.floor(r()*cols.length)]});}return o;};
+  const pebAt=(L,x,y)=>{for(const p of L){let dx=x+0.5-p.x,dy=y+0.5-p.y;dx-=Math.round(dx/N)*N;dy-=Math.round(dy/N)*N;const q=(dx/p.rx)**2+(dy/p.ry)**2;
+    if(q<=1)return shade(p.c,1-(dx/p.rx+dy/p.ry)*0.2-(q>0.55?0.1:0));}return null;};
+
+  // ================= grass, dirt, stone, sand =================
+  const GRASS=ramp([[32,66,24],[50,94,30],[72,122,38],[96,148,48],[124,172,60],[158,196,82]],10);
+  const blades=(()=>{const r=mulberry32(77),Bf=new Float32Array(N*N).fill(-1);
+    for(let k=0;k<210;k++){const x0=Math.floor(r()*N),y0=Math.floor(r()*N),len=2+Math.floor(r()*3),lean=r()<0.35?(r()<0.5?-1:1):0,v=r()*0.3;
+      const sx=wr(x0+1),sy=wr(y0+1);if(Bf[sy*N+sx]<0)Bf[sy*N+sx]=-2;               // a little shadow under each blade
+      for(let i=0;i<len;i++){const x=wr(x0+(i>=len-1?lean:0)),y=wr(y0-i);Bf[y*N+x]=Math.max(Bf[y*N+x],v+(i+1)/len*0.7);}}
+    return Bf;})();
+  const grassOf=P=>(x,y,r)=>{let t=fbm(x,y,1,16,3)*0.55+0.1+(r-0.5)*0.1;const b=blades[y*N+x];
+    if(b>=0)t+=0.12+b*0.32;else if(b===-2)t-=0.12;return pd(P,t,x,y,0.7);};
+  const grassTop=grassOf(GRASS);
+  fill(T.GRASS_TOP,grassTop);
+  const DIRT=ramp([[64,42,28],[86,58,38],[108,76,50],[128,92,62],[148,110,76],[166,128,92]],9);
+  const DP=jpts(7,7,0.95,31),DW=wmap(DP);
+  const DH=fld((x,y)=>Math.min(DW[y*N+x].e,2.2)/2.2*0.6+fbm(x,y,5,8,3)*0.4);
+  const PEB=pebbles(32,6,[[150,136,120],[124,114,104],[172,154,132]]);
+  const dirtFn=(x,y,r)=>{const pb=pebAt(PEB,x,y);if(pb)return pb;const w=DW[y*N+x];
+    let t=at(DH,x,y)*0.55+0.1+H2(w.i,0,6)*0.24+lit(DH,x,y)*1.3+(r-0.5)*0.1;if(w.e<0.6)t-=0.12;if(H2(x,y,4)<0.025)t-=0.3;return pd(DIRT,t,x,y,0.8);};
   fill(T.DIRT,dirtFn);
-  const edge=[];for(let x=0;x<16;x++)edge[x]=3+(tr()<0.5?1:0)+(tr()<0.25?1:0)+(tr()<0.12?2:0);
-  fill(T.GRASS_SIDE,(x,y,r)=>y<edge[x]?(y===edge[x]-1?shade(grassFn(x,y,r),0.82):grassFn(x,y,r)):y===edge[x]?shade(dirtFn(x,y,r),0.85):dirtFn(x,y,r));
-  const STONE_P=[[100,100,100],[112,112,112],[123,123,123],[133,133,133],[144,144,144]];
-  const stoneFn=(x,y,r)=>{let t=vn(x,y,7,8)*0.5+vn(x,y,8,2)*0.3+r*0.32-0.06;if(vn(x*0.5,y*2,9,4)>0.78)t-=0.25;return pal(STONE_P,t);};
+  // grass hanging over the top of the dirt on the sides
+  const fringe=[];{const r=mulberry32(55);for(let x=0;x<N;x++){let f=6+Math.floor(vn(x,0,56,8)*5);if(r()<0.3)f+=2+Math.floor(r()*4);fringe.push(f);}}
+  const sideOf=(top,under=dirtFn)=>(x,y,r)=>{const f=fringe[x];if(y<f){const c=top(x,y,r);return y===f-1?shade(c,0.76):shade(c,0.95);}
+    const c=under(x,y,r);return y===f?shade(c,0.66):y===f+1?shade(c,0.84):c;};
+  fill(T.GRASS_SIDE,sideOf(grassTop));
+  const SNOWP=ramp([[196,208,224],[214,224,238],[228,236,247],[240,245,252],[250,252,255]],8);
+  const snowFn=(x,y,r)=>{const s=H2(x,y,24);if(s<0.01)return [255,255,255];let t=fbm(x,y,23,16,4)*0.6+0.3+(r-0.5)*0.12;if(s>0.986)t-=0.3;return pd(SNOWP,t,x,y,0.8);};
+  fill(T.SNOW,snowFn);
+  fill(T.SNOW_SIDE,sideOf(snowFn));
+  const STONE=ramp([[86,86,90],[102,102,106],[116,116,119],[130,130,132],[143,143,145],[157,157,159]],9);
+  const SH=fld((x,y)=>fbm(x,y,7,16,4)*0.5+vn(x,y,8,4)*0.3+vn(x,y,9,2)*0.2);
+  const stoneFn=(x,y,r)=>{let t=at(SH,x,y)*1.05-0.06+lit(SH,x,y)*2.6+(r-0.5)*0.16;const g=H2(x,y,10);if(g<0.025)t+=0.24;else if(g>0.98)t-=0.22;
+    if(crackAt(x,y,9))t-=0.26;return pd(STONE,t,x,y,0.5);};
   fill(T.STONE,stoneFn);
-  fill(T.SAND,(x,y,r)=>{if(H2(x,y,10)<0.05)return [188,174,124];return pal([[206,194,142],[216,204,152],[224,213,161],[231,221,171],[238,229,183]],fbm(x,y,11)*0.4+r*0.66-0.04);});
-  fill(T.WATER,(x,y,r)=>{const w=vn(x,y,12,8)*0.6+Math.sin((x+y*0.5)*0.8)*0.15+r*0.2;return pal([[38,72,170],[44,82,184],[50,92,196],[60,104,206],[86,132,222]],w);});
-  const BARK_P=[[70,54,33],[86,66,40],[101,79,48],[114,90,56],[126,100,63]];
-  const barkFn=(x,y,r)=>{let t=vn(x,y,13,2)*0.4+H2(x,99,14)*0.35+r*0.3-0.04;if(H2(x,y>>2,15)<0.2||H2(x+1,y>>2,15)<0.08)t=0.05;return pal(BARK_P,t);};
-  fill(T.LOG_SIDE,barkFn);
-  fill(T.LOG_TOP,(x,y,r)=>{const dx=x-7.5,dy=y-7.5;if(Math.max(Math.abs(dx),Math.abs(dy))>6.6)return barkFn(x,y,r);
-    const d=Math.hypot(dx,dy)+vn(x,y,16,4)*0.9;if(d<1.2)return [132,100,58];const ring=Math.floor(d*1.15)%2;return pal(ring?[[164,130,80],[174,140,88]]:[[146,113,67],[156,122,74]],r);});
-  // leaves: clumps of leaves with gaps between them, lighter on top of each clump
-  const leafFn=(cols,gap)=>(x,y,r)=>{const v=vn(x,y,17,4)*0.55+vn(x,y,18,2)*0.45;if(v*0.7+r*0.45<gap)return CLEAR;
-    return pal(cols,v*0.65+r*0.35+(vn(x,y-1,17,4)<vn(x,y,17,4)?0.12:-0.05));};
-  fill(T.LEAVES,leafFn([[32,78,22],[44,98,28],[56,118,36],[70,138,44],[88,158,56]],0.3));
-  const PLANK_P=[[146,116,68],[158,126,76],[168,135,82],[178,144,89]];
-  const planksOf=(P,seamC)=>(x,y,r)=>{const row=y>>2,end=(row*5)%16;
-    if(y%4===3)return seamC.slice();if(x===end)return shade(seamC,1.08);
-    if(y%4===0&&x!==(end+15)%16)return pal(P,0.85+r*0.15);                          // top edge of each board catches the light
-    if((x===(end+1)%16||x===(end+14)%16)&&y%4===1)return shade(seamC,0.9);           // nails
-    return pal(P,H2(Math.floor((x+row*3)/3),y,19)*0.45+vn(x,y,20,4)*0.3+r*0.3);};
-  fill(T.PLANKS,planksOf(PLANK_P,[104,80,46]));
-  const pts=[];for(let i=0;i<10;i++)pts.push([tr()*16,tr()*16]);
-  // cobblestone: rounded stones, each its own shade, lit from the top left, with dark gaps between
-  const cobbleOf=(P,gapC)=>(x,y,r)=>{let d1=99,d2=99,bp=null,bi=0;
-    pts.forEach((p,i)=>{for(let ox=-16;ox<=16;ox+=16)for(let oy=-16;oy<=16;oy+=16){const dd=Math.hypot(x+0.5-p[0]-ox,y+0.5-p[1]-oy);
-      if(dd<d1){d2=d1;d1=dd;bp=[p[0]+ox,p[1]+oy];bi=i;}else if(dd<d2)d2=dd;}});
-    if(d2-d1<1.0)return gapC.slice();
-    const lit=((bp[0]-x-0.5)+(bp[1]-y-0.5))*0.045+(d2-d1<2?-0.12:0);
-    return pal(P,H2(bi,0,21)*0.45+0.25+lit+r*0.18);};
-  fill(T.COBBLE,cobbleOf([[96,96,96],[110,110,110],[124,124,124],[138,138,138],[152,152,152]],[62,62,62]));
-  fill(T.GLASS,(x,y,r)=>{if(x===0||y===0||x===15||y===15)return [215,235,245];
-    if(((x===y+3||x===y+4)&&x>3&&x<9)||(x===y-6&&x>5&&x<9))return [235,245,255];return CLEAR;});
-  // bricks: each brick lighter on top, darker underneath, with grey mortar
-  fill(T.BRICK,(x,y,r)=>{const row=y>>2,bx=(x+(row%2)*4)%8;if(y%4===3||bx===0)return pal([[170,164,154],[186,180,170],[196,190,180]],r);
-    const P=[[124,52,40],[138,60,46],[150,68,52],[162,78,60]];const c=pal(P,H2(Math.floor((x+(row%2)*4)/8),row,22)*0.5+r*0.35+(y%4===0?0.3:y%4===2?-0.15:0)+(bx===1?0.12:bx===7?-0.1:0));return c;});
-  fill(T.SNOW,(x,y,r)=>pal([[226,234,242],[234,241,248],[242,248,252],[250,252,255]],fbm(x,y,23)*0.5+r*0.55));
-  fill(T.SNOW_SIDE,(x,y,r)=>y<edge[x]?pal([[226,234,242],[238,244,250],[248,251,255]],r):y===edge[x]?shade(dirtFn(x,y,r),0.85):dirtFn(x,y,r));
-  fill(T.BEDROCK,(x,y,r)=>pal([[34,34,34],[54,54,54],[78,78,78],[104,104,104],[128,128,128]],vn(x,y,24,4)*0.6+vn(x,y,25,2)*0.3+r*0.25-0.08));
-  // gravel: lots of little pebbles in greys and browns
-  fill(T.GRAVEL,(x,y,r)=>{const v=vn(x,y,26,2),k=H2(Math.floor(x/2)+Math.floor(y/2)*8,0,27);
-    const P=k<0.33?[[96,88,82],[118,108,100],[140,130,122]]:k<0.66?[[104,104,104],[128,128,128],[156,156,156]]:[[122,112,104],[148,138,130],[172,164,156]];
-    return v<0.3?[78,74,72]:pal(P,v*0.7+r*0.35-0.05);});
-  // ores: clusters of shiny crystals (a light top edge and a dark bottom edge) in stone
-  function ore(t,col){
-    const M=['.X.|XXX|.XX','XX.|XXX|.X.','.XX|XX.|XX.','X..|XXX|XX.','.X.|XX.|XXX','XX.|.XX|.X.'].map(m=>m.split('|'));
-    const bl=[];for(let i=0;i<5;i++)bl.push([Math.floor(tr()*13),Math.floor(tr()*13),Math.floor(tr()*M.length)]);
-    const hi=[Math.min(255,col[0]*1.25+40),Math.min(255,col[1]*1.25+40),Math.min(255,col[2]*1.25+40)],lo=shade(col,0.6);
-    const at=(x,y)=>{for(const [bx,by,s] of bl){const ox=x-bx,oy=y-by;if(ox>=0&&ox<3&&oy>=0&&oy<3&&M[s][oy][ox]==='X')return true;}return false;};
-    fill(t,(x,y,r)=>{if(!at(x,y))return stoneFn(x,y,r);
-      if(!at(x,y-1)&&!at(x-1,y))return hi.slice();if(!at(x,y-1))return pal([hi,col],0.3+r*0.4);
-      if(!at(x,y+1)||!at(x+1,y))return lo;return pal([col,shade(col,0.88)],r);});}
-  ore(T.COAL,[40,40,40]);ore(T.IRON,[214,166,134]);ore(T.GOLD,[246,208,56]);ore(T.DIAMOND,[80,220,230]);
-  fill(T.CACTUS_SIDE,(x,y,r)=>{if(x%5===2&&y%4===1)return [225,225,190];const c=vary([80,140,52],20,r);if(x%5===2){c[0]-=25;c[1]-=35;c[2]-=15;}return c;});
-  fill(T.CACTUS_TOP,(x,y,r)=>{const e=x===0||y===0||x===15||y===15;return vary(e?[60,110,40]:[110,170,70],18,r);});
-  // plants
-  fill(T.TALLGRASS,()=>CLEAR);
-  for(let b=0;b<9;b++){const bx=1+Math.floor(tr()*14),h=5+Math.floor(tr()*10),lean=(tr()-0.5)*4;
-    for(let i=0;i<h;i++){const yy=15-i,xx=clamp(Math.round(bx+lean*i/h),0,15);sp(T.TALLGRASS,xx,yy,vary([70,140,45],40,tr()));}}
-  function flower(t,col){fill(t,()=>CLEAR);for(let y=8;y<16;y++)sp(t,7,y,[50,120,30]);sp(t,6,12,[60,140,35]);sp(t,8,11,[60,140,35]);
-    for(let y=3;y<8;y++)for(let x=5;x<10;x++){const dx=x-7,dy=y-5;if(dx*dx+dy*dy<=5)sp(t,x,y,vary(col,30,tr()));}
-    sp(t,7,5,t===T.ROSE?[250,200,60]:[230,140,20]);}
-  flower(T.ROSE,[210,30,30]);flower(T.DANDELION,[250,230,50]);
-  fill(T.TORCH,()=>CLEAR);
-  for(let y=6;y<16;y++){sp(T.TORCH,7,y,[120,88,50]);sp(T.TORCH,8,y,[96,70,40]);}
-  sp(T.TORCH,7,6,[255,240,140]);sp(T.TORCH,8,6,[255,210,90]);sp(T.TORCH,7,7,[255,190,60]);sp(T.TORCH,8,7,[240,140,30]);
-  sp(T.TORCH,7,5,[255,255,200]);sp(T.TORCH,8,5,[255,230,120]);
-  const knit=col=>(x,y,r)=>{const k=((x>>1)+(y>>1))%2?0.06:-0.06,v=vn(x,y,28,4)*0.12+(r-0.5)*0.1+k+(x%4===0?-0.08:0)+1;return shade(col,v);};
-  fill(T.WOOL,knit([234,236,236]));
-  fill(T.TNT_SIDE,(x,y,r)=>{if(y>=5&&y<=10){if(y===5||y===10)return vary([200,200,200],10,r);
-      const L=['XXX.X..X.XXX','.X..XX.X..X.','.X..X.XX..X.','.X..X..X..X.'];const row=L[y-6],c=x-2;
-      return c>=0&&c<12&&row[c]==='X'?[30,30,30]:vary([235,235,235],10,r);}
-    return pal(x%4===0?[[150,34,26],[166,40,30]]:[[194,50,36],[208,58,42],[220,68,50]],r*0.7+(x%4===1?0.3:0));});
-  fill(T.TNT_TOP,(x,y,r)=>{const d=Math.hypot(x-7.5,y-7.5);if(d<2)return [60,60,60];if(d<3)return [40,40,40];return vary([200,60,45],18,r);});
-  fill(T.TNT_BOTTOM,(x,y,r)=>vary([190,55,40],18,r));
-  // chest (drawn for the bottom 14 rows, since the chest model is 14/16 tall)
-  const chestWood=(x,y,r)=>{if(x===0||x===15||y===2||y===15)return pal([[78,52,22],[92,62,28]],r);if((y+1)%4===0)return pal([[118,80,36],[128,88,40]],r);
-    return pal([[146,98,44],[158,108,50],[168,116,54],[178,126,60]],H2(Math.floor(x/3),y,42)*0.45+vn(x,y,43,4)*0.25+r*0.3+(y%4===0?0.2:0));};
-  fill(T.CHEST_SIDE,(x,y,r)=>y<2?CLEAR:y===7?vary([90,60,25],10,r):chestWood(x,y,r));
-  fill(T.CHEST_FRONT,(x,y,r)=>{if(y<2)return CLEAR;if(x>=7&&x<=8&&y>=6&&y<=9)return y===6?[210,210,210]:[150,150,150];return y===7?vary([90,60,25],10,r):chestWood(x,y,r);});
-  fill(T.CHEST_TOP,(x,y,r)=>{const e=x<=1||x>=14||y<=1||y>=14;const c=vary(e?[90,60,25]:[165,115,52],16,r);if(!e&&y%4===2){c[0]-=25;c[1]-=20;c[2]-=12;}return c;});
-  // bed: pillow at the top of the tile, red blanket below; side tile uses the bottom 9 rows
-  // bed (2 blocks): head top has the pillow, foot top is all blanket; sides use the bottom 9 rows
-  const blanket=(x,y,r)=>{const c=vary((x+y*3)%7===0?[200,40,40]:[178,28,30],10,r);if(x===0||x===15){c[0]*=0.78;c[1]*=0.78;c[2]*=0.78;}return c;};
-  fill(T.BED_TOP,(x,y,r)=>{if(y>=2&&y<=6&&x>=2&&x<=13){const e=x===2||x===13||y===2||y===6;return vary(e?[206,206,214]:[246,246,250],6,r);}
-    if(y<8)return vary([214,214,220],6,r);if(y===8)return vary([150,20,22],8,r);return blanket(x,y,r);});
-  fill(T.BED_FOOT_TOP,(x,y,r)=>y>=14?vary(y===14?[150,20,22]:[128,16,18],8,r):blanket(x,y,r));
-  fill(T.BED_SIDE,(x,y,r)=>{if(y<7)return CLEAR;if(y===7)return vary([214,214,220],6,r);if(y<=10)return vary(y===8?[150,22,24]:[178,28,30],10,r);
-    if(y<=12)return vary(y===11?[160,116,62]:[128,90,48],12,r);return (x<=2||x>=13)?vary([104,72,38],12,r):CLEAR;});
-  fill(T.BED_END,(x,y,r)=>{if(y<7)return CLEAR;if(y<=10)return vary(y===7?[150,22,24]:[178,28,30],10,r);
-    if(y<=12)return vary(y===11?[160,116,62]:[128,90,48],12,r);return (x<=2||x>=13)?vary([104,72,38],12,r):CLEAR;});
-  // biome trees
-  const barkOf=P=>(x,y,r)=>{let t=vn(x,y,13,2)*0.4+H2(x,77,14)*0.35+r*0.3-0.04;if(H2(x,y>>2,29)<0.2)t=0.05;return pal(P,t);};
-  fill(T.SPRUCE_SIDE,barkOf([[46,32,19],[58,41,25],[70,49,30],[82,58,36],[94,68,42]]));
-  fill(T.SPRUCE_TOP,(x,y,r)=>{const dx=x-7.5,dy=y-7.5;if(Math.max(Math.abs(dx),Math.abs(dy))>6.6)return vary([72,50,30],14,r);
-    return vary(Math.floor(Math.hypot(dx,dy)*1.1)%2?[125,92,55]:[105,76,45],10,r);});
-  fill(T.SPRUCE_LEAVES,leafFn([[20,50,32],[28,64,40],[38,78,50],[50,94,62]],0.26));
-  fill(T.BIRCH_SIDE,(x,y,r)=>{const c=vary([226,226,216],14,r);if((y*7+x*3)%11===0||(y%5===2&&x>3&&x<9))return vary([45,40,35],20,r);return c;});
-  fill(T.BIRCH_TOP,(x,y,r)=>{const dx=x-7.5,dy=y-7.5;if(Math.max(Math.abs(dx),Math.abs(dy))>6.6)return vary([226,226,216],14,r);
-    return vary(Math.floor(Math.hypot(dx,dy)*1.1)%2?[205,180,120]:[185,160,100],10,r);});
-  fill(T.BIRCH_LEAVES,leafFn([[68,114,42],[84,134,52],[102,154,64],[122,172,80]],0.3));
-  fill(T.ICE,(x,y,r)=>{const c=vary([150,190,250],16,r);if((x+y)%7===0||(x-y+16)%11===0){c[0]+=40;c[1]+=40;c[2]+=5;}return c;});
-  fill(T.JUNGLE_SIDE,barkOf([[64,50,24],[78,62,30],[90,72,36],[102,82,42],[114,92,48]]));
-  fill(T.JUNGLE_LEAVES,leafFn([[24,88,12],[32,108,18],[42,128,24],[56,148,34],[74,166,46]],0.22));
-  // furnace
-  const fstone=(x,y,r)=>{const c=stoneFn(x,y,r);return x===0||x===15||y===0||y===15?shade(c,0.7):x===1||y===1?shade(c,1.12):x===14||y===14?shade(c,0.88):c;};
-  fill(T.FURNACE_SIDE,fstone);
-  fill(T.FURNACE_TOP,(x,y,r)=>{const c=fstone(x,y,r);if(x>2&&x<13&&y>2&&y<13){c[0]-=10;c[1]-=10;c[2]-=10;}return c;});
-  const fFront=(lit)=>(x,y,r)=>{if(x>=4&&x<=11&&y>=8&&y<=13){if(y===8||x===4||x===11)return [50,50,50];
-      if(!lit)return [22,22,22];const f=(13-y)/5;return vary([255,140+f*90,30+f*40],30,r);}
-    if(y>=3&&y<=4&&x>=4&&x<=11)return [60,60,60];return fstone(x,y,r);};
-  fill(T.FURNACE_FRONT,fFront(false));fill(T.FURNACE_LIT,fFront(true));
-  // farming
-  fill(T.FARMLAND,(x,y,r)=>{const c=vary([96,62,38],20,r);if(y%4===0){c[0]-=25;c[1]-=18;c[2]-=12;}return c;});
-  fill(T.WHEAT,()=>CLEAR);fill(T.WHEAT_YOUNG,()=>CLEAR);
-  for(let k=0;k<6;k++){const bx=1+k*2.6|0;for(let y=4;y<16;y++)sp(T.WHEAT,bx,y,vary([180,160,60],30,tr()));
-    for(let y=1;y<5;y++){sp(T.WHEAT,bx,y,vary([215,190,90],30,tr()));sp(T.WHEAT,Math.min(15,bx+1),y+1,vary([200,170,70],30,tr()));}
-    for(let y=10;y<16;y++)sp(T.WHEAT_YOUNG,bx,y,vary([70,160,40],30,tr()));}
-  fill(T.SPRUCE_PLANKS,planksOf([[94,68,39],[104,76,44],[114,84,50],[124,92,56]],[70,50,29]));
-  fill(T.PATH_TOP,(x,y,r)=>r<0.35?vary([150,130,95],20,tr()):r<0.7?vary([125,110,85],20,tr()):vary([170,150,110],20,tr()));
-  fill(T.PATH_SIDE,(x,y,r)=>y<2?vary([140,122,90],20,r):dirtFn(x,y,r));
-  // crafting table: a 3x3 grid drawn on the top, tools hanging on the sides
-  const tableWood=planksOf(PLANK_P,[104,80,46]);
-  fill(T.TABLE_TOP,(x,y,r)=>{const e=x===0||y===0||x===15||y===15;if(e)return vary([96,66,36],10,r);
-    if(x===5||x===10||y===5||y===10)return vary([110,78,44],8,r);return vary((x+y)%2?[188,146,92]:[176,136,84],8,r);});
-  fill(T.TABLE_SIDE,(x,y,r)=>{if(y<3)return vary(y===2?[96,66,36]:[150,112,66],10,r);
-    if(x>=3&&x<=4&&y>=5&&y<=12)return vary([120,90,58],8,r);                       // saw handle
-    if(x>=5&&x<=11&&y>=5&&y<=7)return vary(y===7?[150,150,156]:[196,196,204],8,r);    // saw blade
-    if(x>=12&&x<=13&&y>=4&&y<=13)return vary([110,80,48],8,r);                       // hammer handle
-    if(x>=10&&x<=15&&y>=3&&y<=4)return vary([120,120,128],8,r);                       // hammer head
-    return tableWood(x,y,r);});
-  fill(T.TABLE_FRONT,(x,y,r)=>{if(y<3)return vary(y===2?[96,66,36]:[150,112,66],10,r);
-    if(x>=3&&x<=5&&y>=5&&y<=13&&!(x===4&&y>6))return vary([110,110,118],8,r);         // shears / tongs
-    if(x>=9&&x<=12&&y>=5&&y<=8)return vary([196,196,204],8,r);if(x>=10&&x<=11&&y>8&&y<=13)return vary([120,90,58],8,r); // hammer
-    return tableWood(x,y,r);});
-  // ---- more blocks ----
-  fill(T.STONE_BRICKS,(x,y,r)=>{const row=y>>3,bx=(x+(row%2)*8)%16,by=y%8;
-    if(by===7||bx===15)return pal([[70,70,70],[80,80,80]],r);
-    let t=vn(x,y,30,4)*0.4+r*0.3+0.15;if(by===0||bx===0)t+=0.35;else if(by===6||bx===14)t-=0.22;
-    return pal([[100,100,100],[112,112,112],[122,122,122],[132,132,132],[146,146,146]],t);});
-  fill(T.SANDSTONE_SIDE,(x,y,r)=>{if(y<3)return vary([226,214,160],10,r);if(y>=13)return vary([200,186,132],10,r);
-    return vary(y%4===0?[206,194,140]:[219,207,154],10,r);});
-  fill(T.SANDSTONE_TOP,(x,y,r)=>vary([222,210,156],12,r));
-  fill(T.MOSSY,(x,y,r)=>{let d1=99,d2=99;for(const p of pts)for(let ox=-16;ox<=16;ox+=16)for(let oy=-16;oy<=16;oy+=16){
-      const dd=Math.hypot(x+0.5-p[0]-ox,y+0.5-p[1]-oy);if(dd<d1){d2=d1;d1=dd;}else if(dd<d2)d2=dd;}
-    if(d2-d1<1.1)return vary([70,78,62],20,r);const moss=hash3(x>>1,y>>1,3,77)<0.5;
-    return vary(moss?[82,122,58]:[132,132,132],24,r);});
-  const pumpkinSide=(x,y,r)=>{const c=vary([214,128,30],18,r);if(x%5===0){c[0]-=40;c[1]-=30;c[2]-=8;}if(y===0||y===15){c[0]-=30;c[1]-=26;}return c;};
-  fill(T.PUMPKIN_SIDE,pumpkinSide);
-  fill(T.PUMPKIN_TOP,(x,y,r)=>{const d=Math.hypot(x-7.5,y-7.5);if(d<1.6)return vary([90,110,40],10,r);
-    const c=vary([206,120,28],16,r);if(Math.floor(Math.atan2(y-7.5,x-7.5)*2.6)%2===0){c[0]-=24;c[1]-=18;}return c;});
-  const face=lit=>(x,y,r)=>{const cut=lit?vary([255,210,60],30,r):[40,22,6];
-    if((y>=4&&y<=6&&((x>=3&&x<=5)||(x>=10&&x<=12)))||(y===7&&x>=7&&x<=8))return cut;            // eyes and nose
-    if((y===10&&x>=3&&x<=12)||(y===11&&x>=4&&x<=11&&x!==6&&x!==9)||(y===12&&x>=5&&x<=10&&x!==7))return cut; // mouth
-    return pumpkinSide(x,y,r);};
-  fill(T.PUMPKIN_FACE,face(false));fill(T.JACK_FACE,face(true));
-  const metalBlock=(base,hi,lo)=>(x,y,r)=>{if(x===0||y===0)return vary(hi,6,r);if(x===15||y===15)return vary(lo,6,r);
-    const c=vary(base,8,r);if((x+y)%7===0){c[0]+=14;c[1]+=14;c[2]+=14;}return c;};
-  fill(T.IRON_BLOCK,metalBlock([214,214,218],[245,245,250],[150,150,156]));
-  fill(T.GOLD_BLOCK,metalBlock([246,204,52],[255,246,140],[190,136,20]));
-  fill(T.DIAMOND_BLOCK,metalBlock([92,226,214],[200,255,250],[36,150,142]));
-  const dyed=knit;
-  fill(T.RED_WOOL,dyed([176,40,38]));fill(T.YELLOW_WOOL,dyed([232,200,44]));
-  fill(T.BOOKSHELF,(x,y,r)=>{if(y===0||y===15||y===7||y===8||x===0||x===15)return y===7||y===8?pal([[104,76,42],[116,86,48]],r):tableWood(x,y,r);
-    if(y===1||y===9){const bk=Math.floor((x-1)/2+(y>8?3:0));if(H2(bk,y,47)<0.3)return [40,30,20];}
-    const book=Math.floor((x-1)/2+(y>8?3:0));const cols=[[150,40,36],[44,80,150],[60,120,50],[170,130,60],[110,50,120],[40,40,40]];
-    const c=vary(cols[(book*7+(y>8?2:0))%cols.length],14,r);if((y===2||y===10)&&x%2)c[0]+=40,c[1]+=40,c[2]+=30;return c;});
-  fill(T.LADDER,(x,y,r)=>{if(x>=2&&x<=3||x>=12&&x<=13)return vary(x===2||x===12?[150,112,66]:[120,88,50],10,r);
-    if(y%4===1&&x>3&&x<12)return vary(y%8===1?[156,118,70]:[140,104,60],10,r);return CLEAR;});
-  fill(T.SUGAR_CANE,()=>CLEAR);
-  for(const bx of [3,8,12])for(let y=0;y<16;y++){const joint=(y+bx)%5===0;
-    sp(T.SUGAR_CANE,bx,y,vary(joint?[150,200,100]:[110,170,70],16,tr()));sp(T.SUGAR_CANE,bx+1,y,vary(joint?[120,170,80]:[90,146,56],16,tr()));
-    if(y%5===2)sp(T.SUGAR_CANE,bx+(bx>8?-1:2),y,vary([100,170,60],20,tr()));}
-  // ---- the Nether ----
-  fill(T.LAVA,(x,y,r)=>{const w=Math.sin(x*0.9+y*0.4)+Math.sin(y*0.7-x*0.3);return vary(w>1?[255,206,60]:w>-0.3?[240,120,20]:[190,60,10],24,r);});
-  fill(T.OBSIDIAN,(x,y,r)=>{const c=vary([22,14,34],10,r);if(tr()<0.12){c[0]+=40;c[1]+=24;c[2]+=60;}return c;});
-  fill(T.PORTAL,(x,y,r)=>{const a=Math.sin(x*0.7+Math.sin(y*0.5)*2)+Math.cos(y*0.6-x*0.2);return vary(a>1.2?[200,120,255]:a>0?[130,40,220]:[80,16,160],18,r);});
-  const rack=(x,y,r)=>{let t=vn(x,y,40,4)*0.5+vn(x,y,41,2)*0.3+r*0.32-0.05;if(vn(x,y*2,44,4)>0.8)t-=0.3;
-    return pal([[86,28,28],[106,36,36],[126,46,44],[144,58,54],[162,74,68]],t);};
-  fill(T.NETHERRACK,rack);
-  fill(T.SOUL_SAND,(x,y,r)=>{const c=vary([86,64,50],18,r);const fx=x%8,fy=y%8;
-    if((fy===2&&(fx===1||fx===2||fx===5||fx===6))||(fy===5&&fx>=2&&fx<=5))return vary([50,36,28],8,r);return c;});
-  {const bl=[];for(let i=0;i<6;i++)bl.push([1+Math.floor(tr()*14),1+Math.floor(tr()*14)]);
-    fill(T.QUARTZ_ORE,(x,y,r)=>{for(const b of bl)if(Math.abs(x-b[0])+Math.abs(y-b[1])<=1)return vary([236,230,220],14,tr());return rack(x,y,r);});}
-  fill(T.QUARTZ_BLOCK,(x,y,r)=>{const e=x===0||y===0||x===15||y===15;return vary(e?[214,206,196]:[236,230,222],6,r);});
-  // ---- more Minecraft blocks ----
-  fill(T.CLAY,(x,y,r)=>{const c=vary([160,166,180],12,r);if((x*3+y*5)%11===0){c[0]-=14;c[1]-=14;c[2]-=12;}return c;});
-  const mush=(cap,spot)=>(x,y,r)=>{if(y>=9&&x>=7&&x<=8)return vary([224,214,190],10,r);
-    if(y>=4&&y<=8&&Math.abs(x-7.5)<=(y===4?3:5)){if(spot&&((x===5&&y===6)||(x===9&&y===5)||(x===10&&y===7)))return [250,250,250];return vary(cap,16,r);}return CLEAR;};
-  fill(T.RED_MUSHROOM,mush([200,30,30],true));fill(T.BROWN_MUSHROOM,mush([150,108,76],false));
-  fill(T.MELON_SIDE,(x,y,r)=>vary(x%4<2?[110,160,40]:[70,120,30],14,r));
-  fill(T.MELON_TOP,(x,y,r)=>{const d=Math.max(Math.abs(x-7.5),Math.abs(y-7.5));return vary(d>6.5?[80,124,34]:Math.floor(d)%2?[110,160,44]:[96,146,38],12,r);});
-  fill(T.COBWEB,(x,y,r)=>{const cx=x-7.5,cy=y-7.5,d=Math.hypot(cx,cy);
-    if(Math.abs(cx)<0.6||Math.abs(cy)<0.6||Math.abs(cx-cy)<0.7||Math.abs(cx+cy)<0.7||Math.abs(d-3)<0.5||Math.abs(d-6)<0.5)return vary([230,230,236],10,r);return CLEAR;});
-  fill(T.HAY_SIDE,(x,y,r)=>{if(y>=4&&y<=5||y>=10&&y<=11)return vary([120,70,30],10,r);const c=vary([196,170,60],20,r);if(x%3===0){c[0]-=24;c[1]-=24;}return c;});
-  fill(T.HAY_TOP,(x,y,r)=>{const d=Math.hypot(x-7.5,y-7.5);return vary(Math.floor(d*1.3)%2?[200,174,64]:[170,140,46],16,r);});
-  const dyed2=knit;
-  fill(T.BLACK_WOOL,dyed2([34,30,34]));fill(T.BLUE_WOOL,dyed2([50,64,170]));
-  fill(T.COAL_BLOCK,metalBlock([30,30,32],[60,60,64],[14,14,16]));
-  fill(T.EMERALD_BLOCK,metalBlock([60,200,110],[150,250,180],[24,130,64]));
-  fill(T.LAPIS_BLOCK,metalBlock([40,70,180],[110,140,240],[20,40,120]));
-  fill(T.GRANITE,(x,y,r)=>vary(r<0.25?[180,120,100]:r<0.45?[140,90,74]:r<0.5?[220,190,180]:[160,106,86],14,tr()));
-  fill(T.DIORITE,(x,y,r)=>vary(r<0.3?[120,120,124]:r<0.6?[210,210,212]:[188,188,190],12,tr()));
-  fill(T.ANDESITE,(x,y,r)=>vary(r<0.3?[110,110,112]:[136,136,138],14,tr()));
-  fill(T.DEAD_BUSH,()=>CLEAR);
-  for(const [x0,y0,dx] of [[7,15,0],[7,10,-1],[7,9,1],[6,6,-1],[9,6,1],[5,12,-1],[10,11,1]])for(let k=0;k<5;k++){const xx=x0+dx*k,yy=y0-k;if(xx>=0&&xx<16&&yy>=0)sp(T.DEAD_BUSH,xx,yy,vary([140,96,46],18,tr()));}
-  ore(T.LAPIS_ORE,[38,70,196]);
-  // ---- the End ----
-  const endStone=(x,y,r)=>{if(H2(x,y,45)<0.06)return [186,188,128];return pal([[206,208,148],[214,216,156],[222,224,164],[230,232,176]],vn(x,y,46,4)*0.5+r*0.5);};
-  fill(T.END_STONE,endStone);
-  fill(T.FRAME_SIDE,(x,y,r)=>y<3?vary(y===2?[40,80,70]:[70,120,104],10,r):endStone(x,y,r));
-  const frameTop=eye=>(x,y,r)=>{const d=Math.max(Math.abs(x-7.5),Math.abs(y-7.5));
-    if(d<3){if(!eye)return vary([24,40,36],6,r);const e=Math.hypot(x-7.5,y-7.5);return e<1.2?[20,30,20]:e<2.4?vary([60,170,90],20,r):[30,80,60];}
-    if(d<4)return vary([40,70,62],8,r);return vary(d>6.5?[50,90,78]:[72,124,108],12,r);};
-  fill(T.FRAME_TOP,frameTop(false));fill(T.FRAME_TOP_EYE,frameTop(true));
-  fill(T.END_PORTAL,(x,y,r)=>{if(tr()<0.06)return [[120,220,200],[200,240,255],[160,120,255]][Math.floor(tr()*3)];return vary([10,14,22],8,r);});
-  fill(T.DRAGON_EGG,(x,y,r)=>{const c=vary([20,12,26],8,r);if(tr()<0.1){c[0]+=70;c[1]+=20;c[2]+=90;}return c;});
-  // ---- zombie apocalypse ----
-  fill(T.ASPHALT,(x,y,r)=>{const c=vary([54,54,58],14,r);if(hash3(x,y,5,91)<0.06){c[0]+=26;c[1]+=26;c[2]+=24;}
-    if(Math.abs(y-(4+x*0.5))<0.6&&x>2&&x<12)return vary([28,28,30],6,r);return c;});
-  const crateWood=(x,y,r)=>{const e=x===0||x===15||y===0||y===15;const c=vary(e?[52,60,30]:[92,104,58],12,r);if(!e&&y%5===4){c[0]-=22;c[1]-=22;c[2]-=12;}return c;};
-  fill(T.CRATE_SIDE,(x,y,r)=>{if(y>=6&&y<=9&&x>0&&x<15)return ((x+y)>>1)%2?[226,190,40]:[30,30,30];return crateWood(x,y,r);});
-  fill(T.CRATE_TOP,(x,y,r)=>{if((x<=2||x>=13)&&(y<=2||y>=13))return vary([130,130,136],10,r);
-    if(Math.abs(x-7.5)<1.6&&y>3&&y<12||Math.abs(y-7.5)<1.6&&x>3&&x<12)return vary([210,210,200],8,r);return crateWood(x,y,r);});
-  const concrete=(x,y,r)=>{const c=vary([150,150,146],10,r);if(hash3(x>>1,y>>1,7,92)<0.08){c[0]-=18;c[1]-=18;c[2]-=16;}if(y>11&&hash3(x,0,8,93)<0.3){c[0]-=20;c[1]-=22;c[2]-=22;}return c;};
-  fill(T.CONCRETE,concrete);
-  fill(T.CRACKED_CONCRETE,(x,y,r)=>{const cr=Math.abs(x-(8+Math.sin(y*0.9)*3))<0.7||Math.abs(y-(5+Math.sin(x*0.7)*2))<0.6&&x>6;
-    if(cr)return vary([46,46,46],8,r);const c=concrete(x,y,r);if(hash3(x,y,9,94)<0.08){c[0]+=10;c[1]-=20;c[2]-=20;}return c;});
-  fill(T.SANDBAG,(x,y,r)=>{const row=y>>2,bx=(x+(row%2)*4)%8;const e=y%4===3||bx===7;if(e)return vary([96,80,50],8,r);
-    const c=vary([186,160,112],14,r);if(bx===0||y%4===0){c[0]+=14;c[1]+=14;c[2]+=10;}return c;});
-  fill(T.BARRICADE,(x,y,r)=>{const plank=(y>=2&&y<=5)||(y>=10&&y<=13);const diag=Math.abs(x-y)<1.5||Math.abs(x-(15-y))<1.5;
-    if(diag)return vary([120,86,48],12,r);if(plank)return vary(y===2||y===10?[170,126,74]:[146,106,60],12,r);
-    if(x<=1||x>=14)return vary([100,72,40],10,r);return CLEAR;});
-  const darkBark=(x,y,r)=>{const c=vary([58,50,44],14,r);if(x%5===1||(x+(y>>1))%9===0){c[0]-=20;c[1]-=18;c[2]-=16;}if(hash3(x,y,3,95)<0.05){c[0]+=26;c[1]+=30;c[2]+=18;}return c;};
+  const sandOf=P=>(x,y,r)=>{let t=fbm(x,y,11,8,3)*0.35+0.3+(r-0.5)*0.34+Math.sin((x+y*2)*Math.PI/8+vn(x,y,12,8)*3)*0.05;
+    const g=H2(x,y,10);if(g<0.04)t-=0.3;else if(g>0.975)t+=0.25;return pd(P,t,x,y,0.6);};
+  fill(T.SAND,sandOf(ramp([[186,168,114],[202,186,132],[214,200,146],[225,212,159],[235,224,173],[244,236,190]],9)));
+  fill(T.RED_SAND,sandOf(ramp([[146,66,24],[170,82,32],[190,98,40],[206,114,50],[220,132,64],[232,152,84]],9)));
+  // gravel: lots of little stones in greys and browns
+  const GP=jpts(6,6,1,61),GW=wmap(GP),GH=fld((x,y)=>Math.min(GW[y*N+x].e,2.4)/2.4);
+  const GRAV=[ramp([[74,68,64],[108,100,94],[136,128,120],[166,158,150]],7),ramp([[80,80,82],[112,112,114],[144,144,146],[178,178,180]],7),ramp([[92,78,68],[124,108,96],[154,138,124],[186,172,158]],7)];
+  fill(T.GRAVEL,(x,y,r)=>{const w=GW[y*N+x];if(w.e<0.55)return [62,58,56];const P=GRAV[Math.floor(H2(w.i,0,27)*3)];
+    return pd(P,0.22+H2(w.i,1,28)*0.38+lit(GH,x,y)*1.5+at(GH,x,y)*0.2+(r-0.5)*0.12,x,y,0.7);});
+  // cobblestone: rounded stones, lit from the top left, with dark gaps between them
+  const CP=jpts(4,4,0.9,101),CW=wmap(CP),CH=fld((x,y)=>Math.min(CW[y*N+x].e,3.2)/3.2+fbm(x,y,12,4,2)*0.25);
+  const COB=ramp([[60,60,63],[82,82,86],[102,102,106],[122,122,125],[142,142,144],[164,164,166]],10),COBGAP=ramp([[38,38,40],[52,52,54],[64,64,66]],3);
+  const cobbleOf=(P,gap)=>(x,y,r)=>{const w=CW[y*N+x];if(w.e<0.75)return pd(gap,0.3+(r-0.5)*0.5+H2(x,y,3)*0.3,x,y);
+    return pd(P,0.2+H2(w.i,0,21)*0.4+lit(CH,x,y)*1.3+(at(CH,x,y)-0.5)*0.2+(r-0.5)*0.1,x,y,0.7);};
+  const cobble=cobbleOf(COB,COBGAP);
+  fill(T.COBBLE,cobble);
+  const MOSS=ramp([[40,66,28],[58,90,36],[78,114,46],[100,138,58],[126,160,74]],7);
+  fill(T.MOSSY,(x,y,r)=>{const w=CW[y*N+x],m=fbm(x,y,77,8,3)+(w.e<2?0.16:0)+(lit(CH,x,y)>0?0.05:-0.05);
+    if(m>0.6)return pd(MOSS,(m-0.6)*2.4+(r-0.5)*0.4+lit(CH,x,y)*0.8,x,y);return cobble(x,y,r);});
+  const BP=jpts(5,5,1,71),BW=wmap(BP),BH=fld((x,y)=>Math.min(BW[y*N+x].e,2.5)/2.5*0.6+fbm(x,y,24,8,3)*0.4);
+  const BEDR=ramp([[20,20,22],[38,38,40],[60,60,62],[86,86,88],[114,114,116],[142,142,144]],9);
+  fill(T.BEDROCK,(x,y,r)=>{const w=BW[y*N+x];return pd(BEDR,H2(w.i,0,25)*0.75+lit(BH,x,y)*1.5+(r-0.5)*0.15-(w.e<0.8?0.25:0),x,y);});
+  {const WP=jpts(3,3,0.9,121),WR=ramp([[26,56,150],[34,70,172],[42,84,192],[52,98,206],[70,120,220],[104,152,232],[150,190,244]],10);
+    fill(T.WATER,(x,y,r)=>{const w=wor(WP,x+(vn(x,y,122,16)-0.5)*5,y+(vn(x,y,123,16)-0.5)*5);
+      let t=0.3+fbm(x,y,124,16,2)*0.22+(r-0.5)*0.05;if(w.e<0.9)t+=0.32;else if(w.e<1.8)t+=0.13;return pd(WR,t,x,y,0.6);});}
+  // ================= ores: clusters of shiny nuggets with a dark rim, set into stone =================
+  const oreOf=(base,P,seed,clusters=4)=>{const r=mulberry32(seed),M=new Float32Array(N*N).fill(-1);
+    for(let c=0;c<clusters;c++){const cx=r()*N,cy=r()*N,nn=2+Math.floor(r()*3);
+      for(let k=0;k<nn;k++){const px=cx+(r()-0.5)*7,py=cy+(r()-0.5)*7,rad=1.3+r()*1.1;
+        for(let oy=-4;oy<=4;oy++)for(let ox=-4;ox<=4;ox++){const X=Math.floor(px)+ox,Y=Math.floor(py)+oy,dx=X+0.5-px,dy=Y+0.5-py,dd=Math.hypot(dx,dy);
+          if(dd<=rad){const i=wr(Y)*N+wr(X);M[i]=Math.max(M[i],(1-dd/rad)*0.5+0.35-(dx+dy)/rad*0.22);}}}}
+    const has=(x,y)=>M[wr(y)*N+wr(x)]>=0;
+    return (x,y,rr)=>{const v=M[y*N+x];
+      if(v<0){const c=base(x,y,rr);if(has(x-1,y-1)||has(x,y-1)||has(x-1,y))return shade(c,0.6);if(has(x+1,y)||has(x,y+1)||has(x+1,y+1))return shade(c,0.8);return c;}
+      let t=v+(rr-0.5)*0.1;if(!has(x,y+1)||!has(x+1,y))t-=0.22;if(!has(x,y-1)||!has(x-1,y))t+=0.14;return pd(P,t,x,y,0.5);};};
+  fill(T.COAL,oreOf(stoneFn,ramp([[12,12,14],[26,26,30],[42,42,48],[66,66,74],[104,104,114]],7),201,5));
+  fill(T.IRON,oreOf(stoneFn,ramp([[136,92,66],[176,128,96],[206,162,130],[228,194,168],[246,224,204]],7),202,4));
+  fill(T.GOLD,oreOf(stoneFn,ramp([[164,110,8],[212,162,26],[244,204,52],[252,230,106],[255,250,196]],7),203,4));
+  fill(T.DIAMOND,oreOf(stoneFn,ramp([[14,110,116],[34,170,176],[76,218,222],[150,244,246],[232,255,255]],7),204,3));
+  fill(T.LAPIS_ORE,oreOf(stoneFn,ramp([[16,32,112],[26,54,162],[38,80,204],[76,120,232],[150,180,250]],7),205,4));
+  // ================= wood: bark, log ends, leaves, planks =================
+  // bark: vertical strips split by deep cracks; each strip is broken into plates
+  const barkOf=(P,seed,o={})=>{const r=mulberry32(seed),cols=[],wmin=o.wmin||3,wmax=o.wmax||6,wig=o.wiggle??3;let x0=0;
+    while(x0<N){const w=Math.min(N-x0,wmin+Math.floor(r()*(wmax-wmin+1)));cols.push([x0,w,Math.floor(r()*16),o.seg?o.seg[0]+Math.floor(r()*o.seg[1]):6+Math.floor(r()*10)]);x0+=w;}
+    const strip=u=>{u=wr(u);for(const c of cols)if(u>=c[0]&&u<c[0]+c[1])return c;return cols[0];};
+    const U=(x,y)=>x+Math.round((vn(x,y,seed,8,16)-0.5)*wig);
+    const F=fld((x,y)=>{const u=U(x,y),c=strip(u),p=wr(u)-c[0];if(p===0)return 0;const seg=wr(y+c[2],c[3]);if(seg===0)return 0.28;
+      return 0.45+Math.sin(Math.PI*p/c[1])*0.38+(vn(x,y,seed+1,2,4)-0.5)*0.24+(seg===1?-0.1:0);});
+    return (x,y,rr)=>{const c=strip(U(x,y)),h=at(F,x,y);if(h===0)return pd(P,0.03+rr*0.08,x,y);
+      return pd(P,h*0.8+lit(F,x,y)*(o.light??1)+(H2(c[0],Math.floor((y+c[2])/c[3]),seed+2)-0.5)*0.22+(rr-0.5)*0.1,x,y,0.6);};};
+  // the end of a log: growth rings inside a ring of bark
+  const ringsOf=(bark,P,seed)=>(x,y,r)=>{const dx=x-15.5,dy=y-15.5,m=Math.max(Math.abs(dx),Math.abs(dy));if(m>13.6)return bark(x,y,r);
+    if(m>12.6)return pal(P,0.04);
+    const dd=Math.hypot(dx,dy)*0.9+m*0.1+(vn(x,y,seed,8)-0.5)*1.6;if(dd<1.4)return pal(P,0.2);
+    let t=0.66-Math.max(0,Math.cos((dd*0.42)%1*Math.PI*2))*0.3+(vn(x,y,seed+1,4)-0.5)*0.12+(r-0.5)*0.06;
+    if(Math.abs(Math.atan2(dy,dx)-0.7)<0.06&&dd<10)t-=0.3;return pal(P,t);};
+  const OAKBARK=ramp([[40,29,17],[66,49,29],[88,67,40],[106,82,50],[124,97,60],[144,114,72]],9);
+  const oakBark=barkOf(OAKBARK,13);
+  fill(T.LOG_SIDE,oakBark);
+  fill(T.LOG_TOP,ringsOf(oakBark,ramp([[96,70,40],[132,100,60],[154,120,72],[172,136,84],[188,152,98]],7),16));
+  const SPRUCEBARK=ramp([[26,17,10],[44,30,18],[60,42,26],[76,54,34],[92,66,42],[108,80,51]],9),spruceBark=barkOf(SPRUCEBARK,113,{wmin:2,wmax:5,seg:[4,8]});
+  fill(T.SPRUCE_SIDE,spruceBark);
+  fill(T.SPRUCE_TOP,ringsOf(spruceBark,ramp([[70,48,28],[100,72,42],[118,86,52],[134,100,62],[148,114,72]],7),116));
+  const JUNGLEBARK=ramp([[50,38,18],[74,57,27],[92,72,35],[108,86,43],[124,100,51],[142,116,62]],9),jungleBark=barkOf(JUNGLEBARK,213,{wmin:4,wmax:8,seg:[10,12]});
+  fill(T.JUNGLE_SIDE,(x,y,r)=>{const c=jungleBark(x,y,r);if(vn(x,y,215,8,4)>0.72&&H2(x,y,216)<0.6)return mix(c,[70,110,40],0.55);return c;}); // a bit of moss
+  // birch: white bark with black marks
+  const BIRCH=ramp([[150,146,136],[184,180,170],[206,204,194],[222,220,212],[236,234,228],[246,245,240]],8);
+  // birch: black streaks that fade out at the ends, and a knot
+  const bm=(x,y)=>H2(y,0,307)<0.34?vn(x,y,308,8,1):0,bThick=y=>H2(y,1,309)<0.45;
+  const birchBark=(x,y,r)=>{const m=bm(x,y),m2=bThick(y-1)?bm(x,y-1):0;
+    if(m>0.56||m2>0.64)return Math.max(m,m2)>0.66?mix([20,18,16],[48,44,40],r*0.6):mix([70,66,60],[104,100,94],r*0.6);
+    const kq=((x-9)/3.2)**2+((y-21)/1.5)**2;if(kq<1)return kq<0.3?[34,30,28]:[118,112,104];
+    let t=0.64+(vn(x,y,303,8,16)-0.5)*0.24+(r-0.5)*0.1;if(bm(x,y-1)>0.56||bm(x,y-2)>0.64)t-=0.26;return pd(BIRCH,t,x,y,0.6);};
+  fill(T.BIRCH_SIDE,birchBark);
+  fill(T.BIRCH_TOP,ringsOf(birchBark,ramp([[150,126,80],[186,160,108],[204,180,124],[218,196,140],[230,210,156]],7),316));
+  const DARKBARK=ramp([[24,21,19],[40,35,32],[54,48,44],[68,61,56],[84,76,70],[102,94,86]],9),darkBark0=barkOf(DARKBARK,413,{wmin:3,wmax:7,wiggle:5});
+  const darkBark=(x,y,r)=>{if(H2(x>>1,y>>1,414)<0.04)return mix(darkBark0(x,y,r),[100,110,70],0.5);return darkBark0(x,y,r);};
   fill(T.DARK_LOG_SIDE,darkBark);
-  fill(T.DARK_LOG_TOP,(x,y,r)=>{const dx=x-7.5,dy=y-7.5;if(Math.max(Math.abs(dx),Math.abs(dy))>6.6)return darkBark(x,y,r);
-    return vary(Math.floor(Math.hypot(dx,dy)*1.1)%2?[96,80,62]:[78,64,50],10,r);});
-  fill(T.DARK_LEAVES,(x,y,r)=>{if(r<0.24)return CLEAR;const c=vary([34,52,36],30,tr());if(tr()<0.08){c[0]+=40;c[1]+=8;}return c;});
-  const blood=(c,r)=>{const k=0.55+r*0.3;return [110*k+20,8,8];};
-  fill(T.BLOOD_ASPHALT,(x,y,r)=>{const d=Math.hypot(x-7,y-8)+Math.sin(x*1.7+y)*1.6;
-    if(d<4.5||(hash3(x,y,7,96)<0.12&&d<7.5))return blood(0,r);const c=vary([54,54,58],14,r);if(hash3(x,y,5,91)<0.06){c[0]+=26;c[1]+=26;c[2]+=24;}return c;});
-  fill(T.BLOOD_CONCRETE,(x,y,r)=>{const drip=[2,5,6,10,13].includes(x)&&y<4+((x*7)%9);const hand=x>=8&&x<=11&&y>=9&&y<=13&&!(y===9&&x%2);
-    if(drip||hand)return blood(0,r);const c=concrete(x,y,r);return c;});
-  {const F={H:['101','101','111','101','101'],E:['111','100','110','100','111'],L:['100','100','100','100','111'],P:['110','101','110','100','100']};
-    fill(T.HELP_WALL,(x,y,r)=>{const li=Math.floor(x/4),lx=x%4;if(li<4&&lx<3&&y>=5&&y<10&&F['HELP'[li]][y-5][lx]==='1')return blood(0,r);
-      if(y>=10&&y<13&&hash3(x,y,8,97)<0.25&&x<15)return blood(0,r);return concrete(x,y,r);});}
-  // ---- cherry groves, badlands, mushroom fields, enchanting ----
-  const cherryBark=(x,y,r)=>{const c=vary([74,40,50],12,r);if(x%4===1||(x+(y>>1))%7===0){c[0]-=16;c[1]-=10;c[2]-=12;}return c;};
+  fill(T.DARK_LOG_TOP,ringsOf(darkBark,ramp([[52,42,34],[72,60,48],[88,74,60],[102,88,72],[116,100,84]],7),416));
+  const CHERRYBARK=ramp([[40,20,25],[60,32,38],[78,44,50],[94,56,60],[110,70,72],[128,86,86]],9),cherry0=barkOf(CHERRYBARK,513,{wmin:5,wmax:9,seg:[8,6]});
+  const cherryBark=(x,y,r)=>{const c=cherry0(x,y,r);if(wr(y+Math.floor(vn(x,y,514,8)*3),5)===0&&vn(x,y,515,4,1)>0.48)return shade(c,0.62);return c;}; // little horizontal marks
   fill(T.CHERRY_SIDE,cherryBark);
-  fill(T.CHERRY_TOP,(x,y,r)=>{const dx=x-7.5,dy=y-7.5;if(Math.max(Math.abs(dx),Math.abs(dy))>6.6)return cherryBark(x,y,r);
-    return vary(Math.floor(Math.hypot(dx,dy)*1.1)%2?[232,170,166]:[214,150,148],10,r);});
-  fill(T.CHERRY_LEAVES,leafFn([[206,126,162],[222,146,180],[236,166,196],[246,186,212],[255,210,228]],0.26));
-  fill(T.CHERRY_PLANKS,planksOf([[212,158,150],[222,170,160],[230,180,170],[238,190,180]],[176,118,114]));
-  fill(T.RED_SAND,(x,y,r)=>vary([196,102,40],20,r));
-  const terra=col=>(x,y,r)=>{const c=vary(col,10,r);if(hash3(x,y,11,98)<0.08){c[0]-=12;c[1]-=10;c[2]-=8;}return c;};
+  fill(T.CHERRY_TOP,ringsOf(cherryBark,ramp([[178,110,108],[208,140,136],[222,158,152],[234,174,166],[244,190,180]],7),516));
+  // leaves: lots of little overlapping leaves (darker ones behind), with see-through gaps
+  const leavesOf=(P,seed,nb,nf,len=1.6,wid=1.0,lean=null)=>{const r=mulberry32(seed),Lf=new Float32Array(N*N).fill(-1);
+    const leaf=(cx,cy,ang,L,Wd,base)=>{const ca=Math.cos(ang),sa=Math.sin(ang),R=Math.ceil(L)+1;
+      for(let oy=-R;oy<=R;oy++)for(let ox=-R;ox<=R;ox++){const px=Math.floor(cx)+ox,py=Math.floor(cy)+oy,fx=px+0.5-cx,fy=py+0.5-cy,u=fx*ca+fy*sa,v=-fx*sa+fy*ca,q=(u/L)**2+(v/Wd)**2;
+        if(q>1)continue;Lf[wr(py)*N+wr(px)]=base-(fx+fy)/(L+Wd)*0.22+(v>0?-0.07:0.04)-(q>0.6?0.09:0);}};
+    for(let k=0;k<nb+nf;k++){const front=k>=nb;leaf(r()*N,r()*N,lean!==null?lean+(r()-0.5)*0.8:r()*Math.PI,len+r()*1.2,wid+r()*0.5,front?0.5+r()*0.32:0.16+r()*0.2);}
+    return (x,y,rr)=>{const t=Lf[y*N+x];if(t===-1)return CLEAR;return pd(P,t+(rr-0.5)*0.08,x,y,0.6);};};
+  fill(T.LEAVES,leavesOf(ramp([[20,54,16],[32,78,22],[46,102,30],[62,126,38],[82,148,50],[108,170,64]],9),17,90,72));
+  fill(T.BIRCH_LEAVES,leavesOf(ramp([[48,84,28],[64,106,36],[82,128,46],[102,148,58],[126,168,74],[152,188,94]],9),18,86,72));
+  fill(T.JUNGLE_LEAVES,leavesOf(ramp([[14,68,8],[22,90,14],[34,114,20],[48,138,28],[66,160,40],[94,182,58]],9),19,70,64,2.6,1.5));
+  fill(T.SPRUCE_LEAVES,leavesOf(ramp([[14,36,22],[22,50,32],[32,64,42],[42,80,54],[56,96,66],[74,114,82]],9),20,150,120,1.8,0.55,0.9)); // needles
+  fill(T.DARK_LEAVES,leavesOf(ramp([[16,24,18],[24,34,26],[32,46,34],[42,58,42],[54,70,50],[68,84,60]],9),21,60,40,1.8,0.9));
+  {const pet=leavesOf(ramp([[176,92,130],[204,118,156],[224,142,178],[238,164,196],[248,188,214],[255,214,232]],9),22,96,74,1.5,1.2);
+    fill(T.CHERRY_LEAVES,(x,y,r)=>{const c=pet(x,y,r);if(c[3]===0)return c;if(H2(x,y,23)<0.035)return [255,240,246];return c;});}
+  // planks: four boards with wood grain, light top edges, dark gaps, and nails
+  const planksOf=(P,seed)=>{const ends=[3,19,11,27].map((e,i)=>wr(e+Math.floor(H2(i,seed,1)*7)-3)),sh=[0,0.05,-0.05,0.03];
+    return (x,y,r)=>{const row=y>>3,yy=y&7,rel=wr(x-ends[row]);
+      if(yy===7)return pal(P,0.01);if(rel===0)return pal(P,yy===0?0.22:0.1);
+      let t=0.5+sh[row]+(vn(x,y,seed+row,16,1)-0.5)*0.45+(vn(x,y,seed+9,4,1)-0.5)*0.22+(r-0.5)*0.08;
+      if(yy===0)t+=0.2;else if(yy===6)t-=0.16;if(rel===1)t+=0.08;else if(rel===N-1)t-=0.1;
+      if((rel===2||rel===N-2)&&yy===3)t=0.06;return pd(P,t,x,y,0.6);};};
+  const OAKP=ramp([[74,54,30],[114,85,48],[142,109,64],[160,125,76],[176,140,88],[194,158,104]],10);
+  const oakPlanks=planksOf(OAKP,19);
+  fill(T.PLANKS,oakPlanks);
+  fill(T.SPRUCE_PLANKS,planksOf(ramp([[48,34,19],[74,53,30],[92,67,39],[106,78,46],[120,90,54],[136,104,64]],10),29));
+  fill(T.CHERRY_PLANKS,planksOf(ramp([[150,92,90],[194,136,130],[214,156,148],[226,170,160],[236,184,172],[246,200,188]],10),39));
+  // ================= plants (drawn on see-through tiles) =================
+  const thick=(t,x0,y0,x1,y1,w,colFn)=>{const n=Math.ceil(Math.hypot(x1-x0,y1-y0)*2)+1;for(let i=0;i<=n;i++){const f=i/n,x=x0+(x1-x0)*f,y=y0+(y1-y0)*f;
+    for(let k=0;k<w;k++)sp(t,Math.floor(x+k-(w-1)/2),Math.floor(y),colFn(f,k));}};
+  const disc=(t,cx,cy,rx,ry,colFn)=>{for(let y=Math.floor(cy-ry);y<=Math.ceil(cy+ry);y++)for(let x=Math.floor(cx-rx);x<=Math.ceil(cx+rx);x++){
+    const dx=(x+0.5-cx)/rx,dy=(y+0.5-cy)/ry,q=dx*dx+dy*dy;if(q<=1)sp(t,x,y,colFn(dx,dy,q));}};
+  const STEM=ramp([[28,64,18],[40,90,24],[56,116,32],[78,142,44],[106,166,60]],7);
+  const blade=(t,x0,h,lean,P,seed)=>{for(let i=0;i<h;i++){const f=i/h,x=x0+lean*f*f*h*0.3,y=N-1-i,w=f<0.5?2:1;
+    for(let k=0;k<w;k++){const X=Math.floor(x)+k;sp(t,X,y,pal(P,0.12+f*0.72+(k===0?0.1:-0.05)+(H2(X,y,seed)-0.5)*0.12));}}};
+  {const r=mulberry32(91);for(let b=0;b<15;b++)blade(T.TALLGRASS,2+r()*27,9+Math.floor(r()*18),(r()-0.5)*2.4,GRASS,92);}
+  // flowers
+  const leafy=(t,x,y,dir,len,P)=>{for(let i=0;i<len;i++){const xx=x+dir*i,yy=y-Math.floor(i*0.6);sp(t,xx,yy,pal(P,0.4+i/len*0.4));if(i<len-1)sp(t,xx,yy+1,pal(P,0.2));}};
+  {const t=T.ROSE;thick(t,15.5,31,15.5,13,2,(f,k)=>pal(STEM,0.3+k*0.25));leafy(t,17,24,1,6,STEM);leafy(t,14,27,-1,5,STEM);
+    const P=ramp([[100,8,14],[150,14,20],[196,26,30],[226,52,50],[246,96,90]],7);
+    disc(t,15.5,9.5,6.4,5.6,(dx,dy,q)=>{const a=Math.atan2(dy,dx),sp2=((Math.sqrt(q)*3+a/Math.PI*0.8)%1+1)%1;return pal(P,0.75-q*0.35+(sp2<0.25?-0.3:0)-(dx+dy)*0.15);});
+    disc(t,15.5,9.5,1.6,1.4,()=>[96,8,14]);}
+  {const t=T.DANDELION;thick(t,15.5,31,15.5,14,2,(f,k)=>pal(STEM,0.3+k*0.25));leafy(t,17,27,1,6,STEM);leafy(t,14,25,-1,6,STEM);
+    const P=ramp([[190,120,8],[228,170,20],[250,212,40],[255,236,90],[255,250,170]],7);
+    disc(t,15.5,10,6.2,5.4,(dx,dy,q)=>{if(q>0.72&&(Math.floor(Math.atan2(dy,dx)*4)&1))return null;return pal(P,0.85-q*0.45-(dx+dy)*0.15);});
+    disc(t,15.5,10.5,2,1.6,()=>[214,140,10]);}
+  {const t=T.DEAD_BUSH,P=ramp([[74,46,20],[104,68,32],[132,92,46],[156,114,60]],5),r=mulberry32(84);
+    const twig=(x,y,a,len,dep)=>{const x1=x+Math.cos(a)*len,y1=y-Math.sin(a)*len;thick(t,x,y,x1,y1,dep>1?2:1,(f,k)=>pal(P,0.3+k*0.3+f*0.2));
+      if(dep>0)for(let i=0;i<2;i++)twig(x1,y1,a+(i?0.55:-0.55)+(r()-0.5)*0.4,len*0.62,dep-1);};
+    twig(15.5,31,Math.PI/2,9,3);twig(15,31,Math.PI*0.72,7,2);twig(16,31,Math.PI*0.3,7,2);}
+  // wheat: golden stalks with grain ears; young wheat: short green shoots
+  {const r=mulberry32(46),P=ramp([[120,96,30],[160,130,44],[194,164,62],[220,192,86],[240,218,124]],7);
+    for(let k=0;k<7;k++){const bx=2+k*4.3+r()*1.5,top=3+Math.floor(r()*5);thick(T.WHEAT,bx,31,bx+(r()-0.5)*2,top+8,1,(f)=>pal(P,0.3+f*0.3));
+      for(let y=top;y<top+9;y++){sp(T.WHEAT,Math.floor(bx)-1+(y&1),y,pal(P,0.75+(y&1)*0.2-(y-top)*0.03));sp(T.WHEAT,Math.floor(bx)+(y&1),y,pal(P,0.55));}}
+    for(let k=0;k<8;k++){const bx=2+k*3.8+r()*1.2,h=7+Math.floor(r()*7);blade(T.WHEAT_YOUNG,bx,h,(r()-0.5)*2,STEM,47);}}
+  // sugar cane: jointed green stalks with leaves
+  {const t=T.SUGAR_CANE,P=ramp([[70,120,40],[94,148,56],[120,174,74],[148,198,96],[180,220,130]],7);
+    for(const bx of [5,15,25])for(let y=0;y<N;y++){const j=wr(y+bx,10);for(let k=0;k<3;k++)sp(t,bx+k,y,pal(P,(j===0?0.85:j===1?0.15:0.45)+(k===0?0.15:k===2?-0.2:0)));
+      if(j===4)sp(t,bx+(bx>15?-1:3),y,pal(P,0.5));if(j===5)sp(t,bx+(bx>15?-2:4),y-1,pal(P,0.6));}}
+  // mushrooms
+  const mush=(t,cap,spots)=>{thick(t,15.5,31,15.5,18,4,(f,k)=>pal(ramp([[176,166,146],[210,202,184],[232,226,212]],5),k===0?0.9:k===3?0.2:0.6));
+    disc(t,15.5,15,8,6,(dx,dy,q)=>{if(dy>0.45)return null;if(spots&&((Math.abs(dx+0.4)<0.18&&Math.abs(dy+0.3)<0.22)||(Math.abs(dx-0.45)<0.17&&Math.abs(dy+0.05)<0.2)||(Math.abs(dx-0.05)<0.17&&Math.abs(dy+0.72)<0.15)))return [250,246,240];
+      return pal(cap,0.75-q*0.35-(dx+dy)*0.18-(dy>0.25?0.25:0));});};
+  mush(T.RED_MUSHROOM,ramp([[110,12,10],[160,22,18],[200,34,28],[226,62,52],[244,110,96]],7),true);
+  mush(T.BROWN_MUSHROOM,ramp([[86,60,42],[118,86,62],[146,108,78],[170,130,98],[192,152,120]],7),false);
+  // cobweb
+  fill(T.COBWEB,(x,y)=>{const cx=x-15.5,cy=y-15.5,dd=Math.hypot(cx,cy),q=Math.PI/4,a=((Math.atan2(cy,cx)%q)+q)%q,off=Math.min(a,q-a);
+    if(dd*Math.sin(off)<0.55&&dd<15.6)return [228,228,234];
+    const proj=dd*Math.cos(a-q/2),u=(a-q/2)/(q/2);for(const R of [4.5,8.5,12.5,15.4])if(Math.abs(proj-(R*0.924-0.9*(1-u*u)))<0.5)return [222,222,230];
+    return CLEAR;});
+  // torch: a stick with a flame on top (the 3D torch uses the middle 4 columns)
+  {const t=T.TORCH,W2=ramp([[66,46,24],[100,72,40],[132,98,56],[160,124,74]],5);
+    for(let y=15;y<N;y++)for(let x=14;x<18;x++)sp(t,x,y,pal(W2,x===14?0.9:x===17?0.1:0.55-(y>28?0.15:0)+(H2(x,y,26)-0.5)*0.2));
+    const F=[[255,255,230],[255,240,150],[255,206,70],[246,150,30],[214,96,16]];
+    for(let y=9;y<16;y++)for(let x=14;x<18;x++){const e=Math.abs(x-15.5)+Math.max(0,12.5-y)*0.75,k=Math.min(4,Math.floor(e*1.15));if(y<12&&(x===14||x===17))continue;sp(t,x,y,F[k]);}
+    sp(t,15,8,[255,220,110]);sp(t,16,9,[255,240,150]);}
+  // ladder
+  fill(T.LADDER,(x,y,r)=>{const P=OAKP;if((x>=3&&x<=6)||(x>=25&&x<=28)){const k=x===3||x===25?0.85:x===6||x===28?0.2:0.55;return pd(P,k+(vn(x,y,75,4,8)-0.5)*0.2,x,y,0.5);}
+    const ry=wr(y-2,8);if(ry<3&&x>6&&x<25){if(ry===0)return pal(P,0.8);if(ry===2)return pal(P,0.2);return pd(P,0.55+(vn(x,y,76,8,1)-0.5)*0.3,x,y,0.5);}
+    return CLEAR;});
+  // ================= building blocks =================
+  fill(T.GLASS,(x,y)=>{const e=Math.min(x,y,N-1-x,N-1-y);if(e===0)return (x+y)%2?[150,180,192]:[168,196,206];if(e===1)return [222,238,245];
+    if((x+y>=11&&x+y<=12&&x>3&&x<10)||(x+y===15&&x>5&&x<10)||(x+y>=44&&x+y<=45&&x>21&&x<29)||(x+y===40&&x>22&&x<27))return [236,246,252];
+    if(e===2&&(x===2||y===2)&&H2(x,y,111)<0.3)return [210,228,236];return CLEAR;});
+  // bricks: each brick has its own shade and a bevel (light top-left, dark bottom-right); grey mortar between
+  const BRK=ramp([[92,38,28],[114,48,36],[134,58,44],[152,70,52],[168,84,64],[186,102,80]],10),MORT=ramp([[128,122,114],[152,146,138],[174,168,160],[194,188,180]],5);
+  const brickH=(bw,bh,off)=>fld((x,y)=>{const row=Math.floor(y/bh),yy=y%bh,bx=wr(x+(row&1)*off,bw);if(yy===bh-1||bx===bw-1)return 0;return Math.min(1,Math.min(yy+1,bh-1-yy,bx+1,bw-1-bx)/2);});
+  const BRH=brickH(16,8,8);
+  fill(T.BRICK,(x,y,r)=>{const row=y>>3,yy=y&7,bx=wr(x+(row&1)*8,16),id=Math.floor(wr(x+(row&1)*8)/16)+row*2;
+    if(yy===7||bx===15)return pd(MORT,0.4+(r-0.5)*0.6+lit(BRH,x,y)*0.5,x,y);
+    let t=0.42+(H2(id,row,22)-0.5)*0.32+lit(BRH,x,y)*1.2+(vn(x,y,23,4)-0.5)*0.2+(r-0.5)*0.1;if(H2(x,y,24)<0.03)t-=0.3;return pd(BRK,t,x,y,0.7);});
+  const SBH=brickH(32,16,16);
+  fill(T.STONE_BRICKS,(x,y,r)=>{const row=y>>4,yy=y&15,bx=wr(x+(row&1)*16,32);
+    if(yy===15||bx===31)return pd(STONE,0.04+(r-0.5)*0.3,x,y);
+    let t=at(SH,x,y)*0.45+0.22+(H2(row,0,30)-0.5)*0.14+lit(SBH,x,y)*1.4+lit(SH,x,y)*1.4+(r-0.5)*0.08;if(row===1&&crackAt(x,y,33,8,8,0.55))t-=0.22;return pd(STONE,t,x,y,0.7);});
+  const SST=ramp([[160,138,86],[182,162,106],[200,182,124],[214,198,140],[227,213,156],[240,228,176]],10);
+  fill(T.SANDSTONE_SIDE,(x,y,r)=>{
+    if(y<7){let t=0.68+(vn(x,y,40,8)-0.5)*0.2+(r-0.5)*0.16;if(y===0)t+=0.16;if(y===5)t-=0.1;if(y===6)t-=0.4;return pd(SST,t,x,y,0.6);}
+    if(y>=25){let t=0.36+(vn(x,y,41,8)-0.5)*0.26+(r-0.5)*0.22;if(y===25)t+=0.2;if(y===31)t-=0.22;return pd(SST,t,x,y,0.6);}
+    const yy=y-7+(vn(x,y,42,16,32)-0.5)*2.5,lay=Math.floor(yy/4.5),f=yy/4.5-lay;
+    let t=0.5+(H2(lay,0,43)-0.5)*0.3+(vn(x,y,44,8,2)-0.5)*0.26+(r-0.5)*0.18;if(f<0.22)t-=0.3;else if(f<0.45)t+=0.1;return pd(SST,t,x,y,0.6);});
+  fill(T.SANDSTONE_TOP,(x,y,r)=>pd(SST,0.4+fbm(x,y,45,8,3)*0.34+(r-0.5)*0.24+(H2(x,y,46)<0.03?-0.25:0),x,y,0.6));
+  // a raised frame around a block (light on the top and left, dark on the bottom and right)
+  const framed=(fn,w=2,k=0.22)=>(x,y,r)=>{const c=fn(x,y,r),e=Math.min(x,y,N-1-x,N-1-y);if(e>=w)return c;
+    const lt=x+y<N-1;return shade(c,e===0?(lt?1-k*0.4:1-k*1.6):(lt?1+k:1-k));};
+  const STONE2=ramp([[110,110,113],[124,124,127],[136,136,138],[148,148,150],[160,160,162]],8);
+  const smoothStone=(x,y,r)=>pd(STONE2,0.4+fbm(x,y,46,8,3)*0.34+lit(SH,x,y)*1.6+(r-0.5)*0.22+(H2(x,y,47)<0.04?-0.25:0),x,y,0.6);
+  // ---- metal and gem blocks ----
+  const metalOf=(P,opt={})=>framed((x,y,r)=>{let t=0.52+(vn(x,y,opt.seed||60,32,2)-0.5)*0.2+(r-0.5)*0.06;
+      if(opt.plates&&(y===15||y===16))t+=y===15?-0.25:0.2;
+      const sh=wr(x+y,22);if(sh<3)t+=0.12;else if(sh===3)t+=0.06;
+      if(opt.sparkle&&H2(x,y,61)<0.012)return [255,255,255];return pd(P,t,x,y,0.5);},2,0.24);
+  fill(T.IRON_BLOCK,metalOf(ramp([[138,138,146],[176,176,184],[204,204,210],[222,222,228],[238,238,242],[252,252,255]],9),{plates:true,seed:62}));
+  fill(T.GOLD_BLOCK,metalOf(ramp([[176,118,10],[216,160,24],[240,196,44],[250,220,80],[255,238,136],[255,250,200]],9),{sparkle:true,seed:63}));
+  fill(T.COAL_BLOCK,framed((x,y,r)=>{const w=CW[y*N+x];return pd(ramp([[8,8,10],[16,16,20],[26,26,30],[38,38,44],[54,54,62],[84,84,96]],8),
+    0.28+lit(CH,x,y)*0.9+H2(w.i,3,64)*0.25+(w.e<0.8?-0.15:0)+(r-0.5)*0.1+(H2(x,y,65)<0.015?0.55:0),x,y,0.6);},2,0.3));
+  // gem blocks: rows of cut gems
+  const gemOf=(P,shape)=>framed((x,y,r)=>{const cx=wr(x,8)-3.5,cy=wr(y,8)-3.5,a=Math.abs(cx)+Math.abs(cy);
+      let t;if(shape==='diamond'){if(a>4.2)t=0.15;else t=0.5+(cx<0?0.15:-0.1)+(cy<0?0.15:-0.12)+(a<1.5?0.2:0);}
+      else{const m=Math.max(Math.abs(cx),Math.abs(cy));if(m>3.2)t=0.15;else t=0.5+(cx+cy<0?0.18:-0.12)+(m<1.5?0.18:0);}
+      if(H2(x,y,65)<0.02)t+=0.4;return pd(P,t+(r-0.5)*0.06,x,y,0.4);},2,0.24);
+  fill(T.DIAMOND_BLOCK,gemOf(ramp([[18,128,124],[44,178,170],[80,214,206],[130,236,230],[196,252,248],[240,255,255]],9),'diamond'));
+  fill(T.EMERALD_BLOCK,gemOf(ramp([[10,98,44],[22,140,66],[40,180,90],[80,212,124],[150,240,180],[220,255,230]],9),'square'));
+  fill(T.LAPIS_BLOCK,framed((x,y,r)=>{let t=0.45+fbm(x,y,66,8,3)*0.3+(r-0.5)*0.1;if(crackAt(x,y,67,8,8,0.3))t-=0.3;if(H2(x,y,68)<0.025)return [230,196,80];
+    return pd(ramp([[16,32,110],[24,50,150],[34,72,190],[52,98,216],[90,136,236],[146,180,250]],9),t,x,y,0.6);},2,0.24));
+  fill(T.QUARTZ_BLOCK,framed((x,y,r)=>{let t=0.62+fbm(x,y,69,16,3)*0.18+(r-0.5)*0.06;if(crackAt(x,y,70,16,8,0.6))t-=0.18;
+    return pd(ramp([[196,186,176],[214,206,198],[228,222,214],[238,234,228],[248,246,242]],8),t,x,y,0.5);},2,0.12));
+  // ---- wool: little knitted stitches ----
+  const KN=[0.07,0,0,0.07, 0.03,0.09,0.09,0.03, -0.03,0.03,0.03,-0.03, -0.09,-0.05,-0.05,-0.09];
+  const knit=col=>(x,y,r)=>shade(col,1+KN[(y&3)*4+(((x+((y>>2)&1)*2))&3)]+(vn(x,y,28,8)-0.5)*0.14+(r-0.5)*0.06);
+  fill(T.WOOL,knit([232,234,234]));fill(T.RED_WOOL,knit([170,38,36]));fill(T.YELLOW_WOOL,knit([232,196,42]));
+  fill(T.BLACK_WOOL,knit([46,42,50]));fill(T.BLUE_WOOL,knit([50,64,168]));
+  // ---- TNT ----
+  const TNTR=ramp([[110,20,14],[150,30,22],[186,42,30],[208,58,40],[226,84,62]],7);
+  const LET={T:['XXXXXXXX','XXXXXXXX','...XX...','...XX...','...XX...','...XX...','...XX...','...XX...'],
+    N:['XX....XX','XXX...XX','XXXX..XX','XX.XX.XX','XX..XXXX','XX...XXX','XX....XX','XX....XX']};
+  fill(T.TNT_SIDE,(x,y,r)=>{
+    if(y>=10&&y<=21){if(y===10||y===21)return pd(ramp([[150,150,150],[180,180,180]],2),r,x,y);const lx=x-2,li=Math.floor(lx/10),cx=lx%10;
+      if(y>=12&&y<=19&&lx>=0&&li<3&&cx<8&&LET['TNT'[li]][y-12][cx]==='X')return [26,24,24];return pd(ramp([[208,208,206],[228,228,226],[244,244,242]],3),0.5+(r-0.5)*0.6,x,y);}
+    const sx=x&7;return pd(TNTR,0.55+(sx===0?-0.4:sx===1?0.25:sx===7?-0.25:0)+(vn(x,y,47,4,16)-0.5)*0.15+(r-0.5)*0.08,x,y,0.6);});
+  const tntEnd=fuse=>(x,y,r)=>{const cx=wr(x,11)-5,cy=wr(y,11)-5,q=Math.hypot(cx,cy);
+    if(x>30||y>30)return pal(TNTR,0.05);
+    if(fuse&&Math.abs(x-16)<3&&Math.abs(y-16)<3)return Math.abs(x-16)<2&&Math.abs(y-16)<2?[90,90,90]:[40,40,40];
+    if(q>4.8)return pal(TNTR,0.06);return pd(TNTR,0.6-(cx+cy)*0.05-(q>3.8?0.3:0),x,y,0.6);};
+  fill(T.TNT_TOP,tntEnd(true));fill(T.TNT_BOTTOM,tntEnd(false));
+  // ---- chest (the model is 14/16 tall, so the sides use the bottom 28 rows) ----
+  const CHW=ramp([[56,34,14],[90,58,24],[122,82,36],[146,100,46],[166,116,56],[186,134,68]],9);
+  const chestWood=(x,y,r)=>{const yy=wr(y-6,6);let t=0.55+(vn(x,y,42,16,1)-0.5)*0.35+(r-0.5)*0.08;if(yy===5)t-=0.22;else if(yy===0)t+=0.12;return pd(CHW,t,x,y,0.6);};
+  const chestSide=front=>(x,y,r)=>{if(y<4)return CLEAR;const e=Math.min(x,N-1-x,y-4,N-1-y);
+    if(front&&x>=13&&x<=18&&y>=10&&y<=19){if(x===13||x===18||y===10||y===19)return [70,70,74];if(x>=15&&x<=16&&y>=13&&y<=16)return y===13?[30,30,32]:[18,18,20];return x===14||y===11?[230,230,234]:[176,176,182];}
+    if(e<2)return pd(CHW,e===0?0.02:0.12,x,y);if(y>=14&&y<=15)return pal(CHW,y===14?0.05:0.15);return chestWood(x,y,r);};
+  fill(T.CHEST_SIDE,chestSide(false));fill(T.CHEST_FRONT,chestSide(true));
+  fill(T.CHEST_TOP,(x,y,r)=>{const e=Math.min(x,y,N-1-x,N-1-y);if(e<2)return pd(CHW,e===0?0.02:0.12,x,y);return chestWood(x,y,r);});
+  // ---- bed: pillow at the top of the head tile, red blanket; the sides use the bottom 18 rows ----
+  const BLK=ramp([[96,10,14],[130,18,20],[160,28,28],[184,40,38],[206,62,56]],7),SHEET=ramp([[186,186,196],[214,214,222],[236,236,242],[250,250,252]],5);
+  const blanket=(x,y,r)=>{let t=0.6+(vn(x,y,48,8,32)-0.5)*0.2+(r-0.5)*0.08;if(x<2||x>29)t-=0.3;if(wr(x+y,8)===0&&x>2&&x<29)t+=0.12;return pd(BLK,t,x,y,0.6);};
+  fill(T.BED_TOP,(x,y,r)=>{if(y>=4&&y<=13&&x>=4&&x<=27){const e=Math.min(x-4,27-x,y-4,13-y);return pd(SHEET,e===0?0.25:0.7+(r-0.5)*0.2-(y>10?0.15:0),x,y);}
+    if(y<16)return pd(SHEET,0.45+(r-0.5)*0.3,x,y);if(y<18)return pal(BLK,y===16?0.85:0.2);return blanket(x,y,r);});
+  fill(T.BED_FOOT_TOP,(x,y,r)=>y>=28?pal(BLK,y===28?0.3:0.12):blanket(x,y,r));
+  const BEDW=ramp([[70,46,22],[104,72,38],[134,98,56],[160,122,74]],5);
+  const bedSide=(x,y,r)=>{if(y<14)return CLEAR;if(y<16)return pd(SHEET,y===14?0.85:0.5,x,y);if(y<22)return y===16?pal(BLK,0.9):blanket(x,y,r);
+    if(y<26)return pd(BEDW,y===22?0.85:y===25?0.15:0.55+(vn(x,y,49,8,1)-0.5)*0.3,x,y,0.5);return (x<=5||x>=26)?pd(BEDW,x===0||x===26?0.75:0.35,x,y):CLEAR;};
+  fill(T.BED_SIDE,bedSide);fill(T.BED_END,bedSide);
+  // ---- furnace ----
+  fill(T.FURNACE_SIDE,framed(cobble,2,0.2));
+  fill(T.FURNACE_TOP,framed(smoothStone,2,0.2));
+  const furnaceFront=litF=>framed((x,y,r)=>{
+    if(x>=7&&x<=24&&y>=17&&y<=27){if(y===17||x===7||x===24)return [44,44,46];if(!litF)return pd(ramp([[8,8,10],[18,18,20],[28,28,30]],3),(y-17)/10*0.6+(r-0.5)*0.3,x,y);
+      const f=(27-y)/10+(vn(x,y,52,4,8)-0.5)*0.5;return f>0.75?[60,40,30]:pal([[255,250,190],[255,214,90],[250,150,30],[210,86,14],[150,40,8]],1-f+(r-0.5)*0.2);}
+    if(y>=6&&y<=9&&x>=7&&x<=24)return y===6?[46,46,48]:pd(ramp([[20,20,22],[34,34,36]],2),r,x,y);
+    return smoothStone(x,y,r);},2,0.2);
+  fill(T.FURNACE_FRONT,furnaceFront(false));fill(T.FURNACE_LIT,furnaceFront(true));
+  // ---- crafting table: a grid on top, tools on the sides ----
+  const tblEdge=(x,y,r)=>{const e=Math.min(x,y,N-1-x,N-1-y);return e<2?pd(OAKP,e===0?0.05:0.18,x,y):null;};
+  fill(T.TABLE_TOP,(x,y,r)=>tblEdge(x,y,r)||((x===11||x===21||y===11||y===21)&&x>2&&x<29&&y>2&&y<29?pal(OAKP,0.08):(x===12||x===22||y===12||y===22)&&x>2&&x<29&&y>2&&y<29?pal(OAKP,0.75):
+    pd(OAKP,0.62+(vn(x,y,57,16,1)-0.5)*0.35+(r-0.5)*0.08+((x+y)&1?0.03:-0.03),x,y,0.6)));
+  const IRONT=ramp([[90,90,96],[140,140,148],[186,186,194],[222,222,230]],5),HANDLE=ramp([[60,40,20],[96,66,36],[128,92,52]],4);
+  const tableSide=front=>(x,y,r)=>{if(y<5)return pd(OAKP,y===4?0.06:y===0?0.85:0.6,x,y);
+    if(!front){if(x>=5&&x<=7&&y>=9&&y<=25)return pal(HANDLE,x===5?0.8:x===7?0.1:0.5);             // saw handle
+      if(x>=8&&x<=22&&y>=10&&y<=14)return y===14&&x&1?pal(IRONT,0.1):pal(IRONT,y===10?0.95:0.6-(y-10)*0.08); // saw blade with teeth
+      if(x>=24&&x<=26&&y>=9&&y<=27)return pal(HANDLE,x===24?0.8:x===26?0.1:0.5);                     // hammer
+      if(x>=20&&x<=29&&y>=6&&y<=9)return pal(IRONT,y===6?0.95:y===9?0.2:0.6);}
+    else{if((x>=6&&x<=8||x>=11&&x<=13)&&y>=8&&y<=26&&!(y>14&&(x===8||x===11)))return pal(IRONT,(x===6||x===11)?0.9:0.45); // tongs
+      if(x>=18&&x<=26&&y>=8&&y<=13)return pal(IRONT,y===8?0.95:y===13?0.2:0.6);if(x>=21&&x<=23&&y>13&&y<=27)return pal(HANDLE,x===21?0.8:x===23?0.1:0.5);}
+    return oakPlanks(x,y,r);};
+  fill(T.TABLE_SIDE,tableSide(false));fill(T.TABLE_FRONT,tableSide(true));
+  // ---- bookshelf ----
+  const BOOKC=[[150,40,36],[44,80,150],[60,120,50],[170,130,60],[110,50,120],[46,44,48],[180,90,40],[40,110,120]];
+  fill(T.BOOKSHELF,(x,y,r)=>{if(y<3||y>28||(y>=15&&y<=16)||x<2||x>29)return oakPlanks(x,y,r);
+    const shelf=y<15?0:1,y0=shelf?17:3,y1=shelf?28:14,lx=x-2;let bx=0,k=0;const R=mulberry32(shelf*97+3);let w=0;
+    while(true){w=2+Math.floor(R()*3);if(lx<bx+w)break;bx+=w;k++;}
+    const hgt=y1-y0-Math.floor(H2(k,shelf,47)*4),top=y1-hgt;if(y<top)return pd(ramp([[24,16,10],[36,26,16]],2),r,x,y);
+    const c=BOOKC[Math.floor(H2(k,shelf,48)*BOOKC.length)],e=lx-bx;let s=e===0?1.18:e===w-1?0.7:1;if(y===top)s*=1.2;if(y===top+2||y===y1-3)s*=0.75;
+    return shade(c,s*(0.94+(r-0.5)*0.1));});
+  // ---- pumpkins ----
+  const PUMP=ramp([[130,60,8],[170,84,14],[204,108,22],[226,132,34],[240,158,52],[248,184,84]],10);
+  const pumpkinSide=(x,y,r)=>{const rib=wr(x,8);let t=0.55+Math.cos((rib-3.5)/4*Math.PI/2*1.6)*0.18-0.1+(vn(x,y,58,4,8)-0.5)*0.12+(r-0.5)*0.06;
+    if(rib===0)t-=0.3;if(y<2||y>29)t-=0.2;return pd(PUMP,t,x,y,0.6);};
+  fill(T.PUMPKIN_SIDE,pumpkinSide);
+  fill(T.PUMPKIN_TOP,(x,y,r)=>{const dx=x-15.5,dy=y-15.5,dd=Math.hypot(dx,dy);if(dd<3.4)return pd(ramp([[60,70,24],[90,104,36],[118,132,52]],4),0.5-(dx+dy)*0.08,x,y);
+    const a=Math.atan2(dy,dx),rib=((a/(Math.PI/5))%1+1)%1;let t=0.55+Math.sin(rib*Math.PI)*0.15-(rib<0.08?0.3:0)-dd*0.008+(r-0.5)*0.06;return pd(PUMP,t,x,y,0.6);});
+  const carved=(x,y)=>{const eye=(cx)=>y>=8&&y<=13&&Math.abs(x-cx)<=(y-8)*0.75+0.5;
+    if(eye(8.5)||eye(22.5))return 'eye';if(y>=15&&y<=16&&x>=15&&x<=16)return 'nose';
+    if(y>=19&&y<=25&&x>=5&&x<=26){const w=x>=5&&x<=26;if(y<=20&&(x===9||x===10||x===21||x===22))return null;if(y>=24&&(x===15||x===16))return null;if(y===25&&(x<8||x>23))return null;return w?'mouth':null;}return null;};
+  const faceOf=litF=>(x,y,r)=>{const c=carved(x,y);if(!c)return pumpkinSide(x,y,r);
+    if(!litF){const e=carved(x,y-1)?0:1;return e?[60,34,10]:[24,12,4];}
+    const f=carved(x,y-1)?0.85:0.55;return pal([[230,120,20],[250,180,40],[255,220,80],[255,244,160]],f+(r-0.5)*0.3);};
+  fill(T.PUMPKIN_FACE,faceOf(false));fill(T.JACK_FACE,faceOf(true));
+  // ---- melon and hay ----
+  const MEL=ramp([[40,80,16],[58,104,22],[80,130,30],[104,154,40],[132,178,56]],8);
+  fill(T.MELON_SIDE,(x,y,r)=>{const s=wr(x+Math.floor((vn(x,y,59,8,8)-0.5)*4),8);return pd(MEL,(s<4?0.65:0.25)+(vn(x,y,60,4,4)-0.5)*0.3+(r-0.5)*0.1,x,y,0.7);});
+  fill(T.MELON_TOP,(x,y,r)=>{const m=Math.max(Math.abs(x-15.5),Math.abs(y-15.5));if(m<2.5)return pd(ramp([[70,60,24],[100,84,36]],3),0.5,x,y);
+    return pd(MEL,(Math.floor(m/3)&1?0.65:0.3)+(vn(x,y,61,4)-0.5)*0.3+(m>14.6?-0.3:0),x,y,0.7);});
+  const HAY=ramp([[120,90,20],[156,124,32],[188,156,48],[208,178,64],[226,200,92],[240,222,130]],9),BIND=ramp([[70,34,14],[100,50,20],[130,70,30]],4);
+  fill(T.HAY_SIDE,(x,y,r)=>{if((y>=7&&y<=10)||(y>=21&&y<=24))return pd(BIND,y===7||y===21?0.85:y===10||y===24?0.15:0.5+(r-0.5)*0.3,x,y);
+    return pd(HAY,0.5+(vn(x,y,62,1,8)-0.5)*0.6+(r-0.5)*0.12,x,y,0.6);});
+  fill(T.HAY_TOP,(x,y,r)=>{const m=Math.max(Math.abs(x-15.5),Math.abs(y-15.5));if(m>14.6)return pal(HAY,0.15);if(m>12.6&&m<14)return pd(BIND,0.5,x,y);
+    return pd(HAY,0.5+(H2(x,y,63)-0.5)*0.6+(vn(x,y,64,4)-0.5)*0.3,x,y,0.6);});
+  // ---- farmland and gravel path ----
+  const FARM=ramp([[44,26,14],[62,38,22],[80,52,30],[98,66,40],[116,82,52]],8);
+  fill(T.FARMLAND,(x,y,r)=>{const fy=wr(y,8);let t=0.5+(fy<3?0.15:fy===3?0.25:fy===7?-0.3:-0.05)+(vn(x,y,65,4,2)-0.5)*0.3+(r-0.5)*0.1;
+    if(H2(x,y,66)<0.03)t+=0.35;const e=Math.min(x,N-1-x);if(e<1)t-=0.15;return pd(FARM,t,x,y,0.7);});
+  const PATHP=ramp([[90,74,50],[116,98,70],[140,122,90],[160,142,108],[180,164,130]],8),PATHPEB=pebbles(67,26,[[120,114,108],[150,142,134],[100,96,92],[170,160,148]],0.8,1.6);
+  const pathFn=(x,y,r)=>pebAt(PATHPEB,x,y)||pd(PATHP,0.45+fbm(x,y,68,8,3)*0.3+(r-0.5)*0.25,x,y,0.7);
+  fill(T.PATH_TOP,pathFn);
+  fill(T.PATH_SIDE,(x,y,r)=>y<4?shade(pathFn(x,y,r),y===3?0.75:0.92):y===4?shade(dirtFn(x,y,r),0.7):dirtFn(x,y,r));
+  // ---- cactus ----
+  const CACT=ramp([[24,64,18],[38,88,26],[54,112,34],[72,136,44],[94,158,58],[124,182,80]],9);
+  fill(T.CACTUS_SIDE,(x,y,r)=>{if(x<2||x>29)return pal(CACT,x===0||x===31?0.02:0.15);const rib=wr(x-2,7);
+    const sx=wr(x-2,7),sy=wr(y+((Math.floor((x-2)/7))&1)*5,10);if(sx===3&&sy===3)return [232,230,200];if(sx===3&&sy===4)return [64,56,36];if(sx===4&&sy===3)return [150,160,110];
+    return pd(CACT,0.5+(rib===0?-0.28:rib===1?0.2:rib===6?-0.12:0.05)+(vn(x,y,50,4,8)-0.5)*0.18+(r-0.5)*0.08,x,y,0.6);});
+  fill(T.CACTUS_TOP,(x,y,r)=>{const m=Math.max(Math.abs(x-15.5),Math.abs(y-15.5));if(m>14.6)return pal(CACT,0.02);if(m>13.6)return pal(CACT,0.2);
+    const a=Math.atan2(y-15.5,x-15.5);let t=0.58+(vn(x,y,51,4)-0.5)*0.18-m*0.012;if(m<12&&Math.abs(((a/(Math.PI/4))%1+1)%1-0.5)<0.07)t+=0.14;if(m<1.6)t=0.35;
+    return pd(CACT,t+(r-0.5)*0.08,x,y,0.6);});
+  // ---- clay, granite, diorite, andesite, terracotta ----
+  fill(T.CLAY,(x,y,r)=>pd(ramp([[132,138,154],[146,152,168],[158,164,180],[170,176,190],[182,188,200]],8),0.45+fbm(x,y,69,16,3)*0.35+(r-0.5)*0.12+(H2(x>>1,y>>1,70)<0.04?-0.2:0),x,y,0.6));
+  const speckle=(P,seed,spots)=>(x,y,r)=>{let t=0.45+fbm(x,y,seed,8,3)*0.35+lit(SH,x,y)*1.2+(r-0.5)*0.12;
+    for(const [k,c] of spots){if(H2(x>>k.s,y>>k.s,seed+k.o)<k.p)return shade(c,0.95+(r-0.5)*0.12);}return pd(P,t,x,y,0.7);};
+  fill(T.GRANITE,(x,y,r)=>{const g=H2(x,y,71),b=vn(x,y,72,4);if(g<0.05)return mix([86,52,44],[110,70,60],r);if(H2(x>>1,y>>1,73)<0.035)return mix([214,184,172],[236,212,202],r);
+    return pd(ramp([[118,72,58],[140,88,72],[160,104,86],[178,120,100],[196,138,118],[212,158,138]],9),0.3+b*0.4+fbm(x,y,74,8,2)*0.2+(r-0.5)*0.24,x,y,0.6);});
+  fill(T.DIORITE,(x,y,r)=>{const b=fbm(x,y,75,8,3);if(H2(x,y,76)<0.04)return mix([96,96,100],[124,124,128],r);
+    if(b<0.42&&vn(x,y,77,2)>0.45)return pd(ramp([[132,132,136],[150,150,154],[166,166,170]],4),r,x,y);
+    return pd(ramp([[170,170,172],[190,190,192],[206,206,208],[220,220,222],[234,234,236],[246,246,248]],9),0.3+b*0.5+(r-0.5)*0.24,x,y,0.6);});
+  fill(T.ANDESITE,(x,y,r)=>{const w=vn(x,y,78,16,8);let t=0.4+fbm(x,y,79,4,2)*0.3+lit(SH,x,y)*1.6+(r-0.5)*0.26;if(Math.abs(w-0.5)<0.035)t-=0.2;if(H2(x,y,80)<0.05)t+=0.25;
+    return pd(ramp([[92,92,94],[108,108,110],[122,122,124],[136,136,138],[150,150,152],[164,164,166]],9),t,x,y,0.6);});
+  const terra=col=>{const P=ramp([shade(col,0.78),shade(col,0.9),col,shade(col,1.08)],7);return (x,y,r)=>pd(P,0.5+(fbm(x,y,76,8,3)-0.5)*0.4+(r-0.5)*0.22+(H2(x,y,77)<0.03?-0.3:0),x,y,0.6);};
   fill(T.TERRA,terra([162,86,52]));fill(T.TERRA_RED,terra([144,62,48]));fill(T.TERRA_YELLOW,terra([186,134,38]));
   fill(T.TERRA_WHITE,terra([210,178,162]));fill(T.TERRA_BROWN,terra([80,54,38]));
-  const myc=(x,y,r)=>{const c=vary([114,98,112],18,r);if(tr()<0.12){c[0]+=40;c[1]+=30;c[2]+=40;}return c;};
-  fill(T.MYCELIUM_TOP,myc);
-  fill(T.MYCELIUM_SIDE,(x,y,r)=>y<edge[x]?myc(x,y,r):dirtFn(x,y,r));
-  fill(T.MUSH_CAP,(x,y,r)=>{const sp=[[3,3],[11,4],[6,10],[12,12],[2,12]].some(([a,b])=>Math.abs(x-a)+Math.abs(y-b)<=1);return sp?vary([234,226,214],8,r):vary([186,36,32],18,r);});
-  fill(T.MUSH_STEM,(x,y,r)=>{const c=vary([214,206,190],10,r);if(x%5===2){c[0]-=20;c[1]-=20;c[2]-=18;}return c;});
-  const obs=(x,y,r)=>{const c=vary([22,14,34],10,r);if(tr()<0.12){c[0]+=40;c[1]+=24;c[2]+=60;}return c;};
-  fill(T.ENCH_BOTTOM,obs);
-  fill(T.ENCH_SIDE,(x,y,r)=>y<4?vary(y===3?[90,10,20]:[140,22,30],10,r):obs(x,y,r));
-  fill(T.ENCH_TOP,(x,y,r)=>{const corner=(x<3||x>12)&&(y<3||y>12);if(corner)return vary([80,228,215],16,r);
-    if(x>=5&&x<=10&&y>=5&&y<=10)return (x===7||x===8)?vary([110,70,40],8,r):vary([236,226,200],8,r);return vary([150,24,34],12,r);});
-  fill(T.SPAWNER,(x,y,r)=>{const bar=x%5===0||y%5===0||x===15||y===15;if(!bar)return CLEAR;return pal([[26,30,36],[40,46,54],[58,66,76]],r*0.6+((x%5===0&&y%5===0)?0.5:0));});
-  // ---- doors (bottom half, top half with a window, and the inventory picture) ----
-  const doorTex=(col,win)=>{
-    const wood=(x,y,r)=>{const c=vary(col,10,r);if(x===7||x===8){c[0]-=10;c[1]-=10;c[2]-=8;}return c;};
-    const dark=(x,y,r)=>vary([col[0]*0.62,col[1]*0.62,col[2]*0.62],6,r);
-    const bot=(x,y,r)=>{if(x<2||x>13||y>13)return dark(x,y,r);if((x===3||x===12)&&y>=2&&y<=11||(y===2||y===11)&&x>=3&&x<=12)return dark(x,y,r);
-      if(x===12&&y===0)return [210,190,90];return wood(x,y,r);};
-    const top=(x,y,r)=>{if(x<2||x>13||y<2)return dark(x,y,r);
-      if(x>=3&&x<=12&&y>=3&&y<=10){if(x===7||x===8||y===6||y===7)return dark(x,y,r);return vary(win,8,r);}return wood(x,y,r);};
-    return {bot,top,item:(x,y,r)=>{if(x<4||x>11)return CLEAR;const lx=(x-4)*2,ly=(y*2)%16;return y<8?top(lx,ly,r):bot(lx,ly,r);}};};
-  for(const [col,b,t,i] of [[[164,124,72],T.OAKD_BOT,T.OAKD_TOP,T.OAKD_ITEM],[[104,76,48],T.SPRD_BOT,T.SPRD_TOP,T.SPRD_ITEM],[[224,166,158],T.CHRD_BOT,T.CHRD_TOP,T.CHRD_ITEM]]){
-    const d=doorTex(col,[150,190,205]);fill(b,d.bot);fill(t,d.top);fill(i,d.item);}
-  fill(T.GLOW,(x,y,r)=>{const b=r<0.33?[255,236,170]:r<0.66?[230,180,90]:[170,120,60];return vary(b,20,tr());});
+  // ---- mushroom fields ----
+  const MYC=ramp([[86,72,90],[104,88,108],[120,104,124],[136,120,140],[156,140,158]],8);
+  const myc=(x,y,r)=>{if(H2(x,y,78)<0.05)return [196,186,204];return pd(MYC,0.45+fbm(x,y,79,8,3)*0.35+(r-0.5)*0.2,x,y,0.7);};
+  fill(T.MYCELIUM_TOP,myc);fill(T.MYCELIUM_SIDE,sideOf(myc));
+  const CAPP=ramp([[120,16,14],[156,24,20],[186,34,28],[206,48,40],[222,70,60]],8);
+  const capSpots=pebbles(80,6,[[236,230,220]],2.4,3.6);
+  fill(T.MUSH_CAP,(x,y,r)=>{const s=pebAt(capSpots,x,y);if(s)return s;return pd(CAPP,0.5+fbm(x,y,81,8,3)*0.3+(r-0.5)*0.1,x,y,0.6);});
+  fill(T.MUSH_STEM,(x,y,r)=>pd(ramp([[176,166,148],[198,190,174],[214,208,194],[228,224,212],[240,238,230]],8),0.5+(vn(x,y,82,2,16)-0.5)*0.5+(r-0.5)*0.1,x,y,0.6));
+  // ================= the Nether =================
+  fill(T.LAVA,(x,y,r)=>{const wx=fbm(x,y,60,16,2)*6,wy=fbm(x,y,61,16,2)*6,v=fbm(x+wx,y+wy,62,8,3);let t=v*1.1-0.12+(r-0.5)*0.05;if(vn(x,y,63,4)>0.74)t+=0.18;
+    return pd(ramp([[90,12,2],[140,28,4],[190,56,6],[226,94,12],[244,136,26],[252,182,56],[255,224,130]],10),t,x,y,0.7);});
+  const OBS=ramp([[8,4,14],[16,10,26],[26,16,40],[40,26,60],[60,40,88],[92,64,128]],9);
+  const OP=jpts(4,4,1,301),OW=wmap(OP),OH=fld((x,y)=>Math.min(OW[y*N+x].e,4)/4);
+  const obsidian=(x,y,r)=>{const w=OW[y*N+x];let t=0.25+H2(w.i,0,302)*0.2+lit(OH,x,y)*1.4+(r-0.5)*0.08;if(w.e<0.7)t-=0.15;if(H2(x,y,303)<0.012)t=0.95;return pd(OBS,t,x,y,0.6);};
+  fill(T.OBSIDIAN,obsidian);
+  fill(T.PORTAL,(x,y,r)=>{const wx=fbm(x,y,64,16,2)*8,a=Math.sin((x+wx)*Math.PI/8)+Math.cos((y+fbm(x,y,65,16,2)*8)*Math.PI/8);
+    return pd(ramp([[50,8,110],[84,20,170],[120,40,214],[160,80,240],[200,140,255],[236,200,255]],9),0.45+a*0.22+(r-0.5)*0.1,x,y,0.7);});
+  const NRP=jpts(5,5,1,401),NRW=wmap(NRP),NRH=fld((x,y)=>Math.min(NRW[y*N+x].e,2.4)/2.4*0.7+fbm(x,y,402,8,3)*0.3);
+  const NRK=ramp([[62,18,18],[84,26,26],[104,34,34],[122,44,42],[140,56,52],[160,72,66]],9);
+  const rack=(x,y,r)=>{const w=NRW[y*N+x];let t=0.25+H2(w.i,0,403)*0.35+lit(NRH,x,y)*1.6+(r-0.5)*0.12;if(w.e<0.7)t-=0.22;return pd(NRK,t,x,y,0.7);};
+  fill(T.NETHERRACK,rack);
+  fill(T.QUARTZ_ORE,oreOf(rack,ramp([[170,160,150],[200,192,182],[224,218,210],[240,236,230],[255,255,250]],7),404,5));
+  const SOUL=ramp([[48,34,26],[64,46,36],[80,58,46],[96,72,58],[112,86,70]],8);
+  fill(T.SOUL_SAND,(x,y,r)=>{const fx=wr(x+(Math.floor(y/16)&1)*8,16),fy=wr(y,16);let t=0.5+fbm(x,y,405,8,3)*0.3+(r-0.5)*0.3;
+    const eye=(fy>=4&&fy<=6)&&((fx>=3&&fx<=5)||(fx>=10&&fx<=12)),mouth=fy>=9&&fy<=11&&fx>=5&&fx<=10&&!(fy===9&&(fx===5||fx===10));
+    if(eye||mouth)t-=0.45;else if((fy===3||fy===8)&&fx>=3&&fx<=12)t+=0.12;return pd(SOUL,t,x,y,0.7);});
+  {const GP2=jpts(5,5,1,407),GW2=wmap(GP2);
+    fill(T.GLOW,(x,y,r)=>{const w=GW2[y*N+x];if(w.e<0.8)return pd(ramp([[112,66,24],[146,96,40]],2),r,x,y);
+      return pd(ramp([[186,116,46],[224,160,66],[246,200,96],[255,230,146],[255,250,212]],8),0.3+H2(w.i,0,406)*0.5+Math.min(w.e,3)*0.07-(w.dx+w.dy)*0.03+(r-0.5)*0.15,x,y,0.7);});}
+  // ================= the End =================
+  const ENDP=ramp([[172,174,112],[192,194,130],[208,210,146],[220,222,160],[232,234,176],[242,244,196]],9),EP=pebbles(501,9,[[0,0,0]],1,2.2);
+  const endStone=(x,y,r)=>{let t=0.5+fbm(x,y,502,8,3)*0.3+lit(SH,x,y)*1.4+(r-0.5)*0.2;
+    for(const p of EP){let dx=x+0.5-p.x,dy=y+0.5-p.y;dx-=Math.round(dx/N)*N;dy-=Math.round(dy/N)*N;const q=Math.hypot(dx/p.rx,dy/p.ry);if(q<1){t-=0.42+(dx+dy<0?0.12:-0.08);break;}if(q<1.4&&dx+dy>0)t+=0.16;}
+    return pd(ENDP,t,x,y,0.7);};
+  fill(T.END_STONE,endStone);
+  const TEAL=ramp([[18,52,44],[30,76,64],[46,100,86],[66,126,108],[96,154,132]],7);
+  fill(T.FRAME_SIDE,(x,y,r)=>y<6?pd(TEAL,y===0?0.9:y===5?0.05:0.55+(vn(x,y,503,4,2)-0.5)*0.3,x,y):y===6?shade(endStone(x,y,r),0.7):endStone(x,y,r));
+  const frameTop=eye=>(x,y,r)=>{const m=Math.max(Math.abs(x-15.5),Math.abs(y-15.5)),e=Math.hypot(x-15.5,y-15.5);
+    if(m<6.5){if(!eye)return pd(ramp([[10,22,20],[18,34,30]],2),0.5+(x+y<31?0.3:-0.3),x,y);
+      if(e<2)return [10,24,14];if(e<4.6)return pal(ramp([[30,110,60],[60,170,90],[120,220,140],[200,255,210]],4),0.7-(x+y-31)*0.04);return [24,70,50];}
+    if(m<8.5)return pd(TEAL,m<7.5?0.1:0.3,x,y);return pd(TEAL,m>14.6?0.15:0.6+(vn(x,y,504,4)-0.5)*0.3+(wr(x+y,6)===0?0.2:0),x,y,0.6);};
+  fill(T.FRAME_TOP,frameTop(false));fill(T.FRAME_TOP_EYE,frameTop(true));
+  {const r=mulberry32(505);fill(T.END_PORTAL,(x,y)=>pd(ramp([[4,6,12],[8,12,22],[14,20,34],[20,30,48]],4),fbm(x,y,506,16,3)*0.9,x,y));
+    for(let k=0;k<60;k++){const x=Math.floor(r()*N),y=Math.floor(r()*N),c=[[110,220,200],[200,240,255],[160,120,255],[255,255,255]][Math.floor(r()*4)];sp(T.END_PORTAL,x,y,c);
+      if(r()<0.25){sp(T.END_PORTAL,x+1,y,shade(c,0.6));sp(T.END_PORTAL,x,y+1,shade(c,0.6));}}}
+  fill(T.DRAGON_EGG,(x,y,r)=>{const w=OW[y*N+x];let t=0.25+lit(OH,x,y)*1.2+H2(w.i,1,507)*0.15+(r-0.5)*0.1;if(H2(x,y,508)<0.05)t=0.85;
+    return pd(ramp([[6,2,8],[14,6,18],[24,10,32],[40,18,52],[90,40,120],[170,90,220]],8),t,x,y,0.6);});
+  // ================= zombie apocalypse =================
+  const ASPH=ramp([[30,30,34],[40,40,44],[50,50,54],[60,60,64],[72,72,76],[90,90,94]],9);
+  const asphalt=(x,y,r)=>{let t=0.4+fbm(x,y,601,8,3)*0.25+(r-0.5)*0.3;const g=H2(x,y,602);if(g<0.06)t+=0.3;else if(g>0.96)t-=0.25;if(vn(x,y,603,16)>0.7)t-=0.12;return pd(ASPH,t,x,y,0.7);};
+  fill(T.ASPHALT,(x,y,r)=>crackAt(x,y,604,16,8,0.6)?pal(ASPH,0.02):asphalt(x,y,r));
+  const CRATE=ramp([[34,40,18],[50,58,28],[66,76,38],[82,94,48],[98,110,60],[116,128,74]],9);
+  const crateWood=(x,y,r)=>{const e=Math.min(x,y,N-1-x,N-1-y);if(e<3)return pd(CRATE,e===0?0.02:e===1?0.4:0.22,x,y);
+    const yy=wr(y-3,7);return pd(CRATE,0.55+(yy===0?0.15:yy===6?-0.25:0)+(vn(x,y,605,16,1)-0.5)*0.3+(r-0.5)*0.08,x,y,0.6);};
+  fill(T.CRATE_SIDE,(x,y,r)=>{if(y>=12&&y<=19&&x>2&&x<29){if(y===12||y===19)return [24,24,22];return ((x+y)>>2)&1?[232,192,40]:[28,28,26];}return crateWood(x,y,r);});
+  fill(T.CRATE_TOP,(x,y,r)=>{if((x<5||x>26)&&(y<5||y>26))return pd(IRONT,(x<5?x:31-x)+(y<5?y:31-y)<3?0.9:0.45,x,y);
+    const cx=Math.abs(x-15.5)<3.2&&y>6&&y<25,cy=Math.abs(y-15.5)<3.2&&x>6&&x<25;if(cx||cy)return pd(ramp([[196,196,186],[226,226,216]],3),0.5+(r-0.5)*0.4,x,y);return crateWood(x,y,r);});
+  const CONC=ramp([[112,112,108],[128,128,124],[142,142,138],[154,154,150],[166,166,162],[178,178,174]],9);
+  const concrete=(x,y,r)=>{let t=0.5+fbm(x,y,606,16,3)*0.3+(r-0.5)*0.12;if(H2(x,y,607)<0.025)t-=0.3;if(y>20&&vn(x,y,608,4,16)>0.6)t-=(y-20)*0.025;return pd(CONC,t,x,y,0.7);};
+  fill(T.CONCRETE,concrete);
+  fill(T.CRACKED_CONCRETE,(x,y,r)=>{const c1=Math.abs(x-(16+Math.sin(y*0.45)*5+(vn(x,y,609,8)-0.5)*4))<0.9,c2=Math.abs(y-(10+Math.sin(x*0.35)*4))<0.8&&x>12;
+    if(c1||c2)return [40,40,40];const near=Math.abs(x-(16+Math.sin(y*0.45)*5+(vn(x,y,609,8)-0.5)*4))<2.2;const c=concrete(x,y,r);return near?shade(c,0.85):c;});
+  const BAG=ramp([[110,92,58],[142,122,82],[168,146,104],[188,166,124],[204,184,142]],8);
+  fill(T.SANDBAG,(x,y,r)=>{const row=y>>3,yy=y&7,bx=wr(x+(row&1)*8,16);if(yy===7||bx===15)return pd(ramp([[60,50,32],[80,66,42]],2),r,x,y);
+    const u=(bx-7)/7.5,v=(yy-3)/3.5;let t=0.62-(u*u+v*v)*0.25-(u+v)*0.12+(r-0.5)*0.1;if(bx===1&&yy%2===0)t-=0.25;return pd(BAG,t,x,y,0.6);});
+  fill(T.BARRICADE,(x,y,r)=>{const P=ramp([[70,48,24],[104,74,40],[136,100,58],[164,124,76],[186,144,92]],8);
+    const diag=Math.abs(x-y)<3||Math.abs(x-(N-1-y))<3,plank=(y>=4&&y<=11)||(y>=20&&y<=27),post=x<=3||x>=28;
+    if(diag)return pd(P,0.5+(Math.abs(x-y)<3?(x-y)*0.08:(x-(N-1-y))*0.08)+(r-0.5)*0.1,x,y);
+    if(plank){const yy=wr(y-4,16);return pd(P,(yy===0?0.85:yy===7?0.15:0.55)+(vn(x,y,610,16,1)-0.5)*0.3,x,y);}
+    if(post)return pd(P,x===0||x===28?0.75:x===3||x===31?0.15:0.45,x,y);return CLEAR;});
+  const blood=(r,k=1)=>[(60+r*60)*k,4,4];
+  fill(T.BLOOD_ASPHALT,(x,y,r)=>{const dd=Math.hypot(x-15,y-16)+(vn(x,y,611,8)-0.5)*7;if(dd<9||(H2(x,y,612)<0.1&&dd<14))return blood(r,dd<5?0.8:1);return asphalt(x,y,r);});
+  fill(T.BLOOD_CONCRETE,(x,y,r)=>{const drip=[4,9,12,20,26].includes(x>>0)&&y<6+((x*7)%15);const hand=x>=16&&x<=23&&y>=18&&y<=27&&!(y<=20&&x%2)&&!(x===23&&y<22);
+    if(drip||hand)return blood(r);return concrete(x,y,r);});
+  {const F={H:['101','101','111','101','101'],E:['111','100','110','100','111'],L:['100','100','100','100','111'],P:['110','101','110','100','100']};
+    const letter=(x,y)=>{if(y<8||y>=18||x<1)return false;const lx=Math.floor((x-1)/2),ly=Math.floor((y-8)/2),li=Math.floor(lx/4),cx=lx%4;return li<4&&cx<3&&F['HELP'[li]][ly][cx]==='1';};
+    fill(T.HELP_WALL,(x,y,r)=>{if(letter(x,y))return blood(r);
+      const dr=[3,10,17,26].indexOf(x);if(dr>=0&&y>=18&&y<20+[6,3,8,5][dr])return blood(r,0.9);return concrete(x,y,r);});}
+  // ================= enchanting table, spawner, doors =================
+  fill(T.ENCH_BOTTOM,obsidian);
+  const CLOTH=ramp([[80,8,16],[116,14,24],[150,22,32],[176,36,44],[200,56,62]],7);
+  fill(T.ENCH_SIDE,(x,y,r)=>{if(y<8){if(y===7)return pal(CLOTH,0.05);return pd(CLOTH,0.55+(vn(x,y,701,4,8)-0.5)*0.3-(y===6?0.2:0),x,y);}
+    if(y===8)return [200,170,60];return obsidian(x,y,r);});
+  fill(T.ENCH_TOP,(x,y,r)=>{const corner=(x<6||x>25)&&(y<6||y>25);if(corner){const cx=x<6?x:31-x,cy=y<6?y:31-y;return pal(ramp([[30,150,150],[80,220,210],[180,255,250]],4),Math.min(cx,cy)/5+(x<6&&y<6?0.2:0));}
+    if(x>=9&&x<=22&&y>=9&&y<=22){if(x===15||x===16)return pal(ramp([[70,40,20],[110,70,40]],2),0.5);const e=Math.min(x-9,22-x,y-9,22-y);return pd(ramp([[200,190,160],[230,222,196],[246,240,222]],4),e===0?0.1:0.6+(y%3===0?-0.15:0),x,y);}
+    return pd(CLOTH,0.5+(vn(x,y,702,4)-0.5)*0.3+(r-0.5)*0.1,x,y);});
+  fill(T.SPAWNER,(x,y,r)=>{const gx=wr(x,8),gy=wr(y,8),bar=gx<2||gy<2||x>=30||y>=30;if(!bar)return CLEAR;
+    const P=ramp([[18,22,28],[30,36,44],[46,54,64],[66,76,88],[90,102,116]],7);return pd(P,(gx===0||gy===0?0.65:0.3)+(gx<2&&gy<2?0.25:0)+(r-0.5)*0.15,x,y);});
+  const doorTex=(P,win,seed)=>{
+    const wood=(x,y,r)=>pd(P,0.55+(vn(x,y,seed,2,16)-0.5)*0.4+(r-0.5)*0.08+(x===15||x===16?-0.12:0),x,y,0.6);
+    const frame=(x,y,r)=>pd(P,(x<=1||y<=1?0.35:0.12)+(r-0.5)*0.1,x,y);
+    const bot=(x,y,r)=>{if(x<3||x>28||y>27)return frame(x,y,r);
+      if((x===6||x===25)&&y>=4&&y<=24||(y===4||y===24)&&x>=6&&x<=25)return pal(P,x===6||y===4?0.15:0.8);
+      if(x>=25&&x<=27&&y>=2&&y<=4)return [214,192,96];return wood(x,y,r);};
+    const top=(x,y,r)=>{if(x<3||x>28||y<4)return frame(x,y,r);
+      if(x>=6&&x<=25&&y>=7&&y<=21){if(x===15||x===16||y===13||y===14)return pal(P,0.2);if(x===6||y===7||x===25||y===21)return pal(P,0.1);
+        return pal(win,(x+y)%9<2?0.85:0.4+(y-7)*0.02);}
+      return wood(x,y,r);};
+    return {bot,top,item:(x,y,r)=>{if(x<8||x>23)return CLEAR;const lx=(x-8)*2,ly=(y*2)%N;return y<16?top(lx,ly,r):bot(lx,ly,r);}};};
+  const WIN=ramp([[110,150,170],[150,190,205],[196,226,236],[230,245,250]],4);
+  for(const [P,b,t,i,s] of [[OAKP,T.OAKD_BOT,T.OAKD_TOP,T.OAKD_ITEM,801],[ramp([[48,34,19],[74,53,30],[92,67,39],[106,78,46],[120,90,54],[136,104,64]],10),T.SPRD_BOT,T.SPRD_TOP,T.SPRD_ITEM,802],
+      [ramp([[150,92,90],[194,136,130],[214,156,148],[226,170,160],[236,184,172],[246,200,188]],10),T.CHRD_BOT,T.CHRD_TOP,T.CHRD_ITEM,803]]){
+    const dt=doorTex(P,WIN,s);fill(b,dt.bot);fill(t,dt.top);fill(i,dt.item);}
+  // ice: pale blue with white cracks
+  fill(T.ICE,(x,y,r)=>{let t=0.46+fbm(x,y,901,16,3)*0.3+(r-0.5)*0.06+(wr(x+y*2)<3?0.14:0)+(wr(x+y*2-9)<1?0.08:0);if(H2(x,y,904)<0.012)t+=0.3;
+    return pd(ramp([[110,150,220],[130,170,236],[150,190,246],[176,210,252],[214,234,255],[240,250,255]],9),t,x,y,0.5);});
+  {const r=mulberry32(905);for(let k=0;k<3;k++){let x=r()*N,y=r()*N,a=r()*Math.PI*2;for(let i=0;i<14+r()*10;i++){x+=Math.cos(a);y+=Math.sin(a);a+=(r()-0.5)*0.9;
+    sp(T.ICE,wr(Math.floor(x)),wr(Math.floor(y)),[236,248,255]);if(r()<0.5)sp(T.ICE,wr(Math.floor(x)+1),wr(Math.floor(y)+1),[150,188,240]);}}}
   actx.putImageData(img,0,0);
-  for(let t=0;t<COLS*ROWS;t++){let r=0,g=0,b=0,n=0;for(let y=0;y<16;y++)for(let x=0;x<16;x++){const X=(t%COLS)*16+x,Y=Math.floor(t/COLS)*16+y,i=(Y*atlas.width+X)*4;if(d[i+3]>0){r+=d[i];g+=d[i+1];b+=d[i+2];n++;}}
+  for(let t=0;t<COLS*ROWS;t++){let r=0,g=0,b=0,n=0;for(let y=0;y<N;y++)for(let x=0;x<N;x++){const c=gp(t,x,y);if(c[3]>0){r+=c[0];g+=c[1];b+=c[2];n++;}}
     tileColor[t]=n?[r/n/255,g/n/255,b/n/255]:[1,1,1];}
 })();
+// Mipmaps, made tile by tile: far-away blocks look smooth instead of sparkly, and never pick up colours from the next
+// tile. See-through tiles (leaves, plants, glass) stay just as see-through when they get small.
+const ATLAS_MIPS=(function(){
+  const W0=atlas.width,H0=atlas.height,nT=COLS*ROWS,lv=[actx.getImageData(0,0,W0,H0)],cover=new Array(nT).fill(0);
+  {const d=lv[0].data;
+    for(let y=0;y<H0;y++)for(let x=0;x<W0;x++){const k=(y*W0+x)*4,t=Math.floor(y/TS)*COLS+Math.floor(x/TS);
+      if(d[k+3]>=128)cover[t]++;else{const c=tileColor[t];d[k]=c[0]*255;d[k+1]=c[1]*255;d[k+2]=c[2]*255;d[k+3]=0;}}
+    for(let t=0;t<nT;t++)cover[t]/=TS*TS;actx.putImageData(lv[0],0,0);}
+  for(let L=1;;L++){const src=lv[L-1],sw=src.width,sh=src.height,w=Math.max(1,sw>>1),h=Math.max(1,sh>>1),dst=new ImageData(w,h),s=src.data,o=dst.data;
+    for(let y=0;y<h;y++)for(let x=0;x<w;x++){let r=0,g=0,b=0,a=0,ws=0;
+      for(let dy=0;dy<2;dy++)for(let dx=0;dx<2;dx++){const k=(Math.min(sh-1,y*2+dy)*sw+Math.min(sw-1,x*2+dx))*4,wt=s[k+3]+1;r+=s[k]*wt;g+=s[k+1]*wt;b+=s[k+2]*wt;ws+=wt;a+=s[k+3];}
+      const k=(y*w+x)*4;o[k]=r/ws;o[k+1]=g/ws;o[k+2]=b/ws;o[k+3]=a/4;}
+    const ts=TS>>L;
+    if(ts>=1){for(let t=0;t<nT;t++){const x0=(t%COLS)*ts,y0=Math.floor(t/COLS)*ts,al=[];
+        for(let y=0;y<ts;y++)for(let x=0;x<ts;x++)al.push(o[((y0+y)*w+x0+x)*4+3]);
+        al.sort((p,q)=>q-p);const keep=Math.round(cover[t]*ts*ts),thr=keep>0?Math.max(1,al[keep-1]):256;
+        for(let y=0;y<ts;y++)for(let x=0;x<ts;x++){const k=((y0+y)*w+x0+x)*4+3;o[k]=o[k]>=thr?255:0;}}}
+    else for(let k=3;k<o.length;k+=4)o[k]=o[k]>=128?255:0;
+    lv.push(dst);if(w===1&&h===1)break;}
+  return lv;
+})();
+// the atlas at half size (16 pixels a tile): used to draw the little block pictures in the inventory
+const atlas16=document.createElement('canvas');atlas16.width=COLS*16;atlas16.height=ROWS*16;atlas16.getContext('2d').putImageData(ATLAS_MIPS[1],0,0);
 
 function blockIcon(id){
   const c=document.createElement('canvas');c.width=48;c.height=52;const x=c.getContext('2d');x.imageSmoothingEnabled=false;
   const def=DEF[id];
   const tile=(t)=>[(t%COLS)*16,Math.floor(t/COLS)*16];
-  if(def.plant||def.torch||def.ladder||def.door){const [sx,sy]=tile(def.tex[0]);x.drawImage(atlas,sx,sy,16,16,4,6,40,40);return c.toDataURL();}
+  if(def.plant||def.torch||def.ladder||def.door){const [sx,sy]=tile(def.tex[0]);x.drawImage(atlas16,sx,sy,16,16,4,6,40,40);return c.toDataURL();}
   // draw each face on its own canvas so the shade only covers that face
   const face=(t,m,shade)=>{const f=document.createElement('canvas');f.width=48;f.height=52;const fx=f.getContext('2d');fx.imageSmoothingEnabled=false;
-    const [sx,sy]=tile(t);fx.setTransform(...m);fx.drawImage(atlas,sx,sy,16,16,0,0,16,16);
+    const [sx,sy]=tile(t);fx.setTransform(...m);fx.drawImage(atlas16,sx,sy,16,16,0,0,16,16);
     if(shade){fx.globalCompositeOperation='source-atop';fx.setTransform(1,0,0,1,0,0);fx.fillStyle=`rgba(0,0,0,${shade})`;fx.fillRect(0,0,48,52);}
     x.drawImage(f,0,0);};
   face(def.tex[3],[1.5,0.75,-1.5,0.75,24,2],0);
@@ -1172,7 +1439,7 @@ scene.add(camera);
 scene.fog=new THREE.Fog(0x8cc3ff,60,96);
 
 const atlasTex=new THREE.CanvasTexture(atlas);
-atlasTex.magFilter=THREE.NearestFilter;atlasTex.minFilter=THREE.NearestFilter;atlasTex.generateMipmaps=false;
+atlasTex.mipmaps=ATLAS_MIPS;atlasTex.generateMipmaps=false;atlasTex.magFilter=THREE.NearestFilter;atlasTex.minFilter=THREE.NearestMipmapLinearFilter;
 // Voxel shader: vertex color r = sky light, g = block (torch) light, both pre-multiplied by AO & face shade.
 const U={map:{value:atlasTex},daylight:{value:1},ambient:{value:0.035},fogColor:{value:new THREE.Color()},fogNear:{value:50},fogFar:{value:96},time:{value:0},
   flash:{value:0},camPos:{value:new THREE.Vector3()},camDir:{value:new THREE.Vector3(0,0,-1)}};
@@ -2265,10 +2532,18 @@ function loadedFraction(){
 //  Sky: sun, moon, stars, clouds
 // =====================================================================
 const skyGroup=new THREE.Group();scene.add(skyGroup);
-function discTex(inner,outer){const c=document.createElement('canvas');c.width=c.height=32;const x=c.getContext('2d');
-  x.fillStyle=outer;x.fillRect(0,0,32,32);x.fillStyle=inner;x.fillRect(6,6,20,20);const t=new THREE.CanvasTexture(c);t.magFilter=THREE.NearestFilter;return t;}
-const sun=new THREE.Mesh(new THREE.PlaneGeometry(60,60),new THREE.MeshBasicMaterial({map:discTex('#fffbe0','rgba(255,240,150,0.35)'),transparent:true,fog:false,depthWrite:false}));
-const moon=new THREE.Mesh(new THREE.PlaneGeometry(40,40),new THREE.MeshBasicMaterial({map:discTex('#e8eef8','rgba(200,210,230,0.15)'),transparent:true,fog:false,depthWrite:false}));
+function skyTex(draw){const c=document.createElement('canvas');c.width=c.height=64;const x=c.getContext('2d');
+  for(let j=0;j<64;j++)for(let i=0;i<64;i++){const v=draw(Math.max(Math.abs(i-31.5),Math.abs(j-31.5)),i,j);if(v){x.fillStyle=v;x.fillRect(i,j,1,1);}}
+  const t=new THREE.CanvasTexture(c);t.magFilter=THREE.NearestFilter;return t;}
+// the sun: a bright square with a soft glow around it
+const sunTex=skyTex(d=>d<19?(d<14?'#fffff4':'#fff6c8'):d<23?'#ffe890':`rgba(255,230,140,${(0.42*(1-(d-23)/9)).toFixed(3)})`);
+// the moon: grey-blue with craters
+const moonTex=skyTex((d,i,j)=>{if(d>=20)return d<26?`rgba(200,214,240,${(0.12*(1-(d-20)/6)).toFixed(3)})`:null;
+  const cr=[[24,22,4.5],[38,30,3.2],[30,40,5],[42,42,2.6],[20,36,2.4]].find(([a,b,r])=>Math.hypot(i-a,j-b)<r);
+  let v=226-(i+j-63)*0.35+((i*7+j*13)%5)*2;if(cr){const [a,b]=cr;v-=34+((i-a)+(j-b)<0?14:-6);}if(d>=19)v-=26;v=Math.max(80,Math.min(250,v));
+  return `rgb(${v|0},${(v+6)|0},${Math.min(255,v+18)|0})`;});
+const sun=new THREE.Mesh(new THREE.PlaneGeometry(60,60),new THREE.MeshBasicMaterial({map:sunTex,transparent:true,fog:false,depthWrite:false}));
+const moon=new THREE.Mesh(new THREE.PlaneGeometry(40,40),new THREE.MeshBasicMaterial({map:moonTex,transparent:true,fog:false,depthWrite:false}));
 skyGroup.add(sun,moon);
 const starGeo=new THREE.BufferGeometry();{const p=[];const r=mulberry32(99);for(let i=0;i<900;i++){const u=r()*2-1,th=r()*Math.PI*2,s=Math.sqrt(1-u*u);p.push(Math.cos(th)*s*500,Math.abs(u)*500,Math.sin(th)*s*500);}starGeo.setAttribute('position',new THREE.Float32BufferAttribute(p,3));}
 const stars=new THREE.Points(starGeo,new THREE.PointsMaterial({color:0xffffff,size:1.6,sizeAttenuation:false,transparent:true,fog:false,depthWrite:false}));
@@ -2401,6 +2676,7 @@ function updatePlayer(dt){
   const sprint=sprinting;
   let speed=player.flying?(sprint?22:11):player.inWater?(sprint?4.5:3.2):sneaking?1.4:(sprint?5.8:4.3);
   if(useHold&&!player.flying)speed*=0.35; // slowed while eating / drawing a bow
+  if(ADM.speed)speed*=2.2;
   const under=getBlock(Math.floor(p.x),Math.floor(p.y-0.1),Math.floor(p.z));
   const onIce=player.onGround&&under&&DEF[under].slip;
   if(under===B.SOUL_SAND&&player.onGround&&!player.flying)speed*=0.45;
@@ -2920,8 +3196,8 @@ function setupAppIcon(){ // a grass block icon for "Add to Home Screen" / instal
 for(const d of DEF)if(d&&d.id&&!d.hidden)ICON[d.id]=blockIcon(d.id);
 for(const id in ITEM){const c=itemCanvas(+id);FLATCANVAS[id]=c;ICON[id]=c.toDataURL();}
 setupAppIcon();
-for(const d of DEF)if(d&&d.id&&!d.hidden&&isFlat(d.id)){const c=document.createElement('canvas');c.width=c.height=16;const t=d.tex[0];
-  c.getContext('2d').drawImage(atlas,(t%COLS)*16,Math.floor(t/COLS)*16,16,16,0,0,16,16);FLATCANVAS[d.id]=c;}
+for(const d of DEF)if(d&&d.id&&!d.hidden&&isFlat(d.id)){const c=document.createElement('canvas');c.width=c.height=TS;const t=d.tex[0];
+  c.getContext('2d').drawImage(atlas,(t%COLS)*TS,Math.floor(t/COLS)*TS,TS,TS,0,0,TS,TS);FLATCANVAS[d.id]=c;}
 const FLATTEX={};
 function flatTex(id){if(!FLATTEX[id]){const t=new THREE.CanvasTexture(FLATCANVAS[id]);t.magFilter=t.minFilter=THREE.NearestFilter;t.generateMipmaps=false;FLATTEX[id]=t;}return FLATTEX[id];}
 // 3D item model: the sprite becomes a 1x1 slab with a side wall along every pixel edge (coloured from that pixel),
@@ -3285,14 +3561,15 @@ function placeHighlight(){
   else if(df.plant){highlight.scale.set(0.72,0.9,0.72);highlight.position.set(target.x+0.5,target.y+0.45,target.z+0.5);}
   else{highlight.scale.set(1.004,1.004,1.004);highlight.position.set(target.x+0.5,target.y+0.5,target.z+0.5);}
 }
-const crackCanvas=document.createElement('canvas');crackCanvas.width=160;crackCanvas.height=16;
-{const x=crackCanvas.getContext('2d');const r=mulberry32(777);const segs=[];
-  let walkers=[[8,8],[8,8],[8,8]];
+const crackCanvas=document.createElement('canvas');crackCanvas.width=320;crackCanvas.height=32;
+{const x=crackCanvas.getContext('2d'),r=mulberry32(777),pts=[],walkers=[];
+  for(let k=0;k<3;k++)walkers.push({x:16,y:16,a:k*2.1+r()});
   for(let s=0;s<10;s++){
-    for(let k=0;k<6+s*2;k++){const w=walkers[Math.floor(r()*walkers.length)];const nx=clamp(w[0]+Math.round((r()-0.5)*3),0,15),ny=clamp(w[1]+Math.round((r()-0.5)*3),0,15);
-      segs.push([nx,ny]);w[0]=nx;w[1]=ny;if(r()<0.15)walkers.push([nx,ny]);}
-    for(const [px,py] of segs){x.fillStyle='rgba(0,0,0,0.75)';x.fillRect(s*16+px,py,1,1);}
-  }}
+    for(let k=0;k<16+s*5;k++){const w=walkers[Math.floor(r()*walkers.length)];w.a+=(r()-0.5)*1.1;const nx=w.x+Math.cos(w.a),ny=w.y+Math.sin(w.a);
+      if(nx<0.5||ny<0.5||nx>31.5||ny>31.5){w.a+=Math.PI*0.7;continue;}w.x=nx;w.y=ny;pts.push([Math.floor(nx),Math.floor(ny)]);
+      if(r()<0.09&&walkers.length<16)walkers.push({x:w.x,y:w.y,a:w.a+(r()<0.5?1:-1)*(0.6+r()*0.7)});}
+    x.fillStyle='rgba(255,255,255,0.16)';for(const [px,py] of pts)x.fillRect(s*32+px+1,py+1,1,1);
+    x.fillStyle='rgba(0,0,0,0.8)';for(const [px,py] of pts)x.fillRect(s*32+px,py,1,1);}}
 const crackTex=new THREE.CanvasTexture(crackCanvas);crackTex.magFilter=crackTex.minFilter=THREE.NearestFilter;crackTex.generateMipmaps=false;crackTex.repeat.set(0.1,1);
 const crack=new THREE.Mesh(new THREE.BoxGeometry(1.006,1.006,1.006),new THREE.MeshBasicMaterial({map:crackTex,transparent:true,depthWrite:false,polygonOffset:true,polygonOffsetFactor:-2,polygonOffsetUnits:-2}));
 crack.visible=false;scene.add(crack);
@@ -3497,54 +3774,88 @@ function explode(x,y,z,r,fromNet){
 const mobs=[];
 let mobsHostile=true;
 const rnd=n=>Math.floor(Math.random()*n);
+// Mob textures are painted 4x finer than their layout (an 8x8 skin becomes 32x32): soft fur/skin noise instead of big
+// random squares, a little bevel and shadow on the drawn details (eyes, spots), and darker edges so every box looks rounded.
+const MH=(x,y,s)=>{let h=(Math.imul(x|0,374761393)+Math.imul(y|0,668265263)+Math.imul(s|0,1442695041))|0;h=Math.imul(h^(h>>>13),1274126177);return ((h^(h>>>16))>>>0)/4294967296;};
+const mvn=(x,y,s,c)=>{const gx=x/c,gy=y/c,ix=Math.floor(gx),iy=Math.floor(gy),fx=gx-ix,fy=gy-iy,sx=fx*fx*(3-2*fx),sy=fy*fy*(3-2*fy),g=(a,b)=>MH(a,b,s);
+  return (g(ix,iy)*(1-sx)+g(ix+1,iy)*sx)*(1-sy)+(g(ix,iy+1)*(1-sx)+g(ix+1,iy+1)*sx)*sy;};
+function mobTex(c){const t=new THREE.CanvasTexture(c);t.magFilter=THREE.NearestFilter;const pot=v=>(v&(v-1))===0;
+  if(pot(c.width)&&pot(c.height))t.minFilter=THREE.NearestMipmapLinearFilter;else{t.minFilter=THREE.NearestFilter;t.generateMipmaps=false;}return t;}
 function skinTex(w,h,base,vari,draw){
-  const c=document.createElement('canvas');c.width=w;c.height=h;const x=c.getContext('2d');
-  for(let j=0;j<h;j++)for(let i=0;i<w;i++){const n=(Math.floor(Math.random()*4)-1.5)/1.5*vari*0.5;x.fillStyle=`rgb(${base[0]+n|0},${base[1]+n|0},${base[2]+n|0})`;x.fillRect(i,j,1,1);}
-  if(draw)draw(x);
-  if(w>=4&&h>=4){const im=x.getImageData(0,0,w,h),d=im.data;
-    for(let j=0;j<h;j++)for(let i=0;i<w;i++)if(i===0||j===0||i===w-1||j===h-1){const k=(j*w+i)*4;d[k]*=0.84;d[k+1]*=0.84;d[k+2]*=0.84;}x.putImageData(im,0,0);}
-  const t=new THREE.CanvasTexture(c);t.magFilter=t.minFilter=THREE.NearestFilter;t.generateMipmaps=false;return t;
+  const S=Math.max(1,Math.floor(32/Math.max(w,h))),W=w*S,H=h*S,c=document.createElement('canvas');c.width=W;c.height=H;const x=c.getContext('2d',{willReadFrequently:true});
+  const s=(Math.random()*1e9)|0,amp=vari/255;let im=x.createImageData(W,H),d=im.data;
+  for(let j=0;j<H;j++)for(let i=0;i<W;i++){const n=(mvn(i,j,s,S*1.5)*0.5+mvn(i,j/3,s+1,1.4)*0.3+MH(i,j,s+2)*0.2-0.5)*amp*2.2,k=(j*W+i)*4;
+    for(let q=0;q<3;q++)d[k+q]=base[q]*(1+n);d[k+3]=255;}
+  if(draw){const before=d.slice();x.putImageData(im,0,0);x.setTransform(S,0,0,S,0,0);draw(x);x.setTransform(1,0,0,1,0,0);
+    im=x.getImageData(0,0,W,H);d=im.data;const F=new Uint8Array(W*H);
+    for(let p=0;p<W*H;p++){const k=p*4;if(Math.abs(d[k]-before[k])+Math.abs(d[k+1]-before[k+1])+Math.abs(d[k+2]-before[k+2])>30)F[p]=1;}
+    const f=(i,j)=>i>=0&&j>=0&&i<W&&j<H&&F[j*W+i];
+    for(let j=0;j<H;j++)for(let i=0;i<W;i++){const p=j*W+i,k=p*4;let m=1;
+      if(F[p]){m=1+(MH(i,j,s+3)-0.5)*amp*1.2;if(!f(i,j-1)||!f(i-1,j))m*=1.12;else if(!f(i,j+1)||!f(i+1,j))m*=0.86;} // details: lit top-left edge, dark bottom-right
+      else if(f(i,j-1)||f(i-1,j)||f(i-1,j-1))m=0.84;                                                                       // ...and a small shadow
+      if(m!==1)for(let q=0;q<3;q++)d[k+q]=d[k+q]*m;}}
+  if(w>=4&&h>=4)for(let j=0;j<H;j++)for(let i=0;i<W;i++){const r=Math.min(i,j,W-1-i,H-1-j);if(r>2)continue;const k=(j*W+i)*4,m=r===0?0.78:r===1?0.88:0.95;d[k]*=m;d[k+1]*=m;d[k+2]*=m;}
+  x.putImageData(im,0,0);
+  return mobTex(c);
 }
 const spots=(cols)=>x=>{for(let k=0;k<5;k++){x.fillStyle=cols[k%cols.length];x.fillRect(rnd(7),rnd(7),2+rnd(3),1+rnd(3));}};
+// helpers for drawing small details on the 4x finer grid (coordinates are in the texture's own pixels, quarter steps)
+const fblob=(x,col,cx,cy,rx,ry)=>{x.fillStyle=col;for(let j=Math.floor((cy-ry)*4)/4;j<cy+ry;j+=0.25)for(let i=Math.floor((cx-rx)*4)/4;i<cx+rx;i+=0.25){
+  const dx=(i+0.125-cx)/rx,dy=(j+0.125-cy)/ry;if(dx*dx+dy*dy<=1)x.fillRect(i,j,0.25,0.25);}};
+const mEye=(x,ex,ey,w,h,pupil,white,side)=>{x.fillStyle=white;x.fillRect(ex,ey,w,h);const pw=w/2,px=side>0?ex+w-pw:ex;x.fillStyle=pupil;x.fillRect(px,ey,pw,h);
+  x.fillStyle='rgba(255,255,255,.85)';x.fillRect(px+0.25,ey+0.25,0.25,0.25);};
+const mShine=(x,a,b)=>{x.fillStyle='rgba(255,255,255,.85)';x.fillRect(a+0.25,b+0.25,0.25,0.25);};
 const MT={
-  pink:skinTex(8,8,[236,160,160],18),
-  pinkFace:skinTex(8,8,[236,160,160],18,x=>{x.fillStyle='#fff';x.fillRect(0,2,2,1);x.fillRect(6,2,2,1);x.fillStyle='#111';x.fillRect(1,2,1,1);x.fillRect(6,2,1,1);}),
-  snout:skinTex(4,3,[228,130,140],10,x=>{x.fillStyle='#7a3a40';x.fillRect(0,1,1,1);x.fillRect(3,1,1,1);}),
+  pink:skinTex(8,8,[236,160,160],16,x=>{for(let k=0;k<4;k++)fblob(x,'rgba(196,112,112,.26)',Math.random()*8,Math.random()*8,0.6+Math.random()*0.8,0.5+Math.random()*0.6);}),
+  pinkFace:skinTex(8,8,[236,160,160],16,x=>{x.fillStyle='rgba(150,70,80,.25)';x.fillRect(0,1.5,2,0.5);x.fillRect(6,1.5,2,0.5);mEye(x,0,2,2,1,'#14100e','#f6f2f0',1);mEye(x,6,2,2,1,'#14100e','#f6f2f0',-1);
+    fblob(x,'rgba(230,110,120,.3)',1,4.6,1,0.6);fblob(x,'rgba(230,110,120,.3)',7,4.6,1,0.6);}),
+  snout:skinTex(4,3,[232,136,146],10,x=>{x.fillStyle='rgba(255,200,205,.5)';x.fillRect(0,0,4,0.375);fblob(x,'#5a2228',0.8,1.5,0.5,0.55);fblob(x,'#5a2228',3.2,1.5,0.5,0.55);
+    x.fillStyle='rgba(120,50,60,.4)';x.fillRect(0,2.6,4,0.4);}),
   hoof:skinTex(4,4,[236,160,160],18,x=>{x.fillStyle='#6b4a3a';x.fillRect(0,3,4,1);}),
-  cow:skinTex(8,8,[72,50,34],16,spots(['#e8e8e8','#dddddd'])),
-  cowFace:skinTex(8,8,[72,50,34],16,x=>{x.fillStyle='#e8e8e8';x.fillRect(2,0,4,3);x.fillStyle='#111';x.fillRect(1,3,1,1);x.fillRect(6,3,1,1);
-    x.fillStyle='#c9a0a0';x.fillRect(2,5,4,3);x.fillStyle='#5a3a3a';x.fillRect(2,6,1,1);x.fillRect(5,6,1,1);}),
+  cow:skinTex(8,8,[72,50,34],16,x=>{for(let k=0,n=2+rnd(2);k<n;k++){const cx=Math.random()*8,cy=Math.random()*8,r=1+Math.random()*1.4;
+    fblob(x,'#e6e4de',cx,cy,r,r*(0.7+Math.random()*0.4));fblob(x,'#e6e4de',cx+r*0.6,cy+r*0.3,r*0.6,r*0.5);}}),
+  cowFace:skinTex(8,8,[72,50,34],16,x=>{fblob(x,'#e8e6e0',4,1.2,2.2,1.8);fblob(x,'#e8e6e0',4,3,1.1,1.4);x.fillStyle='#0e0a08';x.fillRect(1,3,1,1);x.fillRect(6,3,1,1);mShine(x,1,3);mShine(x,6,3);
+    fblob(x,'#c9a0a0',4,6.4,2.5,1.6);fblob(x,'#4a2a2a',2.9,6.3,0.45,0.4);fblob(x,'#4a2a2a',5.1,6.3,0.45,0.4);x.fillStyle='rgba(120,70,70,.4)';x.fillRect(2.5,7.5,3,0.25);}),
   cowLeg:skinTex(4,4,[72,50,34],16,x=>{x.fillStyle='#ddd';x.fillRect(0,2,4,1);x.fillStyle='#333';x.fillRect(0,3,4,1);}),
-  horn:skinTex(2,2,[220,210,190],10),
+  horn:skinTex(2,2,[220,210,190],10,x=>{x.fillStyle='rgba(90,80,60,.5)';x.fillRect(0,0,2,0.5);}),
   wool:skinTex(8,8,[236,236,236],20),
-  sheepFace:skinTex(8,8,[205,185,165],14,x=>{x.fillStyle='#fff';x.fillRect(1,3,2,1);x.fillRect(5,3,2,1);x.fillStyle='#222';x.fillRect(2,3,1,1);x.fillRect(5,3,1,1);x.fillStyle='#d7a7a7';x.fillRect(3,6,2,1);}),
+  sheepFace:skinTex(8,8,[205,185,165],14,x=>{fblob(x,'#efede8',4,0.3,4.3,1.2);mEye(x,1,3,2,1,'#1a1612','#f6f4f0',1);mEye(x,5,3,2,1,'#1a1612','#f6f4f0',-1);
+    x.fillStyle='#d7a7a7';x.fillRect(3,5.75,2,0.75);x.fillStyle='rgba(90,60,60,.5)';x.fillRect(3.5,6.5,1,0.25);}),
   sheepSkin:skinTex(4,4,[205,185,165],14),
-  white:skinTex(4,4,[245,245,245],12),
-  chickFace:skinTex(4,4,[245,245,245],12,x=>{x.fillStyle='#111';x.fillRect(0,1,1,1);x.fillRect(3,1,1,1);}),
-  beak:skinTex(2,2,[240,180,40],10),wattle:skinTex(2,2,[210,30,30],10),yellow:skinTex(2,2,[230,170,40],10),
-  zskin:skinTex(8,8,[85,145,70],28),
-  zface:skinTex(8,8,[85,145,70],28,x=>{x.fillStyle='#101010';x.fillRect(1,3,2,1);x.fillRect(5,3,2,1);x.fillStyle='#2d4c26';x.fillRect(2,6,4,1);x.fillRect(3,4,2,1);}),
-  zhair:skinTex(8,8,[85,145,70],28,x=>{x.fillStyle='#2f4a28';x.fillRect(0,0,8,2);}),
-  shirt:skinTex(8,8,[45,165,165],20),pants:skinTex(8,8,[62,62,165],20,x=>{x.fillStyle='#4a4a4a';x.fillRect(0,6,8,2);}),
-  bone:skinTex(4,8,[205,205,205],20),
-  ribs:skinTex(8,8,[60,60,60],10,x=>{x.fillStyle='#cfcfcf';x.fillRect(3,0,2,8);for(let j=1;j<7;j+=2)x.fillRect(1,j,6,1);}),
-  skull:skinTex(8,8,[210,210,210],20,x=>{x.fillStyle='#222';x.fillRect(1,3,2,2);x.fillRect(5,3,2,2);x.fillRect(3,5,2,1);x.fillStyle='#555';x.fillRect(2,6,4,1);}),
+  white:skinTex(4,4,[245,245,245],10,x=>{x.fillStyle='rgba(196,196,190,.55)';for(let j=0.5;j<4;j+=0.75)for(let i=(j*4)%2?0.375:0;i<4;i+=0.75)x.fillRect(i,j,0.5,0.125);}),
+  chickFace:skinTex(4,4,[245,245,245],10,x=>{x.fillStyle='#111';x.fillRect(0,1,1,1);x.fillRect(3,1,1,1);mShine(x,0,1);mShine(x,3,1);}),
+  beak:skinTex(2,2,[240,180,40],10,x=>{x.fillStyle='rgba(170,100,20,.6)';x.fillRect(0,1.4,2,0.6);}),wattle:skinTex(2,2,[210,30,30],10),yellow:skinTex(2,2,[230,170,40],10),
+  zskin:skinTex(8,8,[85,145,70],22,x=>{for(let k=0;k<5;k++)fblob(x,'rgba(50,90,40,.35)',Math.random()*8,Math.random()*8,0.5+Math.random()*0.8,0.4+Math.random()*0.6);}),
+  zface:skinTex(8,8,[85,145,70],22,x=>{x.fillStyle='rgba(20,40,16,.45)';x.fillRect(0.75,2.5,2.5,0.5);x.fillRect(4.75,2.5,2.5,0.5);x.fillStyle='#0c0e0a';x.fillRect(1,3,2,1);x.fillRect(5,3,2,1);
+    x.fillStyle='#2d4c26';x.fillRect(3,4,2,1);x.fillStyle='#1c3018';x.fillRect(2,6,4,0.75);x.fillStyle='rgba(60,100,50,.6)';x.fillRect(2,6.75,4,0.25);}),
+  zhair:skinTex(8,8,[85,145,70],22,x=>{x.fillStyle='#2f4a28';x.fillRect(0,0,8,2);for(let i=0;i<8;i+=0.5)if(Math.random()<0.6)x.fillRect(i,2,0.5,0.25+Math.random()*0.75);}),
+  shirt:skinTex(8,8,[45,165,165],18,x=>{x.fillStyle='rgba(20,80,80,.35)';for(let i=0;i<8;i+=0.5)x.fillRect(i,7.25+Math.random()*0.5,0.5,1);fblob(x,'rgba(85,145,70,.9)',1.5+Math.random()*5,2+Math.random()*4,0.6,0.7);}),
+  pants:skinTex(8,8,[62,62,165],18,x=>{x.fillStyle='#4a4a4a';x.fillRect(0,6,8,2);x.fillStyle='rgba(30,30,90,.35)';x.fillRect(3.75,0,0.5,6);}),
+  bone:skinTex(4,8,[214,214,210],16,x=>{x.fillStyle='rgba(255,255,255,.35)';x.fillRect(0,0,1,8);x.fillStyle='rgba(90,90,90,.3)';x.fillRect(3,0,1,8);x.fillStyle='rgba(120,120,116,.6)';x.fillRect(1.5,2+Math.random()*4,0.25,1);}),
+  ribs:skinTex(8,8,[38,36,36],10,x=>{x.fillStyle='#d4d4ce';x.fillRect(3,0,2,8);for(let j=1;j<7;j+=2)x.fillRect(1,j,6,1);
+    x.fillStyle='rgba(255,255,255,.5)';x.fillRect(3,0,0.5,8);for(let j=1;j<7;j+=2)x.fillRect(1,j,6,0.25);x.fillStyle='rgba(60,60,60,.5)';for(let j=1;j<7;j+=2)x.fillRect(1,j+0.75,6,0.25);}),
+  skull:skinTex(8,8,[214,214,210],16,x=>{x.fillStyle='#262222';x.fillRect(1,3,2,2);x.fillRect(5,3,2,2);x.fillStyle='#080606';x.fillRect(1.5,3.5,1.5,1.5);x.fillRect(5.5,3.5,1.5,1.5);
+    x.fillStyle='#1a1616';x.fillRect(3.5,5,1,1);x.fillRect(3,5.5,2,0.5);x.fillStyle='#555';x.fillRect(2,6.5,4,0.5);x.fillStyle='#e8e8e2';for(let i=2;i<6;i+=0.5)x.fillRect(i,6.5,0.25,0.5);
+    x.fillStyle='rgba(90,90,86,.7)';x.fillRect(5.5,0.5,0.25,1.5);x.fillRect(5.75,2,0.25,0.75);}),
   bowTex:skinTex(2,8,[110,80,40],15),
   creeper:skinTex(8,8,[95,175,80],70,x=>{for(let k=0;k<14;k++){x.fillStyle=['#4e8f3e','#9ad48a','#3d6e30','#c5e8bd'][k%4];x.fillRect(rnd(8),rnd(8),1,1);}}),
   creeperFace:skinTex(8,8,[95,175,80],70,x=>{x.fillStyle='#111';x.fillRect(1,2,2,2);x.fillRect(5,2,2,2);x.fillRect(3,4,2,2);x.fillRect(2,5,1,2);x.fillRect(5,5,1,2);}),
-  spider:skinTex(8,8,[42,36,32],14,x=>{x.fillStyle='#55473f';x.fillRect(2,2,4,4);}),
-  spiderFace:skinTex(8,8,[42,36,32],14,x=>{x.fillStyle='#e01010';x.fillRect(1,2,2,1);x.fillRect(5,2,2,1);x.fillRect(2,4,1,1);x.fillRect(5,4,1,1);x.fillRect(3,3,2,1);}),
-  spiderLeg:skinTex(8,2,[42,36,32],14),
+  spider:skinTex(8,8,[42,36,32],14,x=>{x.fillStyle='#55473f';x.fillRect(2,2,4,4);x.fillStyle='rgba(120,100,90,.35)';for(let k=0;k<40;k++)x.fillRect(Math.random()*8,Math.random()*8,0.25,0.5+Math.random()*0.5);
+    x.fillStyle='rgba(150,30,20,.5)';x.fillRect(3.5,2.5,1,3);}),
+  spiderFace:skinTex(8,8,[42,36,32],14,x=>{const E=(a,b,w,h)=>{x.fillStyle='#b80808';x.fillRect(a,b,w,h);x.fillStyle='#ff4a3a';x.fillRect(a,b,w/2,h/2);x.fillStyle='#ffd0c8';x.fillRect(a,b,0.25,0.25);};
+    E(1,2,2,1);E(5,2,2,1);E(2,4,1,1);E(5,4,1,1);E(3,3,2,1);x.fillStyle='rgba(120,100,90,.35)';for(let k=0;k<20;k++)x.fillRect(Math.random()*8,Math.random()*8,0.25,0.5);}),
+  spiderLeg:skinTex(8,2,[42,36,32],14,x=>{x.fillStyle='rgba(120,100,90,.4)';for(let i=0;i<8;i+=0.5)x.fillRect(i,Math.random()*1.5,0.25,0.5);x.fillStyle='#2a2420';x.fillRect(3.75,0,0.5,2);}),
 };
 Object.assign(MT,{
   muzzle:skinTex(8,4,[230,200,190],10,x=>{x.fillStyle='#4a2a2a';x.fillRect(1,1,1,1);x.fillRect(6,1,1,1);}),udder:skinTex(4,4,[236,170,170],10),
-  wool:skinTex(8,8,[238,238,236],14,x=>{for(let k=0;k<14;k++){x.fillStyle=['#fff','#d8d8d4','#e6e6e2'][k%3];x.fillRect(rnd(8),rnd(8),2,1);}}),
+  wool:skinTex(8,8,[234,234,230],12,x=>{for(let k=0;k<70;k++){const cx=Math.random()*8,cy=Math.random()*8,r=0.35+Math.random()*0.35;fblob(x,'rgba(255,255,255,.75)',cx,cy,r,r);fblob(x,'rgba(170,166,160,.35)',cx+r*0.6,cy+r*0.6,r*0.5,r*0.4);}}),
   slime:skinTex(8,8,[110,196,90],22),slimeCore:skinTex(4,4,[70,150,60],14),
   slimeFace:skinTex(8,8,[110,196,90],22,x=>{x.fillStyle='#173';x.fillRect(1,2,2,2);x.fillRect(5,2,2,2);x.fillRect(3,5,1,1);}),
   magma:skinTex(8,8,[90,22,8],20,x=>{for(let k=0;k<10;k++){x.fillStyle=['#f80','#fc3','#c40'][k%3];x.fillRect(rnd(8),rnd(8),1+rnd(2),1);}}),
   magmaFace:skinTex(8,8,[90,22,8],20,x=>{x.fillStyle='#fd2';x.fillRect(1,2,2,1);x.fillRect(5,2,2,1);x.fillStyle='#f60';x.fillRect(2,5,4,1);}),
-  wolf:skinTex(8,8,[200,196,190],20),wolfSnout:skinTex(4,4,[150,140,130],12,x=>{x.fillStyle='#111';x.fillRect(1,0,2,1);}),
-  wolfFace:skinTex(8,8,[200,196,190],20,x=>{x.fillStyle='#111';x.fillRect(1,3,1,1);x.fillRect(6,3,1,1);}),collar:skinTex(4,2,[200,30,30],10),
+  wolf:skinTex(8,8,[200,196,190],18,x=>{x.fillStyle='rgba(150,146,140,.4)';for(let k=0;k<30;k++)x.fillRect(Math.random()*8,Math.random()*8,0.25,0.75);}),wolfSnout:skinTex(4,4,[150,140,130],12,x=>{x.fillStyle='#111';x.fillRect(1,0,2,1);}),
+  wolfFace:skinTex(8,8,[200,196,190],18,x=>{x.fillStyle='rgba(120,116,110,.5)';x.fillRect(0.5,2.5,2,0.5);x.fillRect(5.5,2.5,2,0.5);x.fillStyle='#14100e';x.fillRect(1,3,1,1);x.fillRect(6,3,1,1);
+    mShine(x,1,3);mShine(x,6,3);x.fillStyle='rgba(240,236,230,.6)';x.fillRect(2,5,4,3);}),collar:skinTex(4,2,[200,30,30],10),
   ender:skinTex(8,8,[22,18,28],10),enderFace:skinTex(8,8,[22,18,28],10,x=>{x.fillStyle='#d6f';x.fillRect(0,4,3,1);x.fillRect(5,4,3,1);x.fillStyle='#f9f';x.fillRect(1,4,1,1);x.fillRect(6,4,1,1);}),
   piglin:skinTex(8,8,[226,150,140],18,spots(['#6a9c4c','#a7d08a'])),piglinBody:skinTex(8,8,[150,110,70],18,spots(['#6a9c4c'])),
   piglinFace:skinTex(8,8,[226,150,140],18,x=>{x.fillStyle='#fff';x.fillRect(1,3,2,1);x.fillRect(5,3,2,1);x.fillStyle='#e33';x.fillRect(1,3,1,1);x.fillRect(6,3,1,1);x.fillStyle='#6a9c4c';x.fillRect(0,0,3,2);}),
@@ -3747,24 +4058,122 @@ const zt=(key,fn)=>ZTEX[key]||(ZTEX[key]=fn());
 const zcss=c=>`rgb(${c[0]|0},${c[1]|0},${c[2]|0})`;
 const zblot=(cols,n)=>x=>{for(let k=0;k<n;k++){x.fillStyle=cols[k%cols.length];x.fillRect(rnd(8),rnd(8),1+rnd(2),1+rnd(2));}};
 const Z_SKINS=[[76,96,66],[122,120,104],[86,90,80],[102,86,72]],Z_SHIRTS=[[64,84,140],[130,40,40],[196,196,186],[66,104,62],[96,74,52],[40,40,44]],Z_PANTS=[[46,54,90],[70,60,48],[40,40,44]];
-const zSkinT=c=>zt('s'+c,()=>skinTex(8,8,c,24,zblot(['rgba(60,20,20,.55)','rgba(40,50,30,.5)','rgba(120,10,10,.5)'],7)));
-const zHairT=c=>zt('h'+c,()=>skinTex(8,8,c,24,x=>{x.fillStyle='#231d16';for(let i=0;i<8;i++)if(Math.random()<0.6)x.fillRect(i,0,1,1+rnd(3));x.fillStyle='rgba(120,10,10,.6)';x.fillRect(rnd(6),rnd(6),2,2);}));
-const zFaceT=(c,kind)=>zt('f'+kind+c,()=>skinTex(8,8,c,24,x=>{zblot(['rgba(60,20,20,.5)','rgba(120,10,10,.45)'],4)(x);
-  x.fillStyle='#050404';x.fillRect(1,3,2,2);x.fillRect(5,3,2,2);                                   // sunken eye sockets
-  if(kind==='scream'){x.fillStyle='#160303';x.fillRect(2,5,4,3);x.fillStyle='#d8d0b0';x.fillRect(2,5,1,1);x.fillRect(5,5,1,1);x.fillRect(3,7,1,1);}
-  else{x.fillStyle='#1a0505';x.fillRect(2,5,4,2);x.fillStyle='#d8d0b0';x.fillRect(2,5,1,1);x.fillRect(4,5,1,1);x.fillRect(3,6,1,1);x.fillRect(5,6,1,1);}
-  x.fillStyle='#6a0606';x.fillRect(3,7,1,1);x.fillRect(5,7,1,1);x.fillRect(1,5,1,2);
-  x.fillStyle='#5a0404';x.fillRect(1,5,1,3);x.fillRect(6,5,1,2);                                    // bloody tears
-  if(Math.random()<0.6){x.fillStyle='#cfc6a8';const sx=Math.random()<0.5?0:6;x.fillRect(sx,0,2,2);x.fillStyle='#8a826c';x.fillRect(sx,1,1,1);} // bare skull
-  x.fillStyle='rgba(0,0,0,.45)';x.fillRect(0,2,8,1);}));
-const zShirtT=(c,sk)=>zt('t'+c+sk,()=>skinTex(8,8,c,18,x=>{x.fillStyle=zcss(sk);for(let k=0;k<4;k++)x.fillRect(rnd(7),rnd(7),1+rnd(2),1+rnd(2));
-  x.fillStyle='rgba(110,8,8,.75)';for(let k=0;k<4;k++)x.fillRect(rnd(7),2+rnd(6),1+rnd(2),1+rnd(3));x.fillStyle='rgba(0,0,0,.4)';for(let i=0;i<8;i+=2)x.fillRect(i,7,1,1);}));
-const zRibsT=sk=>zt('r'+sk,()=>skinTex(8,8,sk,20,x=>{x.fillStyle='#3a0808';x.fillRect(1,1,6,6);x.fillStyle='#d8d0b4';x.fillRect(3,1,2,6);for(let j=1;j<7;j+=2)x.fillRect(1,j,6,1);
-  x.fillStyle='rgba(140,10,10,.7)';x.fillRect(rnd(5),5+rnd(2),3,1);}));
-const zPantsT=(c,sk)=>zt('p'+c+sk,()=>skinTex(8,8,c,16,x=>{x.fillStyle=zcss(sk);x.fillRect(rnd(6),4+rnd(2),2,2);x.fillStyle='rgba(90,8,8,.6)';x.fillRect(rnd(7),rnd(7),1,2);x.fillStyle='rgba(0,0,0,.35)';x.fillRect(0,7,8,1);}));
-const zArmT=(sk,sl)=>zt('a'+sk+sl,()=>skinTex(8,8,sk,24,x=>{x.fillStyle=zcss(sl);x.fillRect(0,0,8,2+rnd(2));x.fillStyle='rgba(110,8,8,.6)';x.fillRect(rnd(7),3+rnd(4),1+rnd(2),1);}));
-const zBoneT=()=>zt('bone',()=>skinTex(4,8,[210,204,180],18,x=>{x.fillStyle='#6a0a0a';x.fillRect(0,0,4,2);}));
-const zBloodT=()=>zt('blood',()=>skinTex(8,8,[96,6,6],20,zblot(['#4a0202','#7a0a0a'],6)));
+// ---- zombie textures, painted pixel by pixel (32 pixels across a face): rotting skin with veins, bruises and open
+// wounds, deep eye sockets and broken teeth, torn and bloody clothes. Every zombie picks a random skin, shirt and pants. ----
+const zMix=(a,b,t)=>[a[0]+(b[0]-a[0])*t,a[1]+(b[1]-a[1])*t,a[2]+(b[2]-a[2])*t],zMul=(c,k)=>[c[0]*k,c[1]*k,c[2]*k];
+function zPaint(W,H,paint){const c=document.createElement('canvas');c.width=W;c.height=H;const g=c.getContext('2d'),im=g.createImageData(W,H),d=im.data;
+  const P={W,H,s:(Math.random()*1e9)|0,
+    get(i,j){i=Math.max(0,Math.min(W-1,Math.floor(i)));j=Math.max(0,Math.min(H-1,Math.floor(j)));const k=(j*W+i)*4;return [d[k],d[k+1],d[k+2]];},
+    set(i,j,col,a=1){i=Math.floor(i);j=Math.floor(j);if(!col||i<0||j<0||i>=W||j>=H)return;const k=(j*W+i)*4;for(let q=0;q<3;q++)d[k+q]=d[k+q]+(col[q]-d[k+q])*a;d[k+3]=255;},
+    all(fn){for(let j=0;j<H;j++)for(let i=0;i<W;i++)P.set(i,j,fn(i,j));},
+    // an uneven blob; fn(i,j,q,dx,dy) with q = how far out (1 = the edge)
+    blob(cx,cy,rx,ry,fn,wob=0.4){const s=P.s+((cx*7+cy*13)|0);for(let j=Math.floor(cy-ry-2);j<=cy+ry+2;j++)for(let i=Math.floor(cx-rx-2);i<=cx+rx+2;i++){
+      const dx=(i+0.5-cx)/rx,dy=(j+0.5-cy)/ry,q=Math.hypot(dx,dy)+(mvn(i,j,s,2)-0.5)*wob;if(q<1.3)fn(i,j,q,dx,dy);}}};
+  paint(P);g.putImageData(im,0,0);return mobTex(c);}
+// rotting skin: blotchy, with sickly green and purple patches, dark veins and pores
+const zSkinPx=(SK,i,j,s)=>{const b=mvn(i,j,s,6),g=mvn(i,j,s+1,5),br=mvn(i,j,s+4,4),v=mvn(i,j,s+2,8);
+  let c=zMul(SK,0.82+b*0.32+(MH(i,j,s+3)-0.5)*0.12);
+  if(g>0.6)c=zMix(c,[118,124,54],Math.min(0.6,(g-0.6)*1.8));
+  if(br>0.68)c=zMix(c,[74,42,86],Math.min(0.7,(br-0.68)*2.4));
+  const gx=mvn(i+1,j,s+2,8)-mvn(i-1,j,s+2,8),gy=mvn(i,j+1,s+2,8)-mvn(i,j-1,s+2,8);
+  if(Math.abs(v-0.5)/(Math.hypot(gx,gy)/2+1e-4)<0.6&&mvn(i,j,s+5,10)>0.45)c=zMix(c,[46,36,72],0.6);
+  if(MH(i,j,s+6)<0.035)c=zMul(c,0.72);return c;};
+const zRot=(P,SK)=>P.all((i,j)=>zSkinPx(SK,i,j,P.s));
+const zWound=(P,cx,cy,rx,ry,bone)=>P.blob(cx,cy,rx,ry,(i,j,q,dx,dy)=>{
+  if(bone&&q<0.7&&dy<-0.05&&Math.abs(dx+dy*0.4)<0.32)P.set(i,j,zMul([214,204,176],dx<0?1.04:0.8));                  // a sliver of bone
+  else if(q<0.45)P.set(i,j,zMix([34,2,2],[84,8,8],MH(i,j,P.s+7)));                                                     // deep middle
+  else if(q<1)P.set(i,j,zMix([136,18,16],[198,52,42],Math.min(1,Math.max(0,0.5-(dx+dy)*0.5+(MH(i,j,P.s+8)-0.5)*0.4)))); // raw flesh
+  else if(q<1.22)P.set(i,j,[66,30,24],0.75);},0.75);                                                                   // crusty rim
+const zDrip=(P,x,y,len)=>{x=Math.floor(x);y=Math.floor(y);for(let k=0;k<len;k++){P.set(x,y+k,[96+MH(x,y+k,P.s)*30,6,6],0.95);if(k===0||MH(x,k,P.s+9)<0.3)P.set(x+1,y+k,[70,4,4],0.6);}
+  P.set(x,y+len,[124,12,10]);P.set(x-1,y+len,[80,6,6],0.8);P.set(x+1,y+len,[80,6,6],0.8);P.set(x,y+len+1,[70,4,4],0.8);P.set(x,y+len-1,[170,50,44],0.6);};
+const zSplat=(P,cx,cy,r)=>{P.blob(cx,cy,r,r*0.8,(i,j,q)=>{if(q<1)P.set(i,j,[88+MH(i,j,P.s+10)*36,6,6],q<0.7?0.92:0.7);},0.9);
+  for(let k=0;k<7;k++){const a=MH(k,1,P.s+(cx|0))*6.283,dd=r*(1.3+MH(k,2,P.s)*1.3);P.set(cx+Math.cos(a)*dd,cy+Math.sin(a)*dd,[104,8,8],0.9);}};
+const zDirt=(P,amt=0.35)=>P.all((i,j)=>{const m=mvn(i,j,P.s+11,5)*0.7+j/P.H*0.4;return m>0.75?zMix(P.get(i,j),[58,44,30],Math.min(amt,(m-0.75)*1.5)):null;});
+const zCloth=(P,C,o={})=>P.all((i,j)=>{let k=0.88+mvn(i,j,P.s,7)*0.2+(((i+j)&1)?0.025:-0.025)+(MH(i,j,P.s+1)-0.5)*0.05;
+  const f=mvn(i*0.6,j*0.18,P.s+2,1.6);if(f>0.72)k*=0.84;else if(f<0.22)k*=1.07;if(o.denim)k+=((i+(j>>1))%3===0?-0.05:0.015);return zMul(C,k);});
+const zTear=(P,cx,cy,rx,ry,SK)=>P.blob(cx,cy,rx,ry,(i,j,q)=>{
+  if(q<0.95)P.set(i,j,zMul(zSkinPx(SK,i,j,P.s+20),0.74+q*0.12));else if(q<1.12)P.set(i,j,[34,26,22],0.7);else if(MH(i,j,P.s+21)<0.35)P.set(i,j,zMul(P.get(i,j),1.25));},0.7);
+const zStain=(P,cx,cy,r)=>{P.blob(cx,cy,r,r*1.15,(i,j,q)=>{if(q<1)P.set(i,j,zMix(P.get(i,j),[70,6,6],q>0.82?0.85:0.62));},1.0);
+  for(let k=0;k<2;k++)zDrip(P,cx-r*0.4+k*r*0.8,cy+r*0.6,3+MH(k,cx|0,P.s)*7);};
+const zClawMarks=(P,x,y,len)=>{for(let k=0;k<3;k++)for(let t=0;t<len;t++){const i=x+k*2.4+t*0.5,j=y+t;P.set(i,j,[110,12,10],0.85);P.set(i+1,j,[164,44,38],0.45);}};
+const zTeethRow=(P,x0,x1,y,h,down)=>{for(let i=Math.round(x0);i<=x1;i++){const n=Math.floor((i-x0)/3),u=Math.round(i-x0)%3;if(u===2||MH(n,7,P.s)<0.2)continue;
+  const hh=h-(MH(n,8,P.s)<0.35?1:0),rot=MH(n,9,P.s)<0.25;for(let k=0;k<hh;k++)P.set(i,down?y+k:y-k,zMul(rot?[150,120,70]:[224,210,164],(u===0?1.05:0.84)-(k/h)*0.14));}};
+const zSockets=(P,xs,y,rx=4.8,ry=3.6)=>{for(const ex of xs){P.blob(ex,y-1.3,rx+1.6,ry-0.4,(i,j,q)=>{if(q<1)P.set(i,j,zMul(P.get(i,j),0.76));},0.3);    // brow shadow
+  P.blob(ex,y,rx,ry,(i,j,q)=>{if(q<1)P.set(i,j,zMix([10,4,4],[64,26,24],q*q));else if(q<1.18&&j+0.5>y)P.set(i,j,zMul(P.get(i,j),1.16));},0.25);}};  // the hole, cheekbone below
+const zMouth=(P,cx,cy,rx,ry,teeth=2)=>{P.blob(cx,cy,rx,ry,(i,j,q)=>{if(q<1)P.set(i,j,zMix([14,2,2],[72,10,10],Math.max(0,q*q-0.2)));else if(q<1.2)P.set(i,j,[100,26,26],0.8);},0.35);
+  zTeethRow(P,cx-rx+2,cx+rx-2,Math.floor(cy-ry+1),teeth+1,true);zTeethRow(P,cx-rx+3,cx+rx-3,Math.ceil(cy+ry-2),teeth,false);};
+const zSkinT=c=>zt('s'+c,()=>zPaint(32,32,P=>{zRot(P,c);
+  if(Math.random()<0.75)zWound(P,6+Math.random()*20,6+Math.random()*20,2.4+Math.random()*2.6,2+Math.random()*2.4,Math.random()<0.4);
+  if(Math.random()<0.5)zClawMarks(P,3+rnd(14),3+rnd(10),8+rnd(6));zSplat(P,Math.random()*32,Math.random()*32,1.5+Math.random()*2);zDirt(P,0.3);}));
+const zHairT=c=>zt('h'+c,()=>zPaint(32,32,P=>{zRot(P,c);const hc=[[30,24,18],[58,44,30],[96,92,86],[22,20,24],[110,70,30]][rnd(5)];
+  P.all((i,j)=>mvn(i,j,P.s+30,7)<0.4?null:zMul(hc,0.65+mvn(i,j*0.3,P.s+31,1.2)*0.7));                // clumps of hair with bald patches
+  if(Math.random()<0.6)zWound(P,6+Math.random()*20,6+Math.random()*20,3,2.4,Math.random()<0.5);zSplat(P,Math.random()*32,Math.random()*32,2);}));
+const zFaceT=(c,kind)=>zt('f'+kind+c,()=>zPaint(32,32,P=>{zRot(P,c);const scream=kind==='scream';
+  if(Math.random()<0.5)P.blob(6+rnd(20),3,5,2.8,(i,j,q,dx,dy)=>{if(q<1)P.set(i,j,zMul([184,174,146],1-(dx+dy)*0.12-(q>0.75?0.22:0)-(MH(i,j,P.s+60)<0.12?0.25:0)));},0.8);   // bare skull showing
+  zSockets(P,[7.7,24.3],14.8);
+  P.blob(16,18.6,2.8,2.2,(i,j,q)=>{if(q<1)P.set(i,j,zMul(P.get(i,j),0.8));},0.2);for(const nx of [15,17]){P.set(nx,19,[20,6,6]);P.set(nx,20,[44,10,10]);} // rotted nose
+  zMouth(P,16,25,scream?8.5:7.5,scream?5:2.8,scream?3:2);
+  zDrip(P,5+rnd(4),18,4+rnd(6));zDrip(P,23+rnd(4),18,3+rnd(8));if(Math.random()<0.6)zDrip(P,12+rnd(8),28,2+rnd(3));   // bloody tears, drool
+  if(Math.random()<0.5)zWound(P,Math.random()<0.5?4:28,24,2.6,3,true);zDirt(P,0.3);}));
+const zShirtT=(c,sk)=>zt('t'+c+sk,()=>zPaint(32,32,P=>{zCloth(P,c);
+  for(let k=0;k<2+rnd(2);k++)zTear(P,4+Math.random()*24,5+Math.random()*22,2.2+Math.random()*3,2.4+Math.random()*3.4,sk);
+  zStain(P,4+Math.random()*24,6+Math.random()*16,3.5+Math.random()*3.5);for(let k=0;k<3;k++)zDrip(P,Math.random()*32,Math.random()*12,4+rnd(10));
+  for(let i=0;i<32;i++){const h=1+Math.floor(mvn(i,0,P.s+40,3)*3);for(let k=0;k<h;k++)P.set(i,31-k,zMul(P.get(i,31-k),0.62));}   // ragged hem
+  zDirt(P,0.4);}));
+const zRibsT=sk=>zt('r'+sk,()=>zPaint(32,32,P=>{zRot(P,sk);
+  P.blob(16,16,12.5,13.5,(i,j,q)=>{if(q>=1){if(q<1.15)P.set(i,j,[80,24,20],0.85);return;}const ax=Math.abs(i+0.5-16);
+    if(ax<1.6){P.set(i,j,zMul([214,204,176],(i<16?1.06:0.84)*((j&3)===0?0.72:1)));return;}                                        // spine
+    const rib=(j+ax*0.32+0.5)%5;P.set(i,j,rib<2.2?zMul([222,212,184],rib<1?1.05:0.8):zMix([26,2,2],[96,14,12],mvn(i,j,P.s+50,3)*(1-q*0.5)));},0.3);}));
+const zPantsT=(c,sk)=>zt('p'+c+sk,()=>zPaint(16,32,P=>{zCloth(P,c,{denim:true});
+  if(Math.random()<0.75)zTear(P,4+Math.random()*8,11+Math.random()*7,2.4+Math.random()*1.6,2.6+Math.random()*2,sk);   // torn knee
+  if(Math.random()<0.6)zStain(P,Math.random()*16,4+Math.random()*12,2.5+Math.random()*2);
+  for(let i=0;i<16;i++){const h=1+Math.floor(mvn(i,0,P.s+41,2)*4);for(let k=0;k<h;k++)P.set(i,31-k,zMix(P.get(i,31-k),[50,38,28],0.55));}  // muddy, frayed hems
+  zDirt(P,0.5);}));
+const zArmT=(sk,sl)=>zt('a'+sk+sl,()=>zPaint(16,32,P=>{zRot(P,sk);
+  P.all((i,j)=>{const h=7+Math.floor(mvn(i,0,P.s+42,3)*6);if(j<h)return zMul(sl,(0.88+mvn(i,j,P.s+43,4)*0.2+(((i+j)&1)?0.025:-0.025))*(j===h-1?0.62:1));return j===h?zMul(P.get(i,j),0.7):null;}); // torn sleeve
+  if(Math.random()<0.6)zWound(P,4+Math.random()*8,15+Math.random()*9,2.2,2.6,Math.random()<0.4);if(Math.random()<0.5)zClawMarks(P,2,14+rnd(6),6+rnd(4));
+  P.all((i,j)=>j>25?zMix(P.get(i,j),[70,10,8],(j-25)*0.08):null);zDirt(P,0.3);}));                                       // bloody hands
+const zBoneT=()=>zt('bone',()=>zPaint(8,32,P=>{P.all((i,j)=>zMul([218,208,180],(i<2?1.08:i>5?0.8:0.96)+(mvn(i,j,P.s,3)-0.5)*0.12-(MH(i,j,P.s+1)<0.05?0.2:0)));
+  P.all((i,j)=>j<6?zMix(P.get(i,j),[96,10,8],0.75-j*0.1):null);for(const j of [12,19,26])P.set(3,j,[150,140,118]);}));
+const zBloodT=()=>zt('blood',()=>zPaint(32,32,P=>P.all((i,j)=>{let c=zMix([54,2,2],[124,12,10],mvn(i,j,P.s,6));if(mvn(i,j,P.s+1,3)>0.78)c=zMix(c,[190,60,56],0.5);return c;})));
+// textures for the special zombies
+const zTeethT=()=>zt('teeth',()=>zPaint(32,8,P=>{P.all((i,j)=>j<2?[110,30,30]:[24,4,4]);zTeethRow(P,1,30,2,5,true);}));
+const zHairStrandT=()=>zt('hairS',()=>zPaint(8,32,P=>P.all((i,j)=>zMul([30,24,18],0.7+mvn(i,j*0.25,P.s,1.2)*0.6-(j>26?0.2:0)))));
+const zToxicSkin=(SK,pus)=>zPaint(32,32,P=>{zRot(P,SK);for(let k=0;k<(pus?9:0);k++)P.blob(2+Math.random()*28,2+Math.random()*28,1.3+Math.random()*1.3,1.1+Math.random(),(i,j,q,dx,dy)=>{
+    if(q<1)P.set(i,j,zMix([110,190,30],[226,255,140],Math.max(0,0.6-(dx+dy)*0.5-q*0.4)));else if(q<1.25)P.set(i,j,[60,80,20],0.6);});   // glowing green boils
+  if(Math.random()<0.7)zWound(P,6+Math.random()*20,6+Math.random()*20,2.6,2.2,false);zSplat(P,Math.random()*32,Math.random()*32,2);zDirt(P,0.25);});
+const zSpecialFace=kind=>zPaint(32,32,P=>{
+  if(kind==='screamer'){zRot(P,[176,170,160]);zSockets(P,[8,24],5.7,3.6,2.6);zMouth(P,16,21,9,8.5,3);zDrip(P,7,9,5);zDrip(P,25,9,4);}           // a huge, gaping scream
+  else if(kind==='spitter'){zRot(P,[96,118,62]);zSockets(P,[7.3,24.7],10.7);P.blob(16,23,8,5,(i,j,q)=>{if(q<1)P.set(i,j,zMix([20,40,4],[150,255,60],Math.max(0,0.8-q)));else if(q<1.2)P.set(i,j,[40,60,14],0.8);},0.4);
+    zTeethRow(P,10,22,19,2,true);for(const x of [12,16,20])for(let k=0;k<4+rnd(4);k++)P.set(x,27+k,[150,240,60],0.9);}                           // a glowing green mouth, dripping
+  else if(kind==='hound'){zRot(P,[64,52,46]);zSockets(P,[7.5,24.5],9.6,4,3);zMouth(P,16,24,10,4.5,3);}
+  else if(kind==='lurker'){zRot(P,[84,72,90]);zSockets(P,[7.3,24.7],6.4,3.6,2.6);zMouth(P,16,20,11,7,3);P.blob(16,21,2.4,2,(i,j,q)=>{if(q<1)P.set(i,j,[150,30,50]);});} // wide mouth (the tongue lives in there)
+  else if(kind==='stalker'){zRot(P,[26,24,30]);zSockets(P,[8,24],11.7,3.6,2.8);zMouth(P,16,22,9,2.6,2);}                                     // a thin, jagged grin
+  else if(kind==='jug'){zRot(P,[140,118,104]);zSockets(P,[8,24],14.7);zMouth(P,16,25,7,2.6,2);
+    for(let i=4;i<28;i+=3){P.set(i,9,[40,24,20]);P.set(i+1,8,[200,190,170]);P.set(i+1,10,[200,190,170]);}}                                   // stitches across the forehead
+  zDirt(P,0.3);});
+const zFurT=()=>zPaint(32,32,P=>{P.all((i,j)=>zMul([64,52,46],0.75+mvn(i,j*0.3,P.s,1.3)*0.4+mvn(i,j,P.s+1,6)*0.2));
+  for(let k=0;k<3;k++)P.blob(4+Math.random()*24,4+Math.random()*24,3+Math.random()*3,2+Math.random()*2,(i,j,q)=>{if(q<1)P.set(i,j,zMul([150,30,26],0.7+((j&1)?0.25:0)+(MH(i,j,P.s)*0.1)));else if(q<1.2)P.set(i,j,[40,26,20],0.7);},0.6); // raw muscle
+  zSplat(P,Math.random()*32,Math.random()*32,2.4);zDirt(P,0.3);});
+const zLurkSkin=()=>zPaint(32,32,P=>{zRot(P,[84,72,90]);for(let k=0;k<6;k++){const x=2+rnd(28),y=rnd(16);for(let t=0;t<8+rnd(10);t++)P.set(x+((t>>2)&1),y+t,[52,30,62],0.7);}   // stretch marks
+  zWound(P,6+Math.random()*20,8+Math.random()*16,2.4,2,false);zDirt(P,0.25);});
+const zStalkSkin=()=>zPaint(32,32,P=>P.all((i,j)=>zMul([26,24,30],0.8+mvn(i,j,P.s,5)*0.4+(MH(i,j,P.s+1)-0.5)*0.1)));
+const zJugSkin=()=>zPaint(32,32,P=>{zRot(P,[140,118,104]);for(let k=0;k<4;k++){let x=rnd(32),y=rnd(32);for(let t=0;t<14;t++){x+=rnd(3)-1;y+=1;P.set(x,y,[90,40,110],0.75);}}   // purple veins
+  zWound(P,6+Math.random()*20,6+Math.random()*20,3,2.4,true);zSplat(P,Math.random()*32,Math.random()*32,2.4);});
+const zPlateT=()=>zPaint(32,32,P=>{P.all((i,j)=>{const e=Math.min(i,j,31-i,31-j);let k=0.86+mvn(i,j,P.s,8)*0.2+(MH(i,j,P.s+1)-0.5)*0.06;if(e<1)k*=0.6;else if(e<2)k*=(i+j<31?1.25:0.75);
+    if(j===15)k*=0.6;if(j===16)k*=1.18;return zMul([70,74,82],k);});
+  for(const [a,b] of [[4,4],[27,4],[4,27],[27,27],[4,12],[27,19]]){P.set(a,b,[190,194,204]);P.set(a+1,b,[110,114,122]);P.set(a,b+1,[110,114,122]);P.set(a+1,b+1,[40,42,46]);}   // rivets
+  for(let k=0;k<3;k++){const x=4+rnd(22),y=3+rnd(24);for(let t=0;t<6;t++)P.set(x+t,y+(t>>1),[150,154,162]);}                                        // scratches
+  zSplat(P,Math.random()*32,Math.random()*32,2.6);P.all((i,j)=>mvn(i,j,P.s+5,5)>0.74?zMix(P.get(i,j),[120,64,30],0.45):null);});                       // rust
+const zJugPants=()=>zPaint(16,32,P=>{zCloth(P,[44,40,38],{denim:true});zStain(P,8,12,3);zDirt(P,0.5);});
+const zVestT=()=>zPaint(32,32,P=>{zCloth(P,[62,72,40]);
+  for(const [x,y] of [[3,12],[19,12],[3,22],[19,22]]){P.all((i,j)=>i>=x&&i<x+10&&j>=y&&j<y+8?zMul([70,80,46],j===y?1.25:j===y+7||i===x+9?0.7:1-(j===y+2?0.15:0)):null);}   // pouches
+  P.all((i,j)=>(i>=14&&i<18)||j<3?zMul([40,40,26],0.9+(MH(i,j,P.s)-0.5)*0.15):null);                                                                     // straps
+  for(let t=0;t<30;t++){P.set(6+t*0.7,8+Math.sin(t*0.5)*2,[200,30,24]);P.set(8+t*0.6,10+Math.cos(t*0.4)*2,[40,80,200]);}                                // wires
+  zSplat(P,rnd(32),rnd(32),2);zDirt(P,0.4);});
+const zDynT=()=>zPaint(8,32,P=>{P.all((i,j)=>{if((j>=4&&j<7)||(j>=25&&j<28))return zMul([232,200,90],i<2?1.08:i>5?0.78:0.95);return zMul([196,32,24],(i<2?1.12:i>5?0.72:0.95)+(MH(i,j,P.s)-0.5)*0.08);});
+  for(let j=10;j<22;j+=3)P.set(3,j,[40,8,6]);});                                                                                                            // printing on the paper
+const zDroolT=()=>zPaint(8,32,P=>P.all((i,j)=>zMul([120,230,40],(i<2||i>5?0.75:1.1)+(mvn(i,j,P.s,3)-0.5)*0.3)));
 const EYE_GEO=new THREE.BoxGeometry(0.1,0.065,0.02);
 function zEyes(head,col,hw,y=0.02,gap=0.13,sc=1){
   for(const sgn of [-1,1]){const e=new THREE.Mesh(EYE_GEO,new THREE.MeshBasicMaterial({color:col,transparent:true,fog:false}));
@@ -3772,7 +4181,7 @@ function zEyes(head,col,hw,y=0.02,gap=0.13,sc=1){
     const halo=new THREE.Mesh(EYE_GEO,new THREE.MeshBasicMaterial({color:col,transparent:true,opacity:0.22,depthWrite:false,fog:false})); // a faint glow around each eye
     halo.userData.glow=halo.userData.shared=true;halo.scale.set(sc*2.2,sc*2.6,1);halo.position.set(sgn*gap,y,hw+0.006);head.add(halo);}}
 function zClaws(arm,len,w){for(const dx of [-w*0.3,w*0.3]){const c=box(0.04,0.14,0.04,zBoneT());c.userData.detail=true;c.position.set(dx,-len-0.06,0.02);arm.add(c);}}
-function zHair(head,hw){for(let i=0;i<4;i++){const h=box(0.06,0.22+Math.random()*0.25,0.06,zt('hairS',()=>skinTex(2,8,[30,24,18],10)));h.userData.detail=true;
+function zHair(head,hw){for(let i=0;i<4;i++){const h=box(0.06,0.22+Math.random()*0.25,0.06,zHairStrandT());h.userData.detail=true;
   const sx=(Math.random()<0.5?-1:1)*(hw-0.02),sz=(Math.random()-0.5)*hw*1.6;h.position.set(sx,-0.05-Math.random()*0.15,sz);head.add(h);}}
 function zGlow(parent,col,w,x,y,z){const b=new THREE.Mesh(new THREE.BoxGeometry(w,w,w),new THREE.MeshBasicMaterial({color:col}));b.userData.glow=true;b.position.set(x,y,z);parent.add(b);return b;}
 function buildZed(kind){
@@ -3785,8 +4194,8 @@ function buildZed(kind){
     const bw=run?0.42:bomb?0.64:0.5,bd=run?0.22:bomb?0.44:0.26;
     const body=box(bw,0.7,bd,!run&&!bomb&&Math.random()<0.35?[zShirtT(SH,SK),zShirtT(SH,SK),zShirtT(SH,SK),zShirtT(SH,SK),zRibsT(SK),zShirtT(SH,SK)]:zShirtT(SH,SK));
     body.position.y=0.35;torso.add(body);
-    if(bomb){const vest=box(bw+0.04,0.42,bd+0.04,zt('vest',()=>skinTex(8,8,[62,72,40],14,x=>{x.fillStyle='#2a2a1a';x.fillRect(0,0,8,1);x.fillRect(3,0,2,8);})));vest.position.y=0.42;torso.add(vest);
-      for(const dx of [-0.16,0,0.16]){const st=box(0.09,0.34,0.09,zt('dyn',()=>skinTex(2,8,[190,30,24],14,x=>{x.fillStyle='#e8d070';x.fillRect(0,1,2,1);x.fillRect(0,6,2,1);})));st.position.set(dx,0.4,bd/2+0.07);torso.add(st);}
+    if(bomb){const vest=box(bw+0.04,0.42,bd+0.04,zt('vest',zVestT));vest.position.y=0.42;torso.add(vest);
+      for(const dx of [-0.16,0,0.16]){const st=box(0.09,0.34,0.09,zt('dyn',zDynT));st.position.set(dx,0.4,bd/2+0.07);torso.add(st);}
       M.pus=[zGlow(torso,0xff8a20,0.1,-0.28,0.66,0.1),zGlow(torso,0xff8a20,0.12,0.26,0.6,-0.18),zGlow(torso,0xffa030,0.09,0.06,0.2,-bd/2-0.02)];}
     else{const rag=box(0.16,0.2,0.02,zShirtT(SH,SK));rag.userData.detail=true;rag.position.set(0.1,-0.06,bd/2+0.01);rag.rotation.x=0.1;torso.add(rag);}
     const aw=run?0.17:0.22,ah=run?0.82:0.84,ax=bw/2+aw/2+0.01;
@@ -3798,17 +4207,15 @@ function buildZed(kind){
     if(!bomb)for(let k=0;k<3;k++){const sp=box(0.1,0.08,0.06,zBoneT());sp.userData.detail=true;sp.position.set(0,0.15+k*0.2,-bd/2-0.02);torso.add(sp);} // spine showing through
     const head=box(0.5,0.5,0.5,face(skin,zFaceT(SK,run?'scream':'w'),zHairT(SK)));head.position.y=0.98;torso.add(head);M.head=head;
     const jaw=box(0.34,0.1,0.14,skin);jaw.position.set(0,-0.27,0.16);jaw.rotation.x=0.35;head.add(jaw);M.jaw=jaw;
-    const teeth=box(0.28,0.05,0.03,zt('teeth',()=>skinTex(8,2,[220,212,180],20,x=>{x.fillStyle='#3a0808';for(let i=1;i<8;i+=2)x.fillRect(i,1,1,1);})));teeth.position.set(0,0.06,0.07);jaw.add(teeth);
+    const teeth=box(0.28,0.05,0.03,zTeethT());teeth.position.set(0,0.06,0.07);jaw.add(teeth);
     const drool=box(0.05,0.2,0.03,zBloodT());drool.position.set(0.06,-0.14,0.07);drool.userData.detail=true;jaw.add(drool);
     if(!bomb){M.g.scale.setScalar(kind==='walker'&&Math.random()<0.15?1.3+Math.random()*0.15:0.94+Math.random()*0.18);M.tilt*=1.8;}
     zEyes(head,run?0xff2a10:bomb?0xff9a20:0xe0d050,0.25,0.02,0.13,run?1.2:1);if(!bomb)zHair(head,0.25);
     if(bomb)M.fuseLight=zGlow(head,0xff2020,0.08,0,0.3,0);
   }else if(kind==='screamer'||kind==='spitter'){ // built like walkers, so they move like them
     const scr=kind==='screamer',SKC=scr?[176,170,160]:[96,118,62];
-    const T=zt('sk'+kind,()=>skinTex(8,8,SKC,16,zblot(['rgba(120,10,10,.5)',scr?'rgba(90,90,80,.5)':'rgba(140,200,40,.5)'],6)));
-    const F=zt('fc'+kind,()=>skinTex(8,8,SKC,16,x=>{if(scr){x.fillStyle='#050202';x.fillRect(2,3,4,5);x.fillRect(1,4,6,3);x.fillStyle='#3a0606';x.fillRect(3,5,2,2);
-        x.fillStyle='#d8d0b8';x.fillRect(2,3,1,1);x.fillRect(5,3,1,1);x.fillRect(2,7,1,1);x.fillRect(5,7,1,1);x.fillStyle='#000';x.fillRect(1,1,2,1);x.fillRect(5,1,2,1);}
-      else{x.fillStyle='#050404';x.fillRect(1,2,2,2);x.fillRect(5,2,2,2);x.fillStyle='#2a3a06';x.fillRect(1,5,6,3);x.fillStyle='#9cff40';x.fillRect(2,6,4,1);x.fillRect(3,7,1,1);}}));
+    const T=zt('sk'+kind,()=>zToxicSkin(SKC,!scr));
+    const F=zt('fc'+kind,()=>zSpecialFace(kind));
     M.legs=[limb(0.2,0.76,0.2,zPantsT(PA,SK),-0.12,0.76,0),limb(0.2,0.76,0.2,zPantsT(PA,SK),0.12,0.76,0)];M.legs.forEach(l=>g.add(l));
     const torso=new THREE.Group();torso.position.y=0.76;g.add(torso);M.torso=torso;
     const bw=scr?0.42:0.56,bd=scr?0.22:0.4,body=box(bw,0.66,bd,zShirtT(SH,SKC));body.position.y=0.33;torso.add(body);
@@ -3816,10 +4223,10 @@ function buildZed(kind){
     const head=box(scr?0.44:0.48,scr?0.62:0.48,scr?0.44:0.48,face(T,F));head.position.y=scr?1.0:0.92;torso.add(head);M.head=head;
     if(scr)zEyes(head,0xffffff,0.22,0.2,0.11,0.6);
     else{zEyes(head,0xd8ff40,0.24,0.08,0.13,0.9);M.sacs=[zGlow(torso,0x8cff30,0.16,-0.16,0.66,bd/2),zGlow(torso,0x8cff30,0.14,0.15,0.62,bd/2),zGlow(torso,0x6cdf20,0.12,0,0.4,bd/2+0.02)];
-      const drool=box(0.06,0.24,0.04,zt('drool',()=>skinTex(2,8,[120,230,40],20)));drool.position.set(0.05,-0.34,0.22);head.add(drool);}
+      const drool=box(0.06,0.24,0.04,zt('drool',zDroolT));drool.position.set(0.05,-0.34,0.22);head.add(drool);}
   }else if(kind==='hound'){
-    const T=zt('hound',()=>skinTex(8,8,[64,52,46],18,zblot(['#3a2a24','rgba(130,10,10,.6)','#9a8a76'],7)));
-    const F=zt('houndF',()=>skinTex(8,8,[64,52,46],18,x=>{x.fillStyle='#050303';x.fillRect(1,2,2,2);x.fillRect(5,2,2,2);x.fillStyle='#e0d8c0';for(let i=1;i<7;i+=2)x.fillRect(i,6,1,2);x.fillStyle='#6a0606';x.fillRect(2,7,4,1);}));
+    const T=zt('hound',zFurT);
+    const F=zt('houndF',()=>zSpecialFace('hound'));
     const body=box(0.36,0.34,0.8,[T,T,T,T,T,zRibsT([64,52,46])]);body.position.set(0,0.62,-0.02);g.add(body);
     const head=box(0.3,0.3,0.34,face(T,F));head.position.set(0,0.74,0.54);g.add(head);M.head=head;
     const snout=box(0.18,0.14,0.22,F);snout.position.set(0,-0.07,0.26);head.add(snout);
@@ -3828,9 +4235,8 @@ function buildZed(kind){
     const tail=box(0.07,0.07,0.36,T);tail.position.set(0,0.72,-0.56);tail.rotation.x=0.5;g.add(tail);
     M.legs=quadLegs(g,T,0.44,0.1,0.12,0.3);
   }else if(kind==='lurker'){
-    const T=zt('lurk',()=>skinTex(8,8,[84,72,90],18,x=>{x.fillStyle='rgba(60,20,70,.6)';for(let k=0;k<4;k++)x.fillRect(rnd(7),rnd(6),1,3);zblot(['rgba(120,10,10,.5)'],3)(x);}));
-    const F=zt('lurkF',()=>skinTex(8,8,[84,72,90],18,x=>{x.fillStyle='#120408';x.fillRect(1,3,6,5);x.fillStyle='#e8e0c8';
-      for(let i=1;i<7;i++){x.fillRect(i,3,1,1);if(i%2)x.fillRect(i,7,1,1);}x.fillStyle='#8a1a2a';x.fillRect(3,5,2,2);}));
+    const T=zt('lurk',zLurkSkin);
+    const F=zt('lurkF',()=>zSpecialFace('lurker'));
     M.legs=[limb(0.16,0.72,0.16,T,-0.14,0.72,0),limb(0.16,0.72,0.16,T,0.14,0.72,0)];M.legs.forEach(l=>g.add(l));
     const torso=new THREE.Group();torso.position.y=0.72;g.add(torso);M.torso=torso;
     const body=box(0.42,0.62,0.26,T);body.position.y=0.3;torso.add(body);
@@ -3849,8 +4255,8 @@ function buildZed(kind){
     const pool=box(0.5,0.02,0.4,zBloodT());pool.position.set(0,0.01,-0.55);g.add(pool);
     const stump=limb(0.2,0.3,0.2,zPantsT(PA,SK),0.13,0.2,-0.36);stump.rotation.x=Math.PI/2+0.2;g.add(stump);
   }else if(kind==='stalker'){
-    const T=zt('stalk',()=>skinTex(8,8,[26,24,30],10,zblot(['#16141a','#2e2a34'],6)));
-    const F=zt('stalkF',()=>skinTex(8,8,[26,24,30],10,x=>{x.fillStyle='#0a080c';x.fillRect(0,5,8,2);x.fillStyle='#cfc8c0';for(let i=0;i<8;i+=1)if(i%2)x.fillRect(i,5,1,1);else x.fillRect(i,6,1,1);}));
+    const T=zt('stalk',zStalkSkin);
+    const F=zt('stalkF',()=>zSpecialFace('stalker'));
     M.legs=[limb(0.15,1.0,0.15,T,-0.1,1.0,0),limb(0.15,1.0,0.15,T,0.1,1.0,0)];M.legs.forEach(l=>g.add(l));
     const torso=new THREE.Group();torso.position.y=1.0;g.add(torso);M.torso=torso;
     const body=box(0.36,0.78,0.2,T);body.position.y=0.39;torso.add(body);
@@ -3861,11 +4267,10 @@ function buildZed(kind){
     g.traverse(o=>{if(o.material&&!o.userData.glow)for(const mt of [].concat(o.material)){mt.transparent=true;mt.opacity=0.05;}});
   }else if(kind==='juggernaut'){
     const root=new THREE.Group();root.scale.setScalar(1.22);g.add(root);
-    const JS=zt('jugS',()=>skinTex(8,8,[140,118,104],22,x=>{x.strokeStyle='rgba(90,40,110,.7)';x.fillStyle='rgba(90,40,110,.7)';for(let k=0;k<3;k++)x.fillRect(rnd(7),rnd(6),1,3);zblot(['rgba(120,10,10,.5)'],3)(x);}));
-    const JP=zt('jugP',()=>skinTex(8,8,[70,74,82],14,x=>{x.fillStyle='#b8bcc4';for(const [a,b] of [[1,1],[6,1],[1,6],[6,6]])x.fillRect(a,b,1,1);x.fillStyle='#3a3c40';x.fillRect(0,4,8,1);x.fillStyle='rgba(120,10,10,.6)';x.fillRect(rnd(6),rnd(6),2,1);}));
-    const JF=zt('jugF',()=>skinTex(8,8,[140,118,104],22,x=>{x.fillStyle='#050404';x.fillRect(1,3,2,1);x.fillRect(5,3,2,1);x.fillStyle='#2a1010';x.fillRect(2,6,4,1);
-      x.fillStyle='#ccc';x.fillRect(2,5,1,1);x.fillRect(3,7,1,1);x.fillRect(4,5,1,1);x.fillRect(5,7,1,1);}));
-    const pants=zt('jugL',()=>skinTex(8,8,[44,40,38],12,x=>{x.fillStyle='rgba(120,10,10,.5)';x.fillRect(rnd(6),rnd(6),2,2);}));
+    const JS=zt('jugS',zJugSkin);
+    const JP=zt('jugP',zPlateT);
+    const JF=zt('jugF',()=>zSpecialFace('jug'));
+    const pants=zt('jugL',zJugPants);
     M.legs=[limb(0.34,0.86,0.34,pants,-0.2,0.86,0),limb(0.34,0.86,0.34,pants,0.2,0.86,0)];M.legs.forEach(l=>root.add(l));
     const torso=new THREE.Group();torso.position.y=0.86;root.add(torso);M.torso=torso;
     const belly=box(0.84,0.9,0.56,JS);belly.position.y=0.45;torso.add(belly);
@@ -4077,8 +4482,8 @@ const PROFS={
     {out:[B.WOOL,4],in:[[IT.EMERALD,1]]},{out:[IT.BOW,1],in:[[IT.EMERALD,3]]},{out:[IT.ARROW,12],in:[[IT.EMERALD,1]]}]},
 };
 const VSKIN=[190,142,110];
-const vTex={skin:skinTex(4,4,VSKIN,12),face:skinTex(8,8,VSKIN,12,x=>{x.fillStyle='#fff';x.fillRect(1,3,2,1);x.fillRect(5,3,2,1);x.fillStyle='#2a6a20';x.fillRect(2,3,1,1);x.fillRect(5,3,1,1);
-  x.fillStyle='#3a2a1a';x.fillRect(1,2,6,1);})};
+const vTex={skin:skinTex(4,4,VSKIN,12),face:skinTex(8,8,VSKIN,12,x=>{mEye(x,1,3,2,1,'#2a6a20','#fff',1);mEye(x,5,3,2,1,'#2a6a20','#fff',-1);
+  x.fillStyle='#3a2a1a';x.fillRect(1,2,6,0.75);x.fillStyle='rgba(120,70,50,.4)';x.fillRect(3,6.5,2,0.25);})};
 const robeTex={};for(const k in PROFS)robeTex[k]=skinTex(8,8,PROFS[k].robe,16,x=>{x.fillStyle='rgba(0,0,0,0.25)';x.fillRect(0,7,8,1);});
 function buildVillager(o){
   const prof=(o&&o.prof)||'farmer',R=robeTex[prof],S=vTex.skin,g=new THREE.Group();
@@ -4184,14 +4589,14 @@ function buildFish(o){
 }
 const PARROT_COLS=[[220,40,36],[40,110,220],[60,190,60],[60,200,210],[240,200,40]];
 PARROT_COLS.forEach((c,k)=>{MT['parrot'+k]=skinTex(8,8,c,12);MT['parrotWing'+k]=skinTex(4,4,c.map(v=>v*0.75|0),10,x=>{x.fillStyle='#ffd23c';x.fillRect(0,3,4,1);});});
-Object.assign(MT,{beak:skinTex(4,4,[60,60,60],6),dolphin:skinTex(8,8,[120,136,150],10,x=>{x.fillStyle='#d8dee4';x.fillRect(0,5,8,3);}),
+Object.assign(MT,{pbeak:skinTex(4,4,[60,60,60],6),dolphin:skinTex(8,8,[120,136,150],10,x=>{x.fillStyle='#d8dee4';x.fillRect(0,5,8,3);}),
   dolphinFace:skinTex(8,8,[120,136,150],8,x=>{x.fillStyle='#111';x.fillRect(1,3,1,1);x.fillRect(6,3,1,1);}),
   shell:skinTex(8,8,[70,100,46],12,x=>{x.fillStyle='#4a6a2c';for(const [a,b] of [[1,1],[5,1],[3,4],[1,6],[6,6]])x.fillRect(a,b,2,1);}),turtleSkin:skinTex(4,4,[120,170,90],10)});
 function buildParrot(o){
   const k=o&&o.col!=null?o.col:Math.floor(Math.random()*PARROT_COLS.length),T=MT['parrot'+k],g=new THREE.Group();
   const body=box(0.22,0.36,0.24,T);body.position.y=0.36;body.rotation.x=0.3;g.add(body);
   const head=box(0.18,0.18,0.2,T);head.position.set(0,0.62,0.06);g.add(head);
-  const beak=box(0.06,0.1,0.08,MT.beak);beak.position.set(0,-0.03,0.12);head.add(beak);
+  const beak=box(0.06,0.1,0.08,MT.pbeak);beak.position.set(0,-0.03,0.12);head.add(beak);
   const tail=box(0.1,0.04,0.26,T);tail.position.set(0,0.2,-0.2);tail.rotation.x=-0.6;g.add(tail);
   const wings=[];for(const s of [-1,1]){const w=new THREE.Group();w.position.set(s*0.11,0.48,0);const m=box(0.28,0.03,0.2,MT['parrotWing'+k]);m.position.x=s*0.14;w.add(m);g.add(w);wings.push(w);}
   return {g,legs:[],head,arms:[],legType:'none',wings};
@@ -4353,7 +4758,7 @@ function lightning(dt){
 }
 function updateWeather(dt){
   const on=!ZM&&!PV&&dim==='overworld'&&!titleMode;
-  if(MP.role==='net')weather.k=netWeather();
+  if(MP.role==='net')weather.k=MP.wx||netWeather();
   else if(!MP.remote()){weather.t-=dt;if(weather.t<=0){
     if(weather.k==='clear'){weather.k=Math.random()<0.3?'thunder':'rain';weather.t=150+Math.random()*250;}else{weather.k='clear';weather.t=420+Math.random()*700;}saveDirty=true;}}
   const want=on&&weather.k!=='clear'?1:0,wantT=on&&weather.k==='thunder'?1:0;
@@ -5491,6 +5896,7 @@ let food=20,sat=5,exh=0,starveT=0;
 function addExhaustion(v){if(mode==='survival'&&!player.dead)exh+=v;}
 function damagePlayer(n,src,ignoreInvuln,knock=6,useArmor=!!src){
   if(mode!=='survival'||player.dead||(invuln>0&&!ignoreInvuln)||n<=0)return;
+  if(ADM.god&&isAdmin())return;
   if(ZM&&src)zMaybeScare(src);
   if(useArmor){const pts=armorPoints();
     if(pts>0){n=Math.max(1,Math.round(n*(1-Math.min(20,pts)/25)));sfx('armorhit');
@@ -6188,6 +6594,7 @@ function updateMenuButtons(){
   document.getElementById('tLight').style.display=ZM?'':'none';document.getElementById('btnMode').style.display=ZM?'none':'';
   document.getElementById('btnQuit').textContent=PV?'Leave Duel (you lose)':MP.remote()?'Leave World':'Save & Quit to Title';
   if(PV)document.getElementById('btnMode').style.display='none';
+  document.getElementById('btnAdmin').style.display=!titleMode&&isAdmin()?'':'none';
   if(MP.role==='host')info.innerHTML='Friends can join with this code:<br><b></b><br><span></span>';
   else if(MP.role==='client')info.innerHTML='Playing with friends<br><span></span>';
   else if(MP.role==='net')info.innerHTML='On the big server<br><span></span>';
@@ -6433,10 +6840,11 @@ document.addEventListener('keydown',e=>{
   if(e.code==='Escape'&&freeMode){showPause();return;}
   if(!locked)return;
   if(MP.role&&(e.code==='KeyT'||e.code==='Enter'||e.code==='Slash')){e.preventDefault();openChat();return;}
+  if(e.code==='KeyP'&&!e.repeat&&isAdmin()){e.preventDefault();showPause();if(document.pointerLockElement)document.exitPointerLock();openAdmin();return;}
   if(['Space','ArrowUp','ArrowDown','Tab'].includes(e.code)||(e.ctrlKey&&e.code!=='KeyW'))e.preventDefault();
-  if(e.code==='Space'&&!e.repeat&&mode==='creative'){const now=performance.now();if(now-lastSpace<300){player.flying=!player.flying;player.vel.y=0;}lastSpace=now;}
+  if(e.code==='Space'&&!e.repeat&&(mode==='creative'||ADM.fly)){const now=performance.now();if(now-lastSpace<300){player.flying=!player.flying;player.vel.y=0;}lastSpace=now;}
   if(e.code==='KeyW'&&!e.repeat){const now=performance.now();if(now-lastWTap<300)sprintTap=true;lastWTap=now;}
-  if(e.code==='KeyF'&&mode==='creative'){player.flying=!player.flying;player.vel.y=0;}
+  if(e.code==='KeyF'&&(mode==='creative'||ADM.fly)){player.flying=!player.flying;player.vel.y=0;}
   if(e.code==='Space'&&!e.repeat)grabClick();
   if(e.code==='KeyQ')dropHeld(e.ctrlKey||e.shiftKey);
   if(e.code==='KeyL'&&ZM&&!e.repeat){flashOn=!flashOn;sfx('click');toast(flashOn?'Flashlight on':'Flashlight off');}
@@ -6908,7 +7316,7 @@ document.getElementById('btnWorldsBack').onclick=()=>{worldsEl.style.display='no
 // =====================================================================
 //  Main loop
 // =====================================================================
-const splashes=['Now with infinite worlds!','Now with 3D items!','Zombie Apocalypse!','1v1 me bro!','Custom skins!','Cherry blossoms!','Gain levels!','Achievement get!','Watch out for bees!','Knock knock!','Climb the leaderboard!','Saved in the cloud!','Fresh new textures!','Giddy up!','Polly wants a cracker!','Do not look behind you.','The Abomination awaits...','Dolphins!','Row your boat!','Thunderstorms!','Dungeons!','Import your Minecraft skin!','PvP duels!','Don\'t go out in the fog...','Bring a flashlight!','Controller supported!','Now on phones!','Defeat the Ender Dragon!','The End is near!','Iron golems guard villages!','Watch out for cobwebs!','Now with the Nether!','Don\'t stare at Endermen!','Tame a wolf!','Climb the ladder!','Spooky pumpkins!','Press F5!','Crafting tables!','Craft it like you mean it!','Diamonds are rare now!','Beds are 2 blocks now!','100% procedurally generated!','Punch trees!','Also try the real thing!','Made of cubes!','Look up at night!',
+const splashes=['Now in HD!','Zombies never looked so gross!','Now with infinite worlds!','Now with 3D items!','Zombie Apocalypse!','1v1 me bro!','Custom skins!','Cherry blossoms!','Gain levels!','Achievement get!','Watch out for bees!','Knock knock!','Climb the leaderboard!','Saved in the cloud!','Fresh new textures!','Giddy up!','Polly wants a cracker!','Do not look behind you.','The Abomination awaits...','Dolphins!','Row your boat!','Thunderstorms!','Dungeons!','Import your Minecraft skin!','PvP duels!','Don\'t go out in the fog...','Bring a flashlight!','Controller supported!','Now on phones!','Defeat the Ender Dragon!','The End is near!','Iron golems guard villages!','Watch out for cobwebs!','Now with the Nether!','Don\'t stare at Endermen!','Tame a wolf!','Climb the ladder!','Spooky pumpkins!','Press F5!','Crafting tables!','Craft it like you mean it!','Diamonds are rare now!','Beds are 2 blocks now!','100% procedurally generated!','Punch trees!','Also try the real thing!','Made of cubes!','Look up at night!',
   'Caves included!','Beware of creepers!','Torches not included!','Oink!','Moo!','Craft your own tools!','Survive the night!','Water flows!','Don\'t starve!','Sssss...'];
 document.getElementById('splash').textContent=splashes[Math.floor(Math.random()*splashes.length)];
 document.getElementById('verLabel').textContent='BlockCraft '+GAME_VERSION;
@@ -7247,7 +7655,7 @@ Object.assign(MP,{peer:null,conn:null,conns:new Map(),players:new Map(),code:nul
       case 'st':{const rp=MP.players.get(from);if(rp)setRemoteState(rp,d.s);break;}
       case 'b':MP.applyBlocks(d.l);break;
       case 'tick':{
-        dayTime=d.time;if(d.z&&ZM)zNet(d.z);if(d.w&&MP.role==='client')weather.k=d.w;
+        dayTime=d.time;if(d.z&&ZM)zNet(d.z);if(d.w&&MP.role==='client')weather.k=d.w;if(MP.role==='net')MP.wx=d.w||null;
         const now=performance.now();if(d.online)MP.online=d.online;
         for(const e of d.pl){if(e[0]===MP.selfId)continue;let rp=MP.players.get(e[0]);if(!rp)rp=addRemote(e[0],e[1]);setRemoteState(rp,e.slice(2));rp.seen=now;}
         if(MP.role==='net'){ // the big server only sends players and mobs near you
@@ -7260,6 +7668,9 @@ Object.assign(MP,{peer:null,conn:null,conns:new Map(),players:new Map(),code:nul
         break;}
       case 'join':if(MP.role==='client'&&!MP.players.has(d.id))addRemote(d.id,d.name);break;
       case 'left':removeRemote(d.id);break;
+      case 'adminlist':if(MP.role==='net'&&from==='server')admList(d);break;            // admin panel: players on the big server
+      case 'kicked':if(MP.role==='net'&&from==='server')MP.kickWhy=d.why;break;
+      case 'tpme':if(MP.role==='net'&&from==='server'&&Array.isArray(d.p)){admTeleport(+d.p[0],+d.p[1]+0.2,+d.p[2]);chatLine('An admin pulled you over to them.','#ff8cff');}break;
       case 'chat':chatLine(d.text,d.color);if(MP.role==='host')MP.send(d,from);break;
       case 'chest':chests.set(d.k,d.c);if(MP.role==='host'){MP.send(d,from);saveDirty=true;}break;
       case 'me':{const c=MP.conns.get(from);if(c&&c.bcName){savedPlayers.set(c.bcName,d.p);saveDirty=true;}break;}
@@ -7322,8 +7733,8 @@ Object.assign(MP,{peer:null,conn:null,conns:new Map(),players:new Map(),code:nul
     MP.send({t:'me',p:JSON.parse(JSON.stringify({inv,armor,hp,food,sat,bed:bedPos,player:{x:player.pos.x,y:player.pos.y,z:player.pos.z,yaw:player.yaw,pitch:player.pitch}}))});},
   sysChat(text){chatLine(text,'#ffff55');MP.send({t:'chat',text,color:'#ffff55'});},
   chat(text){const line='<'+MP.name+'> '+text;chatLine(line);MP.send(MP.role==='net'?{t:'chat',raw:text}:{t:'chat',text:line});},
-  lost(){if(MP.leaving||!MP.remote())return;const net=MP.role==='net';MP.reset();enterTitle();
-    openMpScreen(net?'Lost the connection to the server.':'The connection to the host was lost (they may have closed their world).');},
+  lost(){if(MP.leaving||!MP.remote())return;const net=MP.role==='net',why=MP.kickWhy;MP.kickWhy=null;MP.reset();enterTitle();
+    openMpScreen(why?why:net?'Lost the connection to the server.':'The connection to the host was lost (they may have closed their world).');},
   leave(){ // say goodbye, then close this connection a moment later (a new one may already be starting)
     if(!MP.remote())return;MP.sendMe();const c=MP.conn,pe=MP.peer;MP.conn=null;MP.peer=null;MP.reset();
     setTimeout(()=>{try{if(c)c.close();}catch(e){}try{if(pe)pe.destroy();}catch(e){}},300);},
@@ -7712,7 +8123,7 @@ function frame(now){
   updateParticles(dt);
   updateHeld(dt,moving);
   if(invDirty){invDirty=false;renderHotbar();if(invOpen)renderInventory();achInvCheck();}
-  updateOrbs(dt);biomeTick(dt);updateWeather(dt);updateSpawners(dt);zFarEyes();zDread(dt);zHazards(dt);
+  updateOrbs(dt);biomeTick(dt);updateWeather(dt);updateSpawners(dt);adminTick();zFarEyes();zDread(dt);zHazards(dt);
   if(statsDirty)renderStats();
   if(showDebug){
     const p=player.pos;const col=column(Math.floor(p.x),Math.floor(p.z));
@@ -7755,6 +8166,102 @@ function thirdPerson(dt){
   return saved;
 }
 requestAnimationFrame(frame);
+// =====================================================================
+//  Admin panel: only for the account "darkwing" (press P, or the button in the pause menu).
+//  Things that change the big server (kick, ban, announcements, server time and weather) are
+//  checked by the server too, so nobody else can use them, even with a changed game.
+// =====================================================================
+const ADMINS=['darkwing'];
+var ADM={fly:false,god:false,speed:false,built:false,sure:null};
+function adminName(){return MP.role==='net'?(MP.name||''):Cloud.name();}
+function isAdmin(){return !PV&&ADMINS.includes(String(adminName()||'').toLowerCase());}
+function adminTick(){
+  if(!isAdmin()){ADM.fly=ADM.god=ADM.speed=false;return;}
+  if(ADM.god&&!player.dead&&!titleMode){if(hp<20){hp=20;statsDirty=true;}if(food<20){food=20;sat=20;statsDirty=true;}}
+}
+function admBuild(){
+  if(ADM.built)return;ADM.built=true;
+  const sel=document.getElementById('admMob');
+  for(const k of Object.keys(MOBS).filter(k=>!['boat','end_crystal','ender_dragon'].includes(k)).sort()){const o=document.createElement('option');o.value=k;o.textContent=MOBS[k].name||k.replace(/_/g,' ');sel.appendChild(o);}
+  const box=document.getElementById('admItems');
+  for(const id of ALL_ITEMS){const im=document.createElement('img');im.src=ICON[id];im.title=itemInfo(id).name;im.dataset.id=id;im.dataset.name=itemInfo(id).name.toLowerCase();box.appendChild(im);}
+  box.onclick=e=>{const id=+e.target.dataset.id;if(!id)return;const n=itemInfo(id).stack||64;addItem(id,n);invChanged();sfx('pop');admMsg('Gave you '+n+' '+itemInfo(id).name);};
+  document.getElementById('admFind').oninput=e=>{const q=e.target.value.trim().toLowerCase();for(const im of box.children)im.style.display=!q||im.dataset.name.includes(q)?'':'none';};
+  document.getElementById('admBody').onclick=e=>{const b=e.target.closest('button[data-a]');if(b)admDo(b.dataset.a,b.dataset.v,b);};
+  document.getElementById('admPlayers').onclick=document.getElementById('admBanned').onclick=e=>{const b=e.target.closest('button[data-p]');if(b)admPlayer(b.dataset.p,b.dataset.id,b);};
+  document.getElementById('admSay').onkeydown=e=>{if(e.key==='Enter')admDo('say');};
+}
+function admMsg(t){document.getElementById('admInfo').textContent=t;}
+function openAdmin(){
+  if(!isAdmin()||titleMode)return;admBuild();
+  document.getElementById('admWho').textContent='Logged in as '+adminName()+(MP.role==='net'?' · on the big server':MP.role==='client'?' · in a friend\'s world (only some things work here)':'');
+  document.getElementById('admZombie').style.display=ZM&&!MP.remote()?'':'none';
+  document.getElementById('admServer').style.display=MP.role==='net'?'':'none';
+  const p=player.pos;document.getElementById('admX').value=Math.floor(p.x);document.getElementById('admY').value=Math.floor(p.y);document.getElementById('admZ').value=Math.floor(p.z);
+  admMsg('');admRefresh();document.getElementById('adminScreen').style.display='flex';
+  if(MP.role==='net')MP.send({t:'admin',a:'list'});
+}
+function closeAdmin(play){document.getElementById('adminScreen').style.display='none';if(play)lock();}
+function admRefresh(){
+  for(const k of ['fly','god','speed']){const b=document.querySelector('#admBody button[data-a="'+k+'"]');b.classList.toggle('on',ADM[k]);b.textContent=b.dataset.label+(ADM[k]?': ON':': OFF');}
+  for(const b of document.querySelectorAll('#admBody button[data-a="mode"]'))b.classList.toggle('on',b.dataset.v===mode);
+}
+// a button that has to be clicked twice (for things that can't be undone)
+function admSure(b,key){if(ADM.sure===key)return true;ADM.sure=key;const t=b.textContent;b.textContent='Sure?';setTimeout(()=>{if(ADM.sure===key)ADM.sure=null;b.textContent=t;},2500);return false;}
+function admAhead(d){const s=Math.sin(player.yaw),c=Math.cos(player.yaw);const x=player.pos.x-s*d,z=player.pos.z-c*d;return [x,Math.max(player.pos.y,column(Math.floor(x),Math.floor(z)).h+1),z];}
+function admDo(a,v,b){
+  const net=MP.role==='net',client=MP.role==='client';
+  switch(a){
+    case 'fly':ADM.fly=!ADM.fly;player.flying=ADM.fly;player.vel.y=0;break;
+    case 'god':ADM.god=!ADM.god;break;
+    case 'speed':ADM.speed=!ADM.speed;break;
+    case 'heal':hp=20;food=20;sat=20;statsDirty=true;admMsg('Healed and fed.');break;
+    case 'xp':{const {L}=levelInfo();xpTotal=xpAtLevel(L+10);statsDirty=true;saveDirty=true;admMsg('You are now level '+(L+10)+'.');break;}
+    case 'clearinv':if(!admSure(b,a))return;inv.fill(null);invChanged();admMsg('Inventory emptied.');break;
+    case 'mode':if(ZM||PV)return admMsg('Not in minigames.');setMode(v);updateModeBtn();if(ADM.fly)player.flying=true;break;
+    case 'time':
+      if(net){MP.send({t:'admin',a:'time',v:+v});admMsg('Changed the time for the whole server.');}
+      else if(client)admMsg('Only the person hosting this world can change the time.');
+      else{dayTime=+v;saveDirty=true;admMsg('Time changed.');}break;
+    case 'weather':
+      if(net){MP.send({t:'admin',a:'weather',k:v});admMsg('Changed the weather for the whole server (for 10 minutes).');}
+      else if(client)admMsg('Only the person hosting this world can change the weather.');
+      else{weather={k:v,t:v==='clear'?600:300};saveDirty=true;admMsg('Weather: '+v+'.');}break;
+    case 'killmobs':{if(client)return admMsg('Only the host can do that here.');let n=0;for(const m of [...mobs])if(!m.puppet&&!m.tamed&&!m.rider&&!m.isRemote){removeMob(m);n++;}admMsg('Removed '+n+' mobs.');break;}
+    case 'spawn':{if(client)return admMsg('Only the host can spawn mobs here.');const k=document.getElementById('admMob').value,p=admAhead(4);spawnMob(k,p[0],p[1],p[2],{aware:0});admMsg('Spawned '+(MOBS[k].name||k)+'.');break;}
+    case 'tp':{const x=+document.getElementById('admX').value,y=+document.getElementById('admY').value,z=+document.getElementById('admZ').value;
+      if(![x,y,z].every(Number.isFinite))return admMsg('Type numbers for X, Y and Z.');admTeleport(x+0.5,y,z+0.5);admMsg('Teleported.');break;}
+    case 'spawnpt':{admTeleport(spawnPoint[0],spawnPoint[1]+1,spawnPoint[2]);admMsg('Teleported to spawn.');break;}
+    case 'nextwave':if(!ZM)return;if(ZM.style!=='waves')return admMsg('Only in Waves games.');
+      if(ZM.st==='break')ZM.t=0;else if(ZM.st==='fight'){ZM.queue=[];for(const m of [...mobs])if(MOBS[m.type].zed)removeMob(m);}admMsg('Skipping ahead!');break;
+    case 'boss':{if(!ZM)return;const p=admAhead(14);spawnMob('abomination',p[0],p[1],p[2],{aware:999});closeAdmin(true);break;}
+    case 'killz':{if(!ZM)return;let n=0;for(const m of [...mobs])if(MOBS[m.type].zed&&!m.puppet){killMob(m);n++;}admMsg('Killed '+n+' zombies.');break;}
+    case 'say':{const el=document.getElementById('admSay'),t=el.value.trim();if(!t)return;MP.send({t:'admin',a:'say',text:t});el.value='';admMsg('Sent!');break;}
+    case 'refresh':MP.send({t:'admin',a:'list'});break;
+  }
+  sfx('click');admRefresh();
+}
+function admTeleport(x,y,z){if(ride)dismount();player.pos.set(x,y,z);player.vel.set(0,0,0);fallStart=y;}
+// the big server's player list
+function admList(d){
+  const box=document.getElementById('admPlayers'),esc=t=>String(t).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+  box.innerHTML='<b style="font:13px monospace;color:#ccc">Players online ('+d.l.length+'):</b>'+d.l.map(([id,name,x,y,z])=>
+    `<div><span style="flex:1">${esc(name)} <span style="color:#999">(${x}, ${y}, ${z})</span></span>`+(id===MP.selfId?'<span style="color:#ffcf3f">you</span>':
+    `<button class="btn sm" data-p="goto" data-id="${esc(id)}">Go to</button><button class="btn sm" data-p="bring" data-id="${esc(id)}">Bring</button>`+
+    `<button class="btn sm" data-p="kick" data-id="${esc(id)}">Kick</button><button class="btn sm red" data-p="ban" data-id="${esc(id)}">Ban</button>`)+'</div>').join('');
+  ADM.list=d.l;
+  document.getElementById('admBanned').innerHTML=d.banned&&d.banned.length?'<b style="font:13px monospace;color:#ccc">Banned:</b>'+d.banned.map(n=>`<div><span style="flex:1">${esc(n)}</span><button class="btn sm" data-p="unban" data-id="${esc(n)}">Unban</button></div>`).join(''):'';
+}
+function admPlayer(a,id,b){
+  if(a==='goto'){const e=(ADM.list||[]).find(q=>q[0]===id);if(e){admTeleport(e[2]+0.5,e[3]+0.5,e[4]+0.5);admMsg('Teleported to '+e[1]+'.');}return;}
+  if(a==='unban'){MP.send({t:'admin',a:'unban',name:id});setTimeout(()=>MP.send({t:'admin',a:'list'}),400);return;}
+  if((a==='kick'||a==='ban')&&!admSure(b,a+id))return;
+  MP.send({t:'admin',a,id});admMsg(a==='bring'?'Pulling them over to you...':a==='kick'?'Kicked.':'Banned.');
+  if(a!=='bring')setTimeout(()=>MP.send({t:'admin',a:'list'}),600);
+}
+document.getElementById('admBack').onclick=()=>closeAdmin(true);
+document.getElementById('admClose').onclick=()=>closeAdmin(false);
+document.getElementById('btnAdmin').onclick=()=>openAdmin();
 window.game={player,chunks,getBlock,setBlock,B,IT,DEF,camera,inv,mobs,drops,arrows,get target(){return target;},addItem,spawnMob,save,createWorld,openWorld,setMode,explode,Store,armor,chests,
   setTime:t=>dayTime=t,get hp(){return hp;},get food(){return food;}};
 </script>
