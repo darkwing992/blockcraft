@@ -677,7 +677,7 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 <script>
 'use strict';
-const GAME_VERSION='7.1';
+const GAME_VERSION='7.2';
 const DEFAULT_SERVER='wss://blockcraft-server.austinhodgins2014-e99.workers.dev/ws'; // the big server's address (set by "Deploy Big Server.bat")
 let PV=null; // the PvP duel you're in (null = none)
 let ZM=null,flashOn=true,zLife=0,flickT=0;
@@ -6335,6 +6335,7 @@ const ACH=[
   ['zboss','Abomination Slayer','Defeat the zombie boss',IT.GOLDEN_APPLE],['boat','Row Your Boat','Ride in a boat',IT.BOAT],['horse','Giddy Up!','Ride a horse you tamed',IT.SADDLE],
   ['dungeon','Into the Dungeon','Find a monster spawner',B.SPAWNER],['temple','Tomb Raider','Open a treasure chest in a desert temple',B.SANDSTONE],
   ['storm','Thunderstruck','See lightning strike close by',B.TNT],['fish','Something Fishy','Catch a fish',IT.RAW_COD],['skin','Looking Good','Change your skin',IT.LEATHER],
+  ['jack','The Legend of Jack','Find Jack hiding deep in a cave (the rarest one!)',B.TORCH],
 ];
 let achDone={};try{achDone=JSON.parse(localStorage.getItem('bc_ach')||'{}')||{};}catch(e){}
 const achQueue=[];let achShowing=false;
@@ -7316,7 +7317,7 @@ document.getElementById('btnWorldsBack').onclick=()=>{worldsEl.style.display='no
 // =====================================================================
 //  Main loop
 // =====================================================================
-const splashes=['Now in HD!','Zombies never looked so gross!','Now with infinite worlds!','Now with 3D items!','Zombie Apocalypse!','1v1 me bro!','Custom skins!','Cherry blossoms!','Gain levels!','Achievement get!','Watch out for bees!','Knock knock!','Climb the leaderboard!','Saved in the cloud!','Fresh new textures!','Giddy up!','Polly wants a cracker!','Do not look behind you.','The Abomination awaits...','Dolphins!','Row your boat!','Thunderstorms!','Dungeons!','Import your Minecraft skin!','PvP duels!','Don\'t go out in the fog...','Bring a flashlight!','Controller supported!','Now on phones!','Defeat the Ender Dragon!','The End is near!','Iron golems guard villages!','Watch out for cobwebs!','Now with the Nether!','Don\'t stare at Endermen!','Tame a wolf!','Climb the ladder!','Spooky pumpkins!','Press F5!','Crafting tables!','Craft it like you mean it!','Diamonds are rare now!','Beds are 2 blocks now!','100% procedurally generated!','Punch trees!','Also try the real thing!','Made of cubes!','Look up at night!',
+const splashes=['Have you found Jack?','Now in HD!','Zombies never looked so gross!','Now with infinite worlds!','Now with 3D items!','Zombie Apocalypse!','1v1 me bro!','Custom skins!','Cherry blossoms!','Gain levels!','Achievement get!','Watch out for bees!','Knock knock!','Climb the leaderboard!','Saved in the cloud!','Fresh new textures!','Giddy up!','Polly wants a cracker!','Do not look behind you.','The Abomination awaits...','Dolphins!','Row your boat!','Thunderstorms!','Dungeons!','Import your Minecraft skin!','PvP duels!','Don\'t go out in the fog...','Bring a flashlight!','Controller supported!','Now on phones!','Defeat the Ender Dragon!','The End is near!','Iron golems guard villages!','Watch out for cobwebs!','Now with the Nether!','Don\'t stare at Endermen!','Tame a wolf!','Climb the ladder!','Spooky pumpkins!','Press F5!','Crafting tables!','Craft it like you mean it!','Diamonds are rare now!','Beds are 2 blocks now!','100% procedurally generated!','Punch trees!','Also try the real thing!','Made of cubes!','Look up at night!',
   'Caves included!','Beware of creepers!','Torches not included!','Oink!','Moo!','Craft your own tools!','Survive the night!','Water flows!','Don\'t starve!','Sssss...'];
 document.getElementById('splash').textContent=splashes[Math.floor(Math.random()*splashes.length)];
 document.getElementById('verLabel').textContent='BlockCraft '+GAME_VERSION;
@@ -8123,7 +8124,7 @@ function frame(now){
   updateParticles(dt);
   updateHeld(dt,moving);
   if(invDirty){invDirty=false;renderHotbar();if(invOpen)renderInventory();achInvCheck();}
-  updateOrbs(dt);biomeTick(dt);updateWeather(dt);updateSpawners(dt);adminTick();zFarEyes();zDread(dt);zHazards(dt);
+  updateOrbs(dt);biomeTick(dt);updateWeather(dt);updateSpawners(dt);adminTick();jackTick(dt);zFarEyes();zDread(dt);zHazards(dt);
   if(statsDirty)renderStats();
   if(showDebug){
     const p=player.pos;const col=column(Math.floor(p.x),Math.floor(p.z));
@@ -8166,6 +8167,51 @@ function thirdPerson(dt){
   return saved;
 }
 requestAnimationFrame(frame);
+// =====================================================================
+//  Jack: a secret player hiding deep in the caves (a fan asked to be in the game!). He only shows
+//  up when you are underground, holding a torch. Walk up to him for the rarest achievement.
+// =====================================================================
+var JACK=null,jackCheckT=20;
+function jackTick(dt){
+  if(JACK&&(titleMode||dim!=='overworld'||ZM||PV)){jackRemove();return;}
+  if(!JACK){
+    if(achDone.jack||titleMode||dim!=='overworld'||ZM||PV||player.dead)return;
+    jackCheckT-=dt;if(jackCheckT>0)return;jackCheckT=2;
+    const p=player.pos,px=Math.floor(p.x),pz=Math.floor(p.z);
+    if(p.y>SEA-4||column(px,pz).h<p.y+5)return;                 // only deep underground, with rock overhead
+    if(Math.random()>1/80)return;                                // rare: a few minutes of caving on average
+    for(let k=0;k<40;k++){const a=Math.random()*Math.PI*2,r=10+Math.random()*12,x=Math.floor(p.x+Math.cos(a)*r),z=Math.floor(p.z+Math.sin(a)*r);
+      for(let y=Math.floor(p.y)+6;y>=Math.max(3,Math.floor(p.y)-8);y--){
+        if(getBlock(x,y,z)||getBlock(x,y+1,z)||!isSolid(x,y-1,z))continue;
+        if(column(x,z).h<y+4)break;                                 // that's not a cave
+        jackSpawn(x+0.5,y,z+0.5);return;}}
+    return;}
+  const J=JACK,M=J.model,p=player.pos,dx=p.x-J.pos.x,dz=p.z-J.pos.z,d=Math.hypot(dx,dz)+Math.abs(p.y-J.pos.y)*0.5;
+  if(d>72){jackRemove();return;}
+  J.t+=dt;const want=Math.atan2(dx,dz);
+  if(d<16)J.yaw+=Math.atan2(Math.sin(want-J.yaw),Math.cos(want-J.yaw))*Math.min(1,dt*4);
+  M.g.position.copy(J.pos);M.g.rotation.y=J.yaw;
+  M.head.rotation.x=d<16?clamp(-Math.atan2(p.y+1.6-(J.pos.y+1.6),Math.hypot(dx,dz)),-0.8,0.8):Math.sin(J.t*0.7)*0.15;
+  const br=Math.sin(J.t*1.8)*0.04;M.arms[0].rotation.x=-0.5;M.arms[0].rotation.z=0.05+br;
+  M.arms[1].rotation.z=J.found?-2.6+Math.sin(J.t*10)*0.4:-0.05-br;M.arms[1].rotation.x=0;
+  const l=Math.max(0.55,lightAt(J.pos.x,J.pos.y+1.2,J.pos.z));for(const mt of J.mats)mt.color.setScalar(l);
+  if(!J.found&&d<3.5){J.found=true;J.t=0;
+    achieve('jack');sfx('win');toast('Jack: You found me! Nobody ever finds me down here...');
+    chatLine('<Jack> You found me! Take these, you earned them.','#ffff55');
+    for(const [id,n] of [[IT.DIAMOND,5],[IT.GOLDEN_APPLE,2],[IT.EMERALD,5]])addItem(id,n);invChanged();
+    emit(J.pos.x,J.pos.y+1.2,J.pos.z,[1,0.85,0.3],30,0.8,4,1,3,-1,true);}
+  if(J.found&&J.t>5){emit(J.pos.x,J.pos.y+1,J.pos.z,[0.8,0.8,0.8],40,0.6,3,1,2,-2);sfx('pop');chatLine('<Jack> See you around!','#ffff55');jackRemove();}
+}
+function jackSpawn(x,y,z){
+  const model=buildPlayerModel('Jack'),tag=nameTag('Jack');tag.position.y=2.2;model.g.add(tag);scene.add(model.g);
+  const torch=new THREE.Mesh(extrudeGeo(B.TORCH),new THREE.MeshBasicMaterial({map:flatTex(B.TORCH),vertexColors:true,alphaTest:0.5,side:THREE.DoubleSide}));
+  torch.scale.setScalar(0.8);torch.position.set(0,-0.62,0.22);torch.rotation.set(0,-Math.PI/2,Math.PI/4);model.arms[0].add(torch);
+  const mats=[];model.g.traverse(o=>{if(o.material&&o!==tag&&o!==torch)mats.push(...[].concat(o.material));});
+  JACK={model,tag,torch,mats,pos:new THREE.Vector3(x,y,z),yaw:Math.random()*6.28,t:0,found:false};
+  // a torch on the floor next to him, so there is a light to follow in the dark
+  for(const [ox,oz] of [[1,0],[-1,0],[0,1],[0,-1]]){const tx=Math.floor(x)+ox,ty=Math.floor(y),tz=Math.floor(z)+oz;if(!getBlock(tx,ty,tz)&&isSolid(tx,ty-1,tz)){setBlock(tx,ty,tz,B.TORCH);break;}}
+}
+function jackRemove(){if(!JACK)return;scene.remove(JACK.model.g);JACK.model.g.traverse(o=>{if(o.geometry&&!o.userData.shared&&o!==JACK.torch)o.geometry.dispose();});JACK=null;jackCheckT=20;}
 // =====================================================================
 //  Admin panel: only for the account "darkwing" (press P, or the button in the pause menu).
 //  Things that change the big server (kick, ban, announcements, server time and weather) are

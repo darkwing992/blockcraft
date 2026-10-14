@@ -100,6 +100,11 @@ THE END
   they heal the dragon. Beat it and an exit portal with the Dragon Egg appears.
   (The End is single player only.)
 
+FIND JACK (version 7.2)
+  Jack is hiding somewhere deep in the caves, holding a torch (look for a light in the dark). He only
+  shows up when you are deep underground, and only now and then. Walk up to him to get the rarest
+  achievement, "The Legend of Jack", plus diamonds, golden apples and emeralds. Then he vanishes for good.
+
 ADMIN PANEL (version 7.1) - only for the account "darkwing"
   Log in as darkwing, then press P in a world (or click Admin Panel in the pause menu).
   You: fly (even in survival), god mode, super speed, heal, +10 levels, switch game mode.
