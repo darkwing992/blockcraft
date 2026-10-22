@@ -69,6 +69,42 @@
   #createForm .btn { width: 100%; }
   .modeBtn.on { background: #3c8527; color: #fff; box-shadow: inset 0 -5px 0 #1d4d13, inset 3px 3px 0 #6cc349, inset -3px -8px 0 #2a641c; }
   #worldMsg { min-height: 18px; color: #ffd75e; text-align: center; font-size: 13px; margin: 6px 0; }
+
+  #modScreen { display: none; z-index: 40; background: rgba(0,0,0,.72); }
+  #modPanel { width: min(760px, 96vw); max-height: 92vh; display: flex; flex-direction: column; gap: 8px; background: #2b2b2b; border: 3px solid #111; box-shadow: inset 0 0 0 2px #555; padding: 12px 14px; color: #eee; font: 14px Consolas, monospace; }
+  #modHead { display: flex; align-items: center; gap: 12px; }
+  #modHead h2 { margin: 0; font-size: 20px; flex: 1; }
+  #modTabs { display: flex; gap: 4px; }
+  #modTabs button { font: bold 14px Consolas, monospace; padding: 7px 16px; background: #4a4a4a; color: #ddd; border: 2px solid #111; cursor: pointer; }
+  #modTabs button.on { background: #6f9f3c; color: #fff; }
+  #modsPane, #shadersPane { overflow-y: auto; min-height: 0; flex: 1; }
+  #modList, #shaderList { display: flex; flex-direction: column; gap: 6px; }
+  .modRow { display: flex; gap: 10px; align-items: flex-start; background: #3a3a3a; border: 2px solid #1c1c1c; padding: 8px; }
+  .modRow.off { opacity: .62; }
+  .modInfo { flex: 1; min-width: 0; }
+  .modInfo i { color: #aaa; font-style: normal; } .modInfo .by { color: #9a9a9a; font-size: 12px; }
+  .modInfo .desc { color: #ccc; margin-top: 2px; } .modInfo .src { color: #888; font-size: 12px; margin-top: 2px; }
+  .modInfo .err { color: #ff8a80; margin-top: 4px; white-space: pre-wrap; }
+  .modBtns { display: flex; gap: 4px; flex-shrink: 0; }
+  .modBtns .btn.sm, .modBar .btn.sm { margin: 0; }
+  .params label { display: grid; grid-template-columns: 96px 1fr 44px; gap: 8px; align-items: center; margin-top: 4px; font-size: 12px; color: #ccc; }
+  .params em { font-style: normal; color: #9ef; text-align: right; }
+  .tog { position: relative; width: 40px; height: 22px; flex-shrink: 0; margin-top: 2px; }
+  .tog input { opacity: 0; width: 0; height: 0; }
+  .tog span { position: absolute; inset: 0; background: #555; border: 2px solid #111; cursor: pointer; }
+  .tog span::after { content: ""; position: absolute; left: 2px; top: 2px; width: 14px; height: 14px; background: #ccc; transition: left .12s; }
+  .tog input:checked + span { background: #6f9f3c; } .tog input:checked + span::after { left: 20px; background: #fff; }
+  .modBar { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 8px; }
+  .modWarn { background: #4a3a1e; border: 2px solid #8a6a2a; color: #f3dfb0; padding: 8px; margin-bottom: 8px; font-size: 13px; }
+  .modTip { color: #aaa; font-size: 12px; margin-top: 8px; line-height: 1.5; }
+  .modEmpty { color: #aaa; padding: 14px; text-align: center; background: #333; border: 2px dashed #555; }
+  #modRestart { display: none; align-items: center; justify-content: space-between; gap: 10px; background: #1e3a4a; border: 2px solid #3a7a9a; padding: 6px 10px; color: #cfeeff; }
+  #modEditor { display: none; position: fixed; inset: 0; background: rgba(0,0,0,.6); align-items: center; justify-content: center; z-index: 41; }
+  #modEdBox { width: min(900px, 96vw); height: min(86vh, 760px); display: flex; flex-direction: column; gap: 6px; background: #2b2b2b; border: 3px solid #111; padding: 12px; color: #eee; font: 13px Consolas, monospace; }
+  #modEdBox h3 { margin: 0; font-size: 18px; }
+  #modEdHint { color: #aaa; }
+  #modEdCode { flex: 1; min-height: 0; resize: none; background: #1a1a1a; color: #e6e6e6; border: 2px solid #555; padding: 8px; font: 13px/1.45 Consolas, monospace; tab-size: 2; white-space: pre; }
+  #modEdErr { color: #ff8a80; min-height: 18px; white-space: pre-wrap; max-height: 80px; overflow: auto; }
   body.title #hotbar, body.title #stats, body.title #crosshair { display: none; }
   #game, #touchUI, #hotbar { touch-action: none; }
   #invpanel { position: relative; }
@@ -442,10 +478,40 @@
   <button class="btn" id="btnRespawn">Respawn</button>
 </div>
 
+
+<div id="modScreen" class="overlay">
+  <div id="modPanel">
+    <div id="modHead"><h2>Mods &amp; Shaders</h2><div id="modTabs"><button data-tab="mods">Mods</button><button data-tab="shaders">Shaders</button></div>
+      <button class="btn sm" id="btnModsClose">Done</button></div>
+    <div id="modRestart"><span>Restart the game to load your mod changes.</span><button class="btn sm" id="btnModRestart">Restart Now</button></div>
+    <div id="modsPane">
+      <div class="modWarn"><b>Only add mods from people you trust.</b> A mod is a small program: it can change anything in the game, and could even read your login. Shaders are only picture effects and are always safe.</div>
+      <div id="modList"></div>
+      <div class="modBar"><button class="btn sm" id="btnModNew">Make a Mod</button><button class="btn sm" id="btnModFile">Add Mod File (.js)</button></div>
+      <div class="modTip">Using BlockCraft.exe? You can also put mod files in the <b>mods</b> folder next to it. A guide with everything a mod can do is in <b>mods\README-MODS.txt</b>, with example mods in <b>mods\examples</b>.</div>
+    </div>
+    <div id="shadersPane">
+      <div class="modTip">Switch on as many as you like - they run from top to bottom. Sliders change each shader live.</div>
+      <div id="shaderList"></div>
+      <div class="modBar"><button class="btn sm" id="btnShaderNew">Make a Shader</button><button class="btn sm" id="btnShaderFile">Add Shader File (.glsl)</button></div>
+      <div class="modTip">Shader files (.glsl) in the <b>shaders</b> folder next to BlockCraft.exe show up here too.</div>
+    </div>
+  </div>
+  <div id="modEditor">
+    <div id="modEdBox">
+      <h3 id="modEdTitle">Make a Mod</h3>
+      <div id="modEdHint"></div>
+      <textarea id="modEdCode" spellcheck="false" autocomplete="off"></textarea>
+      <div id="modEdErr"></div>
+      <div class="modBar"><button class="btn sm" id="modEdTry">Try It</button><button class="btn sm" id="modEdSave">Save</button><button class="btn sm" id="modEdCancel">Close</button></div>
+    </div>
+  </div>
+  <input type="file" id="modFile" accept=".js,.glsl,.frag,.txt" multiple hidden>
+</div>
 <div id="menu" class="overlay">
   <h1 id="title">BLOCKCRAFT</h1>
   <div class="sub" id="splash">Now with infinite worlds!</div>
-  <div id="titleBtns" class="col"><button class="btn" id="btnSingle">Singleplayer</button><button class="btn" id="btnMulti">Multiplayer</button><button class="btn" id="btnMinigames">Minigames</button><button class="btn" id="btnSettings">Settings</button><button class="btn" id="btnAchT">Achievements</button></div>
+  <div id="titleBtns" class="col"><button class="btn" id="btnSingle">Singleplayer</button><button class="btn" id="btnMulti">Multiplayer</button><button class="btn" id="btnMinigames">Minigames</button><button class="btn" id="btnSettings">Settings</button><button class="btn" id="btnModsT">Mods &amp; Shaders</button><button class="btn" id="btnAchT">Achievements</button></div>
   <div id="acctBar"><span class="cloud">&#9729;</span><span id="acctText"></span><button class="btn sm" id="btnAcct">Log In</button></div>
   <div id="titleSkin"><div id="titleSkinName"></div><canvas id="titleSkinCv" width="64" height="128"></canvas><button class="btn" id="btnSkins">Skins</button></div>
   <div id="verLabel" style="position:absolute;left:10px;bottom:8px;color:#ddd;font:14px monospace;text-shadow:2px 2px #000;pointer-events:none"></div>
@@ -456,6 +522,7 @@
     <button class="btn" id="btnHost">Open to Friends</button>
     <button class="btn" id="btnMode">Game Mode: Survival</button>
     <button class="btn" id="btnAch">Achievements</button>
+    <button class="btn" id="btnModsP">Mods &amp; Shaders</button>
     <button class="btn" id="btnAdmin" style="display:none">&#9733; Admin Panel</button>
     <button class="btn" id="btnQuit">Save &amp; Quit to Title</button>
   </div>
@@ -702,7 +769,7 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 <script>
 'use strict';
-const GAME_VERSION='7.5';
+const GAME_VERSION='7.7';
 const DEFAULT_SERVER='wss://blockcraft-server.austinhodgins2014-e99.workers.dev/ws'; // the big server's address (set by "Deploy Big Server.bat")
 let PV=null; // the PvP duel you're in (null = none)
 var FM=null; // Farm Tycoon state (null in normal worlds)
@@ -1427,7 +1494,7 @@ const tileColor=[]; // average color per tile (for particles)
 })();
 // Mipmaps, made tile by tile: far-away blocks look smooth instead of sparkly, and never pick up colours from the next
 // tile. See-through tiles (leaves, plants, glass) stay just as see-through when they get small.
-const ATLAS_MIPS=(function(){
+function buildAtlasMips(){
   const W0=atlas.width,H0=atlas.height,nT=COLS*ROWS,lv=[actx.getImageData(0,0,W0,H0)],cover=new Array(nT).fill(0);
   {const d=lv[0].data;
     for(let y=0;y<H0;y++)for(let x=0;x<W0;x++){const k=(y*W0+x)*4,t=Math.floor(y/TS)*COLS+Math.floor(x/TS);
@@ -1445,7 +1512,8 @@ const ATLAS_MIPS=(function(){
     else for(let k=3;k<o.length;k+=4)o[k]=o[k]>=128?255:0;
     lv.push(dst);if(w===1&&h===1)break;}
   return lv;
-})();
+}
+let ATLAS_MIPS=buildAtlasMips();
 // the atlas at half size (16 pixels a tile): used to draw the little block pictures in the inventory
 const atlas16=document.createElement('canvas');atlas16.width=COLS*16;atlas16.height=ROWS*16;atlas16.getContext('2d').putImageData(ATLAS_MIPS[1],0,0);
 
@@ -2147,6 +2215,7 @@ function generateChunk(cx,cz){
   return finishChunk(cx,cz,data,maxY);
 }
 function finishChunk(cx,cz,data,maxY){
+  if(typeof modGen==='function')maxY=modGen(cx,cz,data,maxY); // ores and other things added by mods
   const mk=mods.get(ckey(cx,cz));
   if(mk)for(const [i,id] of mk.m){data[i]=id;const y=Math.floor(i/(CS*CS));if(y>maxY)maxY=y;}
   const c={cx,cz,data,maxY:Math.min(H-1,maxY+1),dirty:true,meshes:[],hmS:new Int16Array(CS*CS),hmL:new Int16Array(CS*CS),
@@ -2519,7 +2588,7 @@ function waterTick(x,y,z){
 }
 let waterT=0;
 function updateWater(dt){
-  if(MP.role==='client'){waterQ.clear();return;} // the host runs the water (on the big server, whoever changed it does)
+  if(MP.role==='client'&&!MP.far){waterQ.clear();return;} // the host runs the water near it (on the big server, whoever changed it does)
   waterT+=dt;if(waterT<0.25)return;waterT=0;
   if(!waterQ.size)return;
   const q=waterQ;waterQ=new Map();let n=0;
@@ -2994,7 +3063,7 @@ for(let m=0;m<3;m++)for(let p=0;p<4;p++)
   ITEM[armorId(m,p)]={name:(m===0?'Leather ':ARMOR_MAT[m]+' ')+(m===0&&p===0?'Cap':m===0&&p===1?'Tunic':m===0&&p===2?'Pants':ARMOR_PIECE[p]),
     stack:1,armor:{slot:p,def:ARMOR_DEF[m][p],mat:m},dur:ARMOR_DUR[m][p]};
 function itemInfo(id){if(!isItem(id))return {name:DEF[id].name,stack:64,block:true};const it=ITEM[id];return {name:it.name,stack:it.stack||64,tool:it.tool,dur:it.dur,dmg:it.dmg,food:it.food,armor:it.armor};}
-const isItem=id=>id>=100&&id<200; // block ids are 0-99 and 200-255
+const isItem=id=>(id>=100&&id<200)||id>=1000; // block ids are 0-99 and 200-255; mod items are 1000+
 const isFlat=id=>isItem(id)||DEF[id].plant||DEF[id].torch||DEF[id].ladder||!!DEF[id].door;
 
 // Item sprites are 32x32. Shapes are described in 16-unit coordinates (1 unit = one Minecraft pixel) and filled
@@ -5017,11 +5086,12 @@ function endermanTeleport(m){
   }
 }
 function killMob(m){
+  modEmit('mobKill',{type:m.type,x:m.pos.x,y:m.pos.y,z:m.pos.z});
   if(ZM&&MOBS[m.type].zed){ZM.kills++;zDeath(m);}
   if(m.type==='bomber'){if(mode==='survival')for(const [id,n] of MOBS.bomber.drops())spawnDrop(id,n,m.pos.x,m.pos.y+0.5,m.pos.z);
     removeMob(m);explode(m.pos.x,m.pos.y+1,m.pos.z,2.6);return;} // bombers blow up when they die
   if(m.type==='ender_dragon'){dragonDeath(m);return;}
-  if(m.type==='end_crystal'){const i=m.pillar;if(i!==undefined)endState.crystals[i]=0;removeMob(m);explode(m.pos.x,m.pos.y,m.pos.z,3);return;}
+  if(m.type==='end_crystal'){const i=m.pillar;if(i!==undefined){endState.crystals[i]=0;shareEndState();}removeMob(m);explode(m.pos.x,m.pos.y,m.pos.z,3);return;}
   if(MOBS[m.type].ai==='slime'&&m.size>1){ // big slimes split into smaller ones
     for(let k=0;k<2+rnd(2);k++)spawnMob(m.type,m.pos.x+(Math.random()-0.5)*m.w,m.pos.y+0.3,m.pos.z+(Math.random()-0.5)*m.w,slimeOpts(m.size/2));
     removeMob(m);return;}
@@ -5658,7 +5728,7 @@ function updateBossBar(m){const el=document.getElementById('bossBar');if(!m){el.
   document.getElementById('bossFill').style.width=(Math.max(0,m.puppet?(m.netHp??m.hp):m.hp)/MOBS[m.type].hp*100)+'%';}
 function dragonDeath(m){
   const i=mobs.indexOf(m);if(i>=0)mobs.splice(i,1);if(m.beam){scene.remove(m.beam);m.beam=null;}
-  endState.dragonDead=true;saveDirty=true;updateBossBar(null);toast('The Ender Dragon was defeated!');achieve('dragon');
+  endState.dragonDead=true;saveDirty=true;shareEndState();updateBossBar(null);toast('The Ender Dragon was defeated!');achieve('dragon');
   spawnXp(m.pos.x,m.pos.y,m.pos.z,250);
   dying.push({m,t:0,dragon:true});
 }
@@ -5667,6 +5737,22 @@ function buildExitPortal(){
   for(let x=-3;x<=3;x++)for(let z=-3;z<=3;z++){const d=Math.hypot(x,z);if(d>3.3)continue;
     writeBlock(x,y-1,z,B.BEDROCK);writeBlock(x,y,z,d>2.4?B.BEDROCK:B.END_PORTAL);for(let k=1;k<4;k++)writeBlock(x,y+k,z,0);}
   for(let k=0;k<4;k++)writeBlock(0,y+k,0,B.BEDROCK);writeBlock(0,y+4,0,B.DRAGON_EGG);flushBlocks();
+}
+function shareEndState(){if(MP.role)MP.send({t:'endst',s:endState});}
+function mergeEndState(o){ // someone else broke a crystal or beat the dragon
+  if(o.dragonDead&&!endState.dragonDead){endState.dragonDead=true;
+    for(const m of [...mobs])if(m.type==='ender_dragon'&&!m.puppet){removeMob(m);updateBossBar(null);}
+    if(dim==='end')toast('The Ender Dragon was defeated!');}
+  if(Array.isArray(o.crystals))o.crystals.forEach((v,i)=>{if(!v&&endState.crystals[i]){endState.crystals[i]=0;
+    for(const m of [...mobs])if(m.type==='end_crystal'&&m.pillar===i&&!m.puppet)removeMob(m);}});
+}
+// big server: block changes, meta and chests of the Nether / End arrive marked (4th value / "n|" or "e|" keys)
+function splitNetDims(w){
+  const D=[{mods:[],meta:[],chests:[]},{mods:[],meta:[],chests:[]},{mods:[],meta:[],chests:[]}],pre=k=>{const m=/^([ne])\|(.*)$/.exec(k);return m?[m[1]==='n'?1:2,m[2]]:[0,k];};
+  for(const ch of w.mods||[])D[clamp(ch[3]|0,0,2)].mods.push([ch[0],ch[1],ch[2]]);
+  for(const [k,v] of w.meta||[]){const [i,kk]=pre(k);D[i].meta.push([kk,v]);}
+  for(const [k,v] of w.chests||[]){const [i,kk]=pre(k);D[i].chests.push([kk,v]);}
+  w.mods=D[0].mods;w.meta=D[0].meta;w.chests=D[0].chests;w.nether=D[1];w.end=D[2];
 }
 function ensureEndMobs(){
   if(dim!=='end'||endState.dragonDead||mobs.some(m=>m.type==='ender_dragon'))return;
@@ -5836,7 +5922,7 @@ function zSupply(){
   const ps=zPlayers().filter(q=>!q.dead),c=ps.length?ps[rnd(ps.length)].pos:new THREE.Vector3(...spawnPoint),sp=zSpawnSpot(c,4,9);if(!sp)return;
   const [x,y,z]=[Math.floor(sp[0]),sp[1],Math.floor(sp[2])],k=wk(x,y,z);
   setBlock(x,y,z,B.AMMO_CRATE);chests.set(k,crateLoot(Math.random,Math.min(6,ZM.wave/2)));
-  if(MP.role){MP.send({t:'chest',k,c:chests.get(k)});MP.fx({k:'supply',x,y,z});}zSupplyFx(x,y,z);
+  if(MP.role){MP.send({t:'chest',k,c:chests.get(k),dm:dimIdx()});MP.fx({k:'supply',x,y,z});}zSupplyFx(x,y,z);
 }
 const zBeacons=[];
 function zSupplyFx(x,y,z){zBeacons.push({x:x+0.5,y,z:z+0.5,t:30});sfxAt('chestopen',x,y,z,0,60);}
@@ -5951,6 +6037,7 @@ let hp=20,air=10,invuln=0,regenT=0,hurtTilt=0,drownT=1,stepAcc=0;
 let food=20,sat=5,exh=0,starveT=0;
 function addExhaustion(v){if(mode==='survival'&&!player.dead)exh+=v;}
 function damagePlayer(n,src,ignoreInvuln,knock=6,useArmor=!!src){
+  if(typeof modEmit==='function'&&!modEmit('hurt',{amount:n}))return;
   if(mode!=='survival'||player.dead||(invuln>0&&!ignoreInvuln)||n<=0)return;
   if(ADM.god&&isAdmin())return;
   if(ZM&&src)zMaybeScare(src);
@@ -6011,6 +6098,7 @@ let swing=0,bob=0,mine=null,mineDelay=0,useHold=null;
 function breakBlock(){
   if(!target||PV)return; // the arena can't be broken
   const {x,y,z,id}=target;if(HARD[id]<0&&mode==='survival')return;if(id===B.BEDROCK&&y===0)return;
+  if(!modEmit('blockBreak',{x,y,z,id}))return;
   spawnParticles(x,y,z,id);sfx('break',id);
   if(mode==='survival'){for(const [did,n] of dropsFor(id))spawnDrop(did,n,x+0.5,y+0.4,z+0.5);
     if(ORE_XP[id]&&canHarvest(id))spawnXp(x+0.5,y+0.5,z+0.5,ORE_XP[id]());
@@ -6084,6 +6172,7 @@ function fireCrossbow(){
 function useItem(){
   if(PV)return; // no building in duels
   const s=inv[selected],id=s?s.id:0;
+  if(ITEM[id]&&ITEM[id].onUse){try{if(ITEM[id].onUse({id,target:target?{x:target.x,y:target.y,z:target.z,id:target.id}:null})!==false)swing=1;}catch(e){const m=ModSys.mods.find(m=>m.key===ITEM[id].mod);if(m)modError(m,e);}return;}
   if(id===IT.BOAT){const h=raycast(camera.position,camDir,5,true);if(!h)return;
     const w=isWater(h.id),x=h.x+0.5,z=h.z+0.5,y=w?h.y+0.3:h.y+1.02;if(!w&&getBlock(h.x,h.y+1,h.z))return;
     const b=spawnMob('boat',x,y,z,{persist:true});b.yaw=Math.atan2(camDir.x,camDir.z);consumeHeld();swing=1;sfx('place',B.PLANKS);return;}
@@ -6125,7 +6214,7 @@ function useItem(){
   if(DEF[id].ladder){ // ladders go on the side of a solid block
     const n=target.n;if(n[1]!==0||!DEF[target.id].solid||!DEF[target.id].opaque||cur)return;
     blockMeta.set(wk(px,py,pz),n[0]===1?'px':n[0]===-1?'nx':n[2]===1?'pz':'nz');
-    setBlock(px,py,pz,id);sfx('place',id);consumeHeld();swing=1;return;}
+    setBlock(px,py,pz,id);modEmit('blockPlace',{x:px,y:py,z:pz,id});sfx('place',id);consumeHeld();swing=1;return;}
   if(DEF[id].torch){const below=getBlock(px,py-1,pz);if(!below||!DEF[below].solid||(!DEF[below].opaque&&below!==B.GLASS))return;if(isWater(cur))return;}
   if(DEF[id].solid){
     const p=player.pos;
@@ -6137,14 +6226,14 @@ function useItem(){
     if((up&&!DEF[up].plant)||py+1>=H||!DEF[getBlock(px,py-1,pz)].solid){toast('A door needs 2 blocks of room and something solid under it');return;}
     if(px+1>p.x-PW&&px<p.x+PW&&py+2>p.y&&py<p.y+PH&&pz+1>p.z-PW&&pz<p.z+PW)return;
     blockMeta.set(wk(px,py,pz),dir+'b');blockMeta.set(wk(px,py+1,pz),dir+'t');setBlockRaw(px,py+1,pz,id);
-    setBlock(px,py,pz,id);sfx('place',id);consumeHeld();swing=1;return;}
+    setBlock(px,py,pz,id);modEmit('blockPlace',{x:px,y:py,z:pz,id});sfx('place',id);consumeHeld();swing=1;return;}
   if(id===B.BED){const dir=Math.abs(camDir.x)>Math.abs(camDir.z)?(camDir.x>0?'px':'nx'):(camDir.z>0?'pz':'nz');
     const hx=px+DIRV[dir][0],hz=pz+DIRV[dir][1],hc=getBlock(hx,py,hz);
     if((hc&&!DEF[hc].plant)||!DEF[getBlock(px,py-1,pz)].solid||!DEF[getBlock(hx,py-1,hz)].solid){toast('Not enough room for the bed');return;}
     blockMeta.set(wk(px,py,pz),dir+'f');blockMeta.set(wk(hx,py,hz),dir+'h');setBlockRaw(hx,py,hz,B.BED);
-    setBlock(px,py,pz,id);sfx('place',id);consumeHeld();swing=1;return;}
+    setBlock(px,py,pz,id);modEmit('blockPlace',{x:px,y:py,z:pz,id});sfx('place',id);consumeHeld();swing=1;return;}
   if(DEF[id].special||DEF[id].front>=0){const dir=Math.abs(camDir.x)>Math.abs(camDir.z)?(camDir.x>0?'px':'nx'):(camDir.z>0?'pz':'nz');blockMeta.set(wk(px,py,pz),dir);}
-  setBlock(px,py,pz,id);sfx('place',id);consumeHeld();swing=1;
+  setBlock(px,py,pz,id);modEmit('blockPlace',{x:px,y:py,z:pz,id});sfx('place',id);consumeHeld();swing=1;
 }
 function toggleDoor(x,y,z){
   const id=getBlock(x,y,z);if(!DEF[id].door)return;const m=blockMeta.get(wk(x,y,z))||'pzb',by=m[2]==='t'?y-1:y,to=DEF[id].pair;
@@ -6628,7 +6717,7 @@ function openInventory(){achieve('inv');invOpen=true;invEl.style.display='flex';
   if(document.pointerLockElement)document.exitPointerLock();invChanged();}
 document.getElementById('invClose').onclick=()=>{closeInventory();lock();};
 function closeInventory(){invOpen=false;invEl.style.display='none';
-  if(openChest&&chestPos&&MP.role)MP.send({t:'chest',k:wk(...chestPos),c:openChest});
+  if(openChest&&chestPos&&MP.role)MP.send({t:'chest',k:wk(...chestPos),c:openChest,dm:dimIdx()});
   if(openChest){openChest=null;if(chestPos)sfxAt('chestclose',chestPos[0],chestPos[1],chestPos[2]);chestPos=null;}
   openFurnace=null;furnacePos=null;tradeMob=null;
   craftReturn();craftW=2;craftGrid=new Array(4).fill(null);tablePos=null;
@@ -6772,7 +6861,7 @@ window.addEventListener('keydown',e=>{if(touchMode&&/^(Key[WASDEQF]|Space|Arrow|
   hold('tDrop',()=>{if(locked)dropHeld(false);});
   hold('tPause',()=>{if(locked)showPause();});
   hold('tView',()=>{camView=(camView+1)%3;toast(['First person','Third person (back)','Third person (front)'][camView]);});
-  hold('tChat',()=>{if(locked&&MP.role)openChat();});
+  hold('tChat',()=>{if(locked&&(MP.role||ModSys.commands.size))openChat();});
   hold('tLight',()=>{if(ZM){flashOn=!flashOn;toast(flashOn?'Flashlight on':'Flashlight off');}});
   // iPhone: stop pinch-zoom and page bounce while playing
   document.addEventListener('gesturestart',e=>e.preventDefault());
@@ -6905,7 +6994,7 @@ document.addEventListener('keydown',e=>{
   if(e.code==='Escape'&&invOpen){closeInventory();showPause();return;}
   if(e.code==='Escape'&&freeMode){showPause();return;}
   if(!locked)return;
-  if(MP.role&&(e.code==='KeyT'||e.code==='Enter'||e.code==='Slash')){e.preventDefault();openChat();return;}
+  if((MP.role||ModSys.commands.size)&&(e.code==='KeyT'||e.code==='Enter'||e.code==='Slash')){e.preventDefault();openChat();return;}
   if(e.code==='KeyB'&&!e.repeat&&FM){e.preventDefault();openFmShop();return;}
   if(e.code==='KeyP'&&!e.repeat&&isAdmin()){e.preventDefault();showPause();if(document.pointerLockElement)document.exitPointerLock();openAdmin();return;}
   if(['Space','ArrowUp','ArrowDown','Tab'].includes(e.code)||(e.ctrlKey&&e.code!=='KeyW'))e.preventDefault();
@@ -6931,6 +7020,11 @@ window.addEventListener('resize',()=>{camera.aspect=window.innerWidth/window.inn
 let saveDirty=false,currentWorld=null,titleMode=true;
 // ---- dimensions: the overworld and the Nether keep separate block changes, chests, furnaces and crops ----
 let dim='overworld',DIMS={};
+// multiplayer: every player can be in a different dimension. Messages carry a dimension number.
+const DIM_NAMES=['overworld','nether','end'];
+const dimIdx=d=>Math.max(0,DIM_NAMES.indexOf(d===undefined?dim:d));
+function dimStore(dn){ // the saved changes of a dimension that isn't the one loaded right now
+  if(!DIMS[dn])DIMS[dn]={mods:new Map(),meta:new Map(),chests:new Map(),furnaces:new Map(),crops:new Map()};return DIMS[dn];}
 function stashDim(){DIMS[dim]={mods:new Map(mods),meta:new Map(blockMeta),chests:new Map(chests),furnaces:new Map(furnaces),crops:new Map(crops)};}
 function loadDim(d){const s=DIMS[d]||{};
   for(const [m,src] of [[mods,s.mods],[blockMeta,s.meta],[chests,s.chests],[furnaces,s.furnaces],[crops,s.crops]]){m.clear();if(src)for(const [k,v] of src)m.set(k,v);}}
@@ -6949,6 +7043,7 @@ function unloadAll(){
 function writeBlock(x,y,z,id){ // works even where the world isn't loaded yet
   if(chunks.has(ckey(x>>4,z>>4))){setBlockRaw(x,y,z,id);return;}
   const ck=ckey(x>>4,z>>4);let mk=mods.get(ck);if(!mk){mk={cx:x>>4,cz:z>>4,m:new Map()};mods.set(ck,mk);}mk.m.set(bidx(x&15,y,z&15),id);
+  if(MP.role)MP.noteBlock(x,y,z);
 }
 function lightPortal(x,y,z){ // flint and steel inside an obsidian frame (2x3 up to 21x21 inside)
   for(const ax of ['x','z']){
@@ -6992,6 +7087,7 @@ function checkEndPortal(x,y,z){
   return false;
 }
 function switchDim(to,x,z){ // x/z = where to arrive (null: your spawn point)
+  if(MP.role)MP.flushBlocks();
   const pets=mobs.filter(m=>m.tamed);updateBossBar(null);
   if(ride)dismount();if(dim==='overworld')entsKeep=saveEnts();
   stashDim();unloadAll();clearOrbs();dim=to;loadDim(to);if(to==='overworld'&&entsKeep){const ek=entsKeep;entsKeep=null;setTimeout(()=>loadEnts(ek),0);}saveDirty=true;portalLock=true;portalT=0;if(to==='nether'||to==='end')achieve(to);
@@ -7010,14 +7106,14 @@ function updatePortal(dt){
   if(dim==='end'&&player.pos.y<-8&&!player.dead){lavaT-=dt;if(lavaT<=0){lavaT=0.5;if(mode==='survival')damagePlayer(4,null,true,0,false);else{player.pos.set(100.5,52,0.5);player.vel.set(0,0,0);}}}
   { // end portals work instantly
     const q=player.pos,ep=getBlock(Math.floor(q.x),Math.floor(q.y+0.2),Math.floor(q.z))===B.END_PORTAL;
-    if(ep&&!portalLock){portalLock=true;if(MP.role){toast('The End only works in single player for now');return;}
+    if(ep&&!portalLock){portalLock=true;if(MP.role==='net'&&!MP.dims){toast('This server needs an update before you can go to the End');return;}
       if(dim==='end')switchDim('overworld',null,null);else switchDim('end');return;}
   }
   const p=player.pos,cell=yy=>getBlock(Math.floor(p.x),Math.floor(yy),Math.floor(p.z))===B.PORTAL,inP=cell(p.y+0.2)||cell(p.y+1.2);
   if(!inP){portalLock=false;portalT=Math.max(0,portalT-dt*2);}
   else if(!portalLock){portalT+=dt;
     if(portalT>=(mode==='creative'?1:3.5)){portalT=0;portalLock=true;
-      if(MP.role)toast('The Nether only works in single player for now');
+      if(MP.role==='net'&&!MP.dims)toast('This server needs an update before you can go to the Nether');
       else{const s=dim==='nether'?8:1/8;switchDim(dim==='nether'?'overworld':'nether',Math.floor(p.x*s),Math.floor(p.z*s));}}}
   document.getElementById('portalFx').style.opacity=Math.min(1,portalT/3)*0.85;
 }
@@ -7102,6 +7198,7 @@ function clearWorld(){
 }
 function resetPlayerState(){selected=0;hp=20;air=10;food=20;sat=5;exh=0;player.dead=false;player.flying=false;armor.fill(null);inv.fill(null);}
 async function createWorld(name,m,seedText,opts){
+  await ModSys.ready;
   const st=(seedText||'').trim();
   let seed=Math.floor(Math.random()*1e9);
   if(st)seed=/^-?\d+$/.test(st)?parseInt(st)%2147483647:[...st].reduce((h,c)=>Math.imul(h^c.charCodeAt(0),16777619)>>>0,2166136261)%1e9;
@@ -7140,6 +7237,7 @@ function applyWorld(s,id){
   invChanged();statsDirty=true;
 }
 async function openWorld(id){
+  await ModSys.ready;
   try{toast('Loading world...');applyWorld(await Store.load(id),id);startPlaying();}
   catch(e){alertBox('Could not load that world: '+(e.message||e));}
 }
@@ -7148,6 +7246,7 @@ function startPlaying(){
   document.getElementById('zOver').style.display='none';
   if(ZM)zBanner(ZM.style==='waves'?(ZM.wave?'WAVE '+ZM.wave:'SURVIVE THE WAVES'):'SURVIVE',ZM.style==='waves'?'Hold out as long as you can. Press L for your flashlight.':'Find ammo crates. Stay out of the dark. Press L for your flashlight.');
   worldsEl.style.display='none';updateMenuButtons();updateModeBtn();lock();
+  modEmit('worldLoad',{name:currentWorld?currentWorld.name:''});
 }
 const TITLE_SEED=20261011;
 function enterTitle(){
@@ -7401,7 +7500,7 @@ const debugEl=document.getElementById('debug'),uwEl=document.getElementById('und
 //  The host owns the world, mobs, water and crops and saves everything, including each
 //  friend's inventory. Messages are small objects: blocks, player states, mob snapshots, chat.
 // =====================================================================
-const MP_PREFIX='blockcraft-mp1-',MP_PROTO=1,CODE_CHARS='ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+const MP_PREFIX='blockcraft-mp1-',MP_PROTO=2,CODE_CHARS='ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
 const savedPlayers=new Map(); // host: friend name -> their inventory/position, saved with the world
 const chatLog=document.getElementById('chatLog'),chatInput=document.getElementById('chatInput');
 let chatOpen=false;
@@ -7541,7 +7640,7 @@ function removeRemote(id){
 }
 function setRemoteState(rp,s){ // s = [x,y,z,yaw,pitch,held,creative,dead,swing,sneak]
   rp.tp.set(s[0],s[1],s[2]);rp.tyaw=s[3];rp.pitch=s[4];rp.held=s[5]|0;rp.mode=s[6]?'creative':'survival';rp.dead=!!s[7];
-  if(s[8])rp.swingT=1;rp.sw=s[8]?1:0;rp.sneak=!!s[9];if(rp.fresh){rp.fresh=false;rp.pos.copy(rp.tp);rp.yaw=rp.tyaw;}
+  if(s[8])rp.swingT=1;rp.sw=s[8]?1:0;rp.sneak=!!s[9];rp.dimI=s[10]|0;if(rp.fresh){rp.fresh=false;rp.pos.copy(rp.tp);rp.yaw=rp.tyaw;}
 }
 function updateRemotes(dt){
   for(const rp of MP.players.values()){
@@ -7556,7 +7655,7 @@ function updateRemotes(dt){
     if(rp.held===IT.BOW||rp.held===IT.CROSSBOW_LOADED)M.arms[1].rotation.x=-1.2;
     M.g.rotation.x=0;if(rp.sneak){M.legs[0].rotation.x+=0.25;M.legs[1].rotation.x+=0.25;}
     M.head.rotation.x=clamp(-rp.pitch,-1.2,1.2);
-    M.g.position.set(rp.pos.x,rp.pos.y-(rp.sneak?0.12:0),rp.pos.z);M.g.rotation.y=rp.yaw+Math.PI;M.g.visible=!rp.dead;
+    M.g.position.set(rp.pos.x,rp.pos.y-(rp.sneak?0.12:0),rp.pos.z);M.g.rotation.y=rp.yaw+Math.PI;M.g.visible=!rp.dead&&(rp.dimI|0)===dimIdx();
     if(rp.held!==rp.heldId){
       if(rp.heldMesh){M.arms[0].remove(rp.heldMesh);rp.heldMesh.material.dispose();rp.heldMesh=null;}
       rp.heldId=rp.held;const id=rp.held;
@@ -7611,10 +7710,15 @@ Object.assign(MP,{peer:null,conn:null,conns:new Map(),players:new Map(),code:nul
     if(MP.role==='host'){const c=MP.conns.get(id);if(c&&c.open)try{c.send(msg);}catch(e){}}
     else if(MP.role==='net')MP.send(Object.assign({to:id},msg));else MP.send(msg);},
   noteBlock(x,y,z){MP.outB.set(wk(x,y,z),[x,y,z]);},
-  fx(msg){if(MP.role)MP.send(Object.assign({t:'fx'},msg));else if(PV)pvpSend(Object.assign({t:'fx'},msg));},
+  flushBlocks(){ // send the block changes we made (in the dimension we are in)
+    if(!MP.outB.size)return;const l=[],di=dimIdx();
+    for(const [k,[x,y,z]] of MP.outB){let id=getBlock(x,y,z);const c=chunks.get(ckey(x>>4,z>>4));
+      if(!c){const mk=mods.get(ckey(x>>4,z>>4));const v=mk&&mk.m.get(bidx(x&15,y,z&15));if(v===undefined)continue;id=v;}
+      l.push(di?[x,y,z,id,blockMeta.get(k)||0,di]:[x,y,z,id,blockMeta.get(k)||0]);}
+    MP.outB.clear();if(l.length)MP.send({t:'b',l});},
+  fx(msg){if(MP.role)MP.send(Object.assign({t:'fx',dm:dimIdx()},msg));else if(PV)pvpSend(Object.assign({t:'fx'},msg));},
   async host(){
     if(MP.role||!currentWorld)return;
-    if(dim!=='overworld'){toast('Go back to the Overworld to open your world to friends');return;}
     MP.name=setMpName(mpName());toast('Opening your world to friends...');
     await loadPeer();
     let peer=null;
@@ -7644,8 +7748,9 @@ Object.assign(MP,{peer:null,conn:null,conns:new Map(),players:new Map(),code:nul
         if(taken(name)){let k=2;while(taken(name+k))k++;name=name+k;}
         MP.conns.set(c.peer,c);c.bcName=name;
         const s=serializeWorld(),you=savedPlayers.get(name)||null;
-        c.send({t:'welcome',id:c.peer,host:MP.name,name,you,at:[player.pos.x+0.7,player.pos.y,player.pos.z+0.7],
-          world:{seed:s.seed,name:s.name,mode:s.mode,mods:s.mods,meta:s.meta,chests:s.chests,time:s.time,spawn:s.spawn,clock:s.clock,zm:s.zm}});
+        c.send({t:'welcome',id:c.peer,host:MP.name,name,you,at:dim==='overworld'?[player.pos.x+0.7,player.pos.y,player.pos.z+0.7]:null,
+          world:{seed:s.seed,name:s.name,mode:s.mode,mods:s.mods,meta:s.meta,chests:s.chests,time:s.time,spawn:s.spawn,clock:s.clock,zm:s.zm,
+            nether:s.nether,end:s.end,endState:s.endState}});
         addRemote(c.peer,name);
         MP.send({t:'join',id:c.peer,name},c.peer);
         MP.sysChat(name+' joined the game');updateMenuButtons();
@@ -7702,10 +7807,12 @@ Object.assign(MP,{peer:null,conn:null,conns:new Map(),players:new Map(),code:nul
   },
   enterRemoteWorld(d){
     const w=d.world,y=d.you;MP.hostName=d.host||'';MP.name=d.name;MP.selfId=d.id;MP.online=d.online||1;
+    if(w.splitDims)splitNetDims(w);
     const s={v:3,name:w.name,seed:w.seed,mods:w.mods,meta:w.meta,chests:w.chests,time:w.time,spawn:w.spawn,clock:w.clock,mode:w.mode,zm:w.zm,
+      nether:w.nether||undefined,end:w.end||undefined,endState:w.endState||undefined,dim:y&&DIM_NAMES.includes(y.dim)?y.dim:'overworld',
       inv:y?y.inv:[],armor:y?y.armor:[],hp:y?y.hp:20,food:y?y.food:20,sat:y?y.sat:5,bed:y?y.bed:null,
       player:y&&y.player?y.player:d.at?{x:d.at[0],y:d.at[1],z:d.at[2],yaw:0,pitch:0}:{x:0,y:0,z:0,yaw:0,pitch:0}};
-    const role=MP.role;applyWorld(s,null);MP.role=role;
+    const role=MP.role;applyWorld(s,null);MP.role=role;MP.dims=!!(d.host||w.splitDims); // an old big server can't keep the Nether and End apart
     if(!(y&&y.player)&&!d.at)respawn(); // first time on the big server: start at its spawn
     currentWorld.name=d.host?d.host+'\'s world':(d.server||'Big Server');
     if(!y&&ZM){inv.fill(null);zKit();}
@@ -7721,7 +7828,7 @@ Object.assign(MP,{peer:null,conn:null,conns:new Map(),players:new Map(),code:nul
   onMessage(d,from){
     switch(d.t){
       case 'st':{const rp=MP.players.get(from);if(rp)setRemoteState(rp,d.s);break;}
-      case 'b':MP.applyBlocks(d.l);break;
+      case 'b':MP.applyBlocks(d.l,from);break;
       case 'tick':{
         dayTime=d.time;if(d.z&&ZM)zNet(d.z);if(d.w&&MP.role==='client')weather.k=d.w;if(MP.role==='net')MP.wx=d.w||null;
         const now=performance.now();if(d.online)MP.online=d.online;
@@ -7730,7 +7837,7 @@ Object.assign(MP,{peer:null,conn:null,conns:new Map(),players:new Map(),code:nul
           for(const rp of [...MP.players.values()])if(now-(rp.seen||0)>3000)removeRemote(rp.id);
           applyMobSnapshot(d.mobs);break;}
         const hp_=MP.players.get('host');
-        const far=hp_&&Math.hypot(hp_.tp.x-player.pos.x,hp_.tp.z-player.pos.z)>Math.max(80,(renderDist-1)*16);
+        const far=hp_&&((hp_.dimI|0)!==dimIdx()||Math.hypot(hp_.tp.x-player.pos.x,hp_.tp.z-player.pos.z)>Math.max(80,(renderDist-1)*16));
         if(far!==MP.far){MP.far=far;for(const m of [...mobs])if(!!m.puppet===far)removeMob(m);}
         if(!MP.far)applyMobSnapshot(d.mobs);
         break;}
@@ -7740,7 +7847,8 @@ Object.assign(MP,{peer:null,conn:null,conns:new Map(),players:new Map(),code:nul
       case 'kicked':if(MP.role==='net'&&from==='server')MP.kickWhy=d.why;break;
       case 'tpme':if(MP.role==='net'&&from==='server'&&Array.isArray(d.p)){admTeleport(+d.p[0],+d.p[1]+0.2,+d.p[2]);chatLine('An admin pulled you over to them.','#ff8cff');}break;
       case 'chat':chatLine(d.text,d.color);if(MP.role==='host')MP.send(d,from);break;
-      case 'chest':chests.set(d.k,d.c);if(MP.role==='host'){MP.send(d,from);saveDirty=true;}break;
+      case 'chest':{const dn=DIM_NAMES[d.dm|0]||'overworld';(dn===dim?chests:dimStore(dn).chests).set(d.k,d.c);if(MP.role==='host'){MP.send(d,from);saveDirty=true;}break;}
+      case 'endst':if(d.s&&typeof d.s==='object'){mergeEndState(d.s);if(MP.role==='host'){MP.send(d,from);saveDirty=true;}}break;
       case 'me':{const c=MP.conns.get(from);if(c&&c.bcName){savedPlayers.set(c.bcName,d.p);saveDirty=true;}break;}
       case 'hurt':damagePlayer(d.n,{x:d.x,z:d.z},false,d.k||6);break;
       case 'skin':{if(!validSkin(d.d))break;const id=MP.role==='host'?from:(d.id||from);MP.skins.set(id,d.d);
@@ -7751,6 +7859,7 @@ Object.assign(MP,{peer:null,conn:null,conns:new Map(),players:new Map(),code:nul
       case 'loot':if(mode==='survival')for(const [id,n] of d.items)spawnDrop(id,n,d.x,d.y,d.z);if(d.xp)spawnXp(d.x,d.y,d.z,d.xp);if(d.h&&!ZM)achieve('kill');break;
       case 'hit':{const m=mobs.find(o=>!o.puppet&&o.nid===d.i);if(m){m.lastHitBy=from;hurtMob(m,d.n,d.kx,d.kz,true,d.f);m.lastHitBy=null;}break;}
       case 'fx':
+        if((d.dm|0)!==dimIdx()){if(MP.role==='host')MP.send(d,from);break;} // it happened in another dimension
         if(d.k==='boom')explode(d.x,d.y,d.z,d.r,true);
         else if(d.k==='arrow')shootArrow(new THREE.Vector3(...d.p),new THREE.Vector3(...d.v),'net',d.d,d.h,d.a);
         else if(d.k==='acid')launch('acid',new THREE.Vector3(...d.p),new THREE.Vector3(...d.v));
@@ -7763,9 +7872,13 @@ Object.assign(MP,{peer:null,conn:null,conns:new Map(),players:new Map(),code:nul
         break;
     }
   },
-  applyBlocks(list){
-    MP.applying=true;
-    for(const [x,y,z,id,meta] of list){
+  applyBlocks(list,from){
+    MP.applying=true;const other=[];
+    for(const e of list){const [x,y,z,id,meta]=e,dn=DIM_NAMES[e[5]|0]||'overworld';
+      if(dn!==dim){ // not where we are: keep it for when we go there (the host saves it)
+        const D=dimStore(dn),ck=ckey(x>>4,z>>4);let mk=D.mods.get(ck);if(!mk){mk={cx:x>>4,cz:z>>4,m:new Map()};D.mods.set(ck,mk);}
+        mk.m.set(bidx(x&15,y,z&15),id);const k=wk(x,y,z);if(meta)D.meta.set(k,meta);else if(id===0)D.meta.delete(k);
+        if(id!==B.CHEST)D.chests.delete(k);other.push(e);continue;}
       const k=wk(x,y,z);if(meta)blockMeta.set(k,meta);
       const c=chunks.get(ckey(x>>4,z>>4));
       if(c)setBlockRaw(x,y,z,id);
@@ -7773,24 +7886,21 @@ Object.assign(MP,{peer:null,conn:null,conns:new Map(),players:new Map(),code:nul
         if(MP.role==='host')MP.noteBlock(x,y,z);}
       if(MP.role==='host'&&id===B.WHEAT_YOUNG&&!crops.has(k))crops.set(k,worldClock+60+Math.random()*120);
     }
+    if(other.length&&MP.role==='host')MP.send({t:'b',l:other},from);
     MP.applying=false;flushBlocks();saveDirty=true;
   },
   myState(){const s=inv[selected];
     return [+player.pos.x.toFixed(2),+player.pos.y.toFixed(2),+player.pos.z.toFixed(2),+player.yaw.toFixed(2),+player.pitch.toFixed(2),
-      s?s.id:0,mode==='creative'?1:0,player.dead?1:0,swing>0.8?1:0,sneaking?1:0];},
+      s?s.id:0,mode==='creative'?1:0,player.dead?1:0,swing>0.8?1:0,sneaking?1:0,dimIdx()];},
   update(dt){
     updateRemotes(dt);if(MP.remote())updatePuppets(dt);
     MP.blockT-=dt;
-    if(MP.blockT<=0&&MP.outB.size){MP.blockT=0.05;const l=[];
-      for(const [k,[x,y,z]] of MP.outB){let id=getBlock(x,y,z);const c=chunks.get(ckey(x>>4,z>>4));
-        if(!c){const mk=mods.get(ckey(x>>4,z>>4));const v=mk&&mk.m.get(bidx(x&15,y,z&15));if(v===undefined)continue;id=v;}
-        l.push([x,y,z,id,blockMeta.get(k)||0]);}
-      MP.outB.clear();if(l.length)MP.send({t:'b',l});}
+    if(MP.blockT<=0&&MP.outB.size){MP.blockT=0.05;MP.flushBlocks();}
     MP.tickT-=dt;
     if(MP.tickT<=0){MP.tickT=MP_SEND_RATE;
       if(MP.role==='host'){
         const pl=[['host',MP.name,...MP.myState()]];
-        for(const rp of MP.players.values())pl.push([rp.id,rp.name,rp.tp.x,rp.tp.y,rp.tp.z,rp.tyaw,rp.pitch,rp.held,rp.mode==='creative'?1:0,rp.dead?1:0,rp.sw|0,rp.sneak?1:0]);
+        for(const rp of MP.players.values())pl.push([rp.id,rp.name,rp.tp.x,rp.tp.y,rp.tp.z,rp.tyaw,rp.pitch,rp.held,rp.mode==='creative'?1:0,rp.dead?1:0,rp.sw|0,rp.sneak?1:0,rp.dimI|0]);
         MP.send({t:'tick',time:dayTime,w:weather.k,pl,mobs:snapshotMobs().map(e=>['host',...e]),z:ZM?zPack():undefined});
       }else if(MP.role==='net')MP.send({t:'st',s:MP.myState(),m:snapshotMobs()}); // the server answers with a 'tick'
       else MP.send({t:'st',s:MP.myState()});
@@ -7798,7 +7908,7 @@ Object.assign(MP,{peer:null,conn:null,conns:new Map(),players:new Map(),code:nul
     if(MP.remote()){MP.meT-=dt;if(MP.meT<=0){MP.meT=5;MP.sendMe();}}
   },
   sendMe(){if(titleMode)return; // a copy, because leaving clears the inventory right after this
-    MP.send({t:'me',p:JSON.parse(JSON.stringify({inv,armor,hp,food,sat,bed:bedPos,player:{x:player.pos.x,y:player.pos.y,z:player.pos.z,yaw:player.yaw,pitch:player.pitch}}))});},
+    MP.send({t:'me',p:JSON.parse(JSON.stringify({inv,armor,hp,food,sat,bed:bedPos,player:{x:player.pos.x,y:player.pos.y,z:player.pos.z,yaw:player.yaw,pitch:player.pitch},dim}))});},
   sysChat(text){chatLine(text,'#ffff55');MP.send({t:'chat',text,color:'#ffff55'});},
   chat(text){const line='<'+MP.name+'> '+text;chatLine(line);MP.send(MP.role==='net'?{t:'chat',raw:text}:{t:'chat',text:line});},
   lost(){if(MP.leaving||!MP.remote())return;const net=MP.role==='net',why=MP.kickWhy;MP.kickWhy=null;MP.reset();enterTitle();
@@ -7826,7 +7936,9 @@ function openChat(){
   if(document.pointerLockElement)document.exitPointerLock();setTimeout(()=>chatInput.focus(),0);
 }
 function closeChat(send){
-  const t=chatInput.value.trim();if(send&&t)MP.chat(t);
+  const t=chatInput.value.trim();
+  if(send&&t){if(t.startsWith('/')&&runModCommand(t));else if(t.startsWith('/'))chatLine('Unknown command. Type /help','#f88');
+    else if(MP.role)MP.chat(t);else if(modEmit('chat',{text:t}))chatLine('<'+(MP.name||mpName())+'> '+t);}
   chatOpen=false;chatInput.style.display='none';chatInput.blur();chatLog.classList.remove('open');lock();
 }
 
@@ -8173,6 +8285,7 @@ function frame(now){
     if(locked&&mouseHeld[2]&&!useHold){mouseTimer[2]-=dt;if(mouseTimer[2]<=0){mouseTimer[2]=0.22;useItem();}}
     updateHealth(dt,eyeWater);updatePortal(dt);autoTune(dt);updateGrab(dt);updateAcid(dt);
     if(ZM)zLife+=dt;
+    modTick(dt);
   }else if(mpSim)dayTime=(dayTime+dt/600)%1;
   if(ZM&&!titleMode){zUpdate(dt,active||mpSim);zHud(dt);}
   if(PV&&!titleMode)pvpFrame(dt);
@@ -8198,7 +8311,7 @@ function frame(now){
     debugEl.textContent=`BlockCraft  ${fps} fps\nXYZ: ${p.x.toFixed(2)} / ${p.y.toFixed(2)} / ${p.z.toFixed(2)}\nChunk: ${Math.floor(p.x)>>4}, ${Math.floor(p.z)>>4}   loaded: ${chunks.size}\nBiome: ${col.biome}   Seed: ${SEED}\nTime: ${(dayTime*24).toFixed(1)}h   Mode: ${mode}${player.flying?'  FLYING':''}${player.inWater?'  SWIMMING':''}${sprinting?'  SPRINTING':''}${sneaking?'  SNEAKING':''}\nFood: ${food}  Saturation: ${sat.toFixed(1)}  Exhaustion: ${exh.toFixed(2)}\nMobs: ${mobs.length}  Drops: ${drops.length}  Water updates: ${waterQ.size}\nLight: ${getLight(Math.floor(p.x),Math.floor(p.y+1),Math.floor(p.z))}\nLooking at: ${target?DEF[target.id].name+' @ '+target.x+','+target.y+','+target.z:'-'}`;
   }
   const cam3=thirdPerson(dt);
-  renderer.render(scene,camera);
+  renderWorld();
   if(cam3){camera.position.copy(cam3[0]);camera.rotation.copy(cam3[1]);} // the game still thinks from the eyes
 }
 // F5 views: your own blocky player is drawn and the camera moves behind (or in front of) you
@@ -8554,6 +8667,588 @@ function admPlayer(a,id,b){
 document.getElementById('admBack').onclick=()=>closeAdmin(true);
 document.getElementById('admClose').onclick=()=>closeAdmin(false);
 document.getElementById('btnAdmin').onclick=()=>openAdmin();
+// =====================================================================
+//  Mods & Shaders (7.6)
+//  A mod is a JavaScript file. It runs once when the game starts and gets a `bc` object to add blocks,
+//  items, recipes, smelting, chat commands and event handlers (see mods\README-MODS.txt).
+//  A shader is a GLSL post-processing effect: `vec4 effect(vec4 color, vec2 uv)` runs for every pixel
+//  of the finished picture. Both can be added on the "Mods & Shaders" screen, or dropped into the mods /
+//  shaders folders next to BlockCraft.exe (the launcher lists those files at /api/mods).
+// =====================================================================
+const MLS={get(k,d){try{const v=localStorage.getItem(k);return v==null?d:JSON.parse(v);}catch(e){return d;}},
+  set(k,v){try{localStorage.setItem(k,JSON.stringify(v));return true;}catch(e){return false;}}};
+const MOD_LOCAL='bc_mods_v1',MOD_OFF='bc_mods_off_v1',MOD_IDS='bc_modids_v1',SHADER_KEY='bc_shaders_v1';
+function modMeta(code,file){
+  const m={},params=[];
+  for(const line of String(code).split('\n').slice(0,60)){
+    const r=/^\s*\/\/\s*@(\w+)\s+(.*)$/.exec(line);if(!r)continue;const k=r[1].toLowerCase(),v=r[2].trim();
+    if(k==='param'){const p=v.split(/\s+/);if(/^[A-Za-z_]\w*$/.test(p[0]))params.push({n:p[0],d:+p[1]||0,min:p[2]!=null?+p[2]:0,max:p[3]!=null?+p[3]:1});}
+    else m[k]=v;}
+  return {name:(m.name||(file||'Untitled').replace(/\.(js|glsl)$/i,'')).slice(0,40),author:(m.author||'').slice(0,40),
+    version:(m.version||'').slice(0,12),desc:(m.description||m.desc||'').slice(0,200),params};
+}
+const ModSys={mods:[],handlers:{},commands:new Map(),loading:false,ready:null,changed:false,folder:{mods:[],shaders:[]},added:{blocks:[],items:[]},nextTile:0};
+// ---- stable ids: a mod block keeps the same id between game starts, so worlds keep working ----
+function modAllocId(full,kind){
+  const map=MLS.get(MOD_IDS,{b:{},i:{}}),tbl=kind==='b'?map.b:map.i;
+  const busy=id=>kind==='b'?!!DEF[id]:!!ITEM[id];
+  const taken=new Set(Object.entries(tbl).filter(([k])=>k!==full).map(([,v])=>v));
+  let id=tbl[full];
+  if(id==null||busy(id)){id=null;
+    if(kind==='b'){for(const pass of [0,1])for(let k=229;k<=255&&id==null;k++)if(!busy(k)&&(pass||!taken.has(k)))id=k;}
+    else for(let k=1000;id==null;k++)if(!busy(k)&&!taken.has(k))id=k;}
+  if(id==null)throw new Error('there is no room for more mod blocks (all 27 are used)');
+  tbl[full]=id;MLS.set(MOD_IDS,map);return id;
+}
+// ---- world generation for mods: ore veins (bc.addOre) and bc.on('generate', e => ...) ----
+const MOD_ORES=[];
+var MODS_UP=false; // set once the mod system below has started (chunks can't use it before that)
+function modGen(cx,cz,data,maxY){
+  if(!MODS_UP)return maxY;
+  const hs=ModSys.handlers.generate;if(titleMode||(!MOD_ORES.length&&!(hs&&hs.length)))return maxY;
+  const r=mulberry32((Math.imul(cx,73856093)^Math.imul(cz,19349663)^Math.imul(SEED|0,83492791))>>>0);
+  const inside=(x,y,z)=>x>=0&&z>=0&&x<CS&&z<CS&&y>=0&&y<H;
+  for(const o of MOD_ORES){if(o.dim!==dim||!o.mod.on)continue;
+    for(let v=0;v<o.count;v++){let x=r()*CS,y=o.minY+r()*(o.maxY-o.minY),z=r()*CS;
+      for(let k=0;k<o.size;k++){const X=x|0,Y=y|0,Z=z|0;
+        if(inside(X,Y,Z)&&o.replace.includes(data[bidx(X,Y,Z)])){data[bidx(X,Y,Z)]=o.id;if(Y>maxY)maxY=Y;}
+        x+=r()*2-1;y+=r()*2-1;z+=r()*2-1;}}}
+  if(hs&&hs.length){const e={cx,cz,dimension:dim,x0:cx*CS,z0:cz*CS,size:CS,height:H,random:r,
+      get:(x,y,z)=>inside(x,y,z)?data[bidx(x,y,z)]:0,
+      set:(x,y,z,id)=>{if(inside(x,y,z)){data[bidx(x,y,z)]=id;if(y>maxY)maxY=y;}}};
+    modEmit('generate',e);}
+  return maxY;
+}
+// ---- textures ----
+const rgbOf=c=>{if(Array.isArray(c))return c.slice(0,3);let h=String(c||'#999').trim().replace('#','');if(h.length===3)h=h.split('').map(v=>v+v).join('');
+  const n=parseInt(h,16);return isNaN(n)?[150,150,150]:[n>>16&255,n>>8&255,n&255];};
+const texCanvas=()=>{const c=document.createElement('canvas');c.width=c.height=TS;return c;};
+function tileCanvasOf(t){const c=texCanvas();c.getContext('2d').drawImage(atlas,(t%COLS)*TS,Math.floor(t/COLS)*TS,TS,TS,0,0,TS,TS);return c;}
+function modHash(s){let h=2166136261;for(const ch of String(s))h=Math.imul(h^ch.charCodeAt(0),16777619);return h>>>0;}
+const LIKE={sword:()=>toolId('sword',3),pickaxe:()=>toolId('pick',3),pick:()=>toolId('pick',3),axe:()=>toolId('axe',3),shovel:()=>toolId('shovel',3),
+  hoe:()=>IT.HOE,helmet:()=>armorId(1,0),chestplate:()=>armorId(1,1),leggings:()=>armorId(1,2),boots:()=>armorId(1,3),ingot:()=>IT.IRON_INGOT,gem:()=>IT.DIAMOND};
+// recolour the grey metal parts of an existing item picture (wood and outlines stay)
+function recolorCanvas(src,col){
+  const c=texCanvas(),x=c.getContext('2d');x.imageSmoothingEnabled=false;x.drawImage(src,0,0,TS,TS);
+  const im=x.getImageData(0,0,TS,TS),d=im.data;
+  for(let k=0;k<d.length;k+=4){if(!d[k+3])continue;const r=d[k],g=d[k+1],b=d[k+2],mx=Math.max(r,g,b),mn=Math.min(r,g,b),l=(mx+mn)/2;
+    if(mx-mn<34&&l>45){const f=l/165;d[k]=clamp(col[0]*f,0,255);d[k+1]=clamp(col[1]*f,0,255);d[k+2]=clamp(col[2]*f,0,255);}}
+  x.putImageData(im,0,0);return c;
+}
+// a simple shape item picture (gem / ingot / dust / ball / stick) with edge light and a dark outline
+function shapeItem(style,col,seed){
+  const N=TS,P=new Array(N*N).fill(null),r=mulberry32(seed);
+  const inPoly=(x,y,pts)=>{let ins=false;for(let i=0,j=pts.length-1;i<pts.length;j=i++){const [xi,yi]=pts[i],[xj,yj]=pts[j];if((yi>y)!==(yj>y)&&x<(xj-xi)*(y-yi)/(yj-yi)+xi)ins=!ins;}return ins;};
+  const fill=(test,c)=>{for(let j=0;j<N;j++)for(let i=0;i<N;i++){const x=(i+0.5)/2,y=(j+0.5)/2;if(test(x,y))P[j*N+i]=typeof c==='function'?c(x,y):c;}};
+  const sh=(c,f)=>c.map(v=>clamp(v*f,0,255));
+  if(style==='ingot'){fill((x,y)=>inPoly(x,y,[[2.4,8.6],[8.5,5.2],[13.6,7.6],[7.5,11]]),sh(col,1.2));fill((x,y)=>inPoly(x,y,[[2.4,8.6],[7.5,11],[7.5,13.2],[2.4,10.8]]),sh(col,0.9));
+    fill((x,y)=>inPoly(x,y,[[7.5,11],[13.6,7.6],[13.6,9.8],[7.5,13.2]]),sh(col,0.7));}
+  else if(style==='dust'){for(let k=0;k<26;k++){const cx=3+r()*10,cy=5+r()*8,rr=0.6+r()*0.9,f=0.8+r()*0.4;fill((x,y)=>(x-cx)**2+(y-cy)**2<rr*rr,sh(col,f));}}
+  else if(style==='ball'){fill((x,y)=>(x-8)**2+(y-8.5)**2<23,(x,y)=>sh(col,(x-8)+(y-8.5)<-3?1.3:(x-8)+(y-8.5)>3?0.75:1));fill((x,y)=>(x-6.2)**2+(y-6.6)**2<1.4,sh(col,1.6));}
+  else if(style==='stick'){fill((x,y)=>Math.abs((x-y)+0)<1.3&&x>3&&x<13.5,(x,y)=>sh(col,x-y>0?0.8:1.15));}
+  else{ // gem
+    fill((x,y)=>inPoly(x,y,[[2.6,6.2],[5.4,2.8],[10.6,2.8],[13.4,6.2],[8,13.8]]),(x,y)=>y<6.2?sh(col,1.35):x<8?sh(col,1.05):sh(col,0.78));
+    fill((x,y)=>(x-5.4)**2+(y-4.2)**2<0.5,[255,255,255]);}
+  const base=P.slice(),get=(i,j)=>i<0||j<0||i>=N||j>=N?null:base[j*N+i];
+  for(let j=0;j<N;j++)for(let i=0;i<N;i++){const c=base[j*N+i];
+    if(c){if(!get(i,j-1)||!get(i-1,j))P[j*N+i]=sh(c,1.12);else if(!get(i,j+1)||!get(i+1,j))P[j*N+i]=sh(c,0.8);}
+    else{const n=[get(i,j-1),get(i-1,j),get(i,j+1),get(i+1,j)].filter(Boolean);if(n.length)P[j*N+i]=sh(n[0],0.3);}}
+  const c=texCanvas(),x=c.getContext('2d'),im=x.createImageData(N,N);
+  P.forEach((p,k)=>{if(!p)return;im.data[k*4]=p[0];im.data[k*4+1]=p[1];im.data[k*4+2]=p[2];im.data[k*4+3]=255;});x.putImageData(im,0,0);return c;
+}
+// a block texture from a style: plain, stone, sand, ore, planks, bricks, leaves, glass, metal, wool, glow
+function styleBlock(spec,seed){
+  const N=TS,col=rgbOf(spec.color),style=spec.style||'plain';
+  let c=texCanvas();
+  if(style==='ore'){const bk=String(spec.base||'stone').toUpperCase();c=tileCanvasOf(T[bk]!=null?T[bk]:T.STONE);}
+  const x=c.getContext('2d'),im=x.getImageData(0,0,N,N),d=im.data;
+  const n2=(i,j)=>{let h=Math.imul((i+11)*374761393^(j+7)*668265263^seed,1274126177);h^=h>>>15;return (h>>>0)/4294967296;};
+  const blk=(i,j,s)=>n2(Math.floor(i/s)+97,Math.floor(j/s)+31);
+  const put=(i,j,cc,a=255)=>{const k=(j*N+i)*4;d[k]=clamp(cc[0],0,255);d[k+1]=clamp(cc[1],0,255);d[k+2]=clamp(cc[2],0,255);d[k+3]=a;};
+  const sh=f=>col.map(v=>v*f);
+  for(let j=0;j<N;j++)for(let i=0;i<N;i++){
+    const n=n2(i,j);
+    switch(style){
+      case 'ore':break;
+      case 'stone':put(i,j,sh(0.74+0.2*blk(i,j,4)+0.12*n-(n2(i>>1,j>>1)<0.04?0.2:0)));break;
+      case 'sand':put(i,j,sh(0.9+0.14*n+(n>0.97?0.12:0)));break;
+      case 'planks':{const row=j>>3,seam=(j&7)===7||((i+row*11)%32)===0;put(i,j,sh(seam?0.62:0.84+0.1*blk(i,row,6)+0.08*Math.sin(i*0.7+row*3)+0.05*n));break;}
+      case 'bricks':{const row=j>>3,m=(j&7)===7||((i+(row&1)*8)&15)===15;put(i,j,m?[200,196,186]:sh(0.82+0.18*blk(i,row,16)+0.08*n));break;}
+      case 'leaves':{const hole=n<0.18;put(i,j,sh(0.7+0.35*blk(i,j,3)),hole?0:255);break;}
+      case 'glass':{const e=i<2||j<2||i>N-3||j>N-3,streak=(i-j===6||i-j===8)&&i>6&&i<16;put(i,j,e?sh(1):streak?[255,255,255]:sh(1),e?255:streak?255:0);break;}
+      case 'metal':{const e=i===0||j===0,f=i===N-1||j===N-1;put(i,j,sh(e?1.25:f?0.65:(i%16===15||j%16===15)?0.82:0.98+0.05*n));break;}
+      case 'wool':put(i,j,sh(0.9+0.1*((i+(j>>1))%4<2?1:0)+0.06*n));break;
+      case 'glow':{const dd=Math.hypot(i-15.5,j-15.5)/22;put(i,j,sh(1.25-dd*0.5+0.1*n));break;}
+      default:put(i,j,sh(0.9+0.16*n));
+    }
+  }
+  if(style!=='ore'){x.putImageData(im,0,0);return c;}
+  // ore: crystal clusters on the base block
+  const r=mulberry32(seed);x.putImageData(im,0,0);const ox=x.getImageData(0,0,N,N),o=ox.data;
+  for(let k=0;k<6;k++){const cx=3+r()*26,cy=3+r()*26;
+    for(let j=Math.floor(cy-3);j<=cy+3;j++)for(let i=Math.floor(cx-3);i<=cx+3;i++){if(i<0||j<0||i>=N||j>=N)continue;
+      const dd=Math.hypot(i-cx,j-cy);if(dd>2.6)continue;const f=dd>1.9?0.55:(i-cx)+(j-cy)<-0.8?1.35:1;const kk=(j*N+i)*4;
+      o[kk]=clamp(col[0]*f,0,255);o[kk+1]=clamp(col[1]*f,0,255);o[kk+2]=clamp(col[2]*f,0,255);o[kk+3]=255;}}
+  x.putImageData(ox,0,0);return c;
+}
+// texture spec -> Promise<canvas>. A spec can be: a function (ctx,size), '#hex' colour, a data:image URL,
+// the name of a vanilla block texture ('stone'), or {color, style, base, like}.
+function modTexture(spec,forItem,seed){
+  try{
+    if(typeof spec==='function'){const c=texCanvas(),x=c.getContext('2d');spec(x,TS);return Promise.resolve(c);}
+    if(typeof spec==='string'&&/^data:image\//.test(spec))return new Promise(res=>{const im=new Image();
+      im.onload=()=>{const c=texCanvas(),x=c.getContext('2d');x.imageSmoothingEnabled=false;x.drawImage(im,0,0,TS,TS);res(c);};im.onerror=()=>res(styleBlock({color:'#f0f'},seed));im.src=spec;});
+    if(typeof spec==='string'&&!spec.startsWith('#')){const k=spec.toUpperCase();
+      if(!forItem&&T[k]!=null)return Promise.resolve(tileCanvasOf(T[k]));
+      if(forItem&&IT[k]!=null&&FLATCANVAS[IT[k]])return Promise.resolve(recolorCanvas(FLATCANVAS[IT[k]],[165,165,165]));}
+    const o=typeof spec==='object'&&spec?spec:{color:spec};
+    if(forItem){
+      if(o.like){const lk=LIKE[o.like]?LIKE[o.like]():IT[String(o.like).toUpperCase()];if(lk!=null&&FLATCANVAS[lk])return Promise.resolve(o.color?recolorCanvas(FLATCANVAS[lk],rgbOf(o.color)):FLATCANVAS[lk]);}
+      return Promise.resolve(shapeItem(o.style||'gem',rgbOf(o.color),seed));}
+    return Promise.resolve(styleBlock(o,seed));
+  }catch(e){return Promise.resolve(styleBlock({color:'#f0f'},seed));}
+}
+const pendingTex=[];
+function modTile(spec,seed){ // reserve an atlas tile now, draw it when the texture is ready
+  if(!ModSys.nextTile)ModSys.nextTile=Math.max(...Object.values(T))+1;
+  const t=ModSys.nextTile++;if(t>=COLS*ROWS)throw new Error('there is no room for more mod textures');
+  pendingTex.push(modTexture(spec,false,seed).then(c=>{actx.clearRect((t%COLS)*TS,Math.floor(t/COLS)*TS,TS,TS);actx.drawImage(c,(t%COLS)*TS,Math.floor(t/COLS)*TS);
+    const d=c.getContext('2d').getImageData(0,0,TS,TS).data;let r=0,g=0,b=0,n=0;for(let k=0;k<d.length;k+=4)if(d[k+3]>0){r+=d[k];g+=d[k+1];b+=d[k+2];n++;}
+    tileColor[t]=n?[r/n/255,g/n/255,b/n/255]:[1,1,1];}));
+  return t;
+}
+// ---- the `bc` object a mod gets ----
+const DROP_LIST=v=>v==null?[]:typeof v==='number'?[[v,1]]:Array.isArray(v)&&typeof v[0]==='number'?[[v[0],v[1]||1]]:Array.isArray(v)?v.map(e=>typeof e==='number'?[e,1]:[e[0],e[1]||1]):[];
+const PIECES={helmet:0,chestplate:1,leggings:2,boots:3};
+function makeModApi(mod){
+  const need=()=>{if(!ModSys.loading)throw new Error('blocks, items and recipes can only be added while the mod loads (at the top of the mod)');};
+  const idOf=v=>typeof v==='string'?(B[v.toUpperCase()]??IT[v.toUpperCase()]??mod.ids[v]):v;
+  const bc={
+    version:GAME_VERSION,B,IT,get game(){return window.game;},
+    addBlock(key,o={}){need();key=String(key).replace(/[^\w]/g,'_');
+      const id=modAllocId(mod.key+':'+key,'b'),seed=modHash(mod.key+key);
+      const tx=o.texture??o.side??{color:o.color||'#888',style:o.style||'plain'};
+      const side=modTile(tx,seed),top=o.top!=null?modTile(o.top,seed+1):side,bottom=o.bottom!=null?modTile(o.bottom,seed+2):top;
+      const plant=!!o.plant,see=!!o.transparent||plant;
+      def(id,String(o.name||key),[side,side,bottom,top,side,side],{opaque:!see,solid:o.solid??!plant,plant,emit:clamp(Math.round(o.light||0),0,15),glass:see&&!plant,slip:!!o.slippery,hidden:o.creative===false});
+      const d=DEF[id];d.mod=mod.key;d.snd=o.sound||(plant?'grass':'stone');if(o.drops!==undefined){const raw=o.drops,one=e=>Array.isArray(e)?[idOf(e[0]),e[1]]:typeof e==='string'?idOf(e):e;
+        d.modDrops=typeof raw==='function'?raw:()=>DROP_LIST(typeof raw==='string'?idOf(raw):Array.isArray(raw)?raw.map(one):raw).filter(e=>e[0]!=null);}
+      HARD[id]=o.hardness??(plant?0:1.5);if(o.tool&&TOOLFOR[o.tool]&&!TOOLFOR[o.tool].includes(id))TOOLFOR[o.tool].push(id);
+      if(o.tier)NEEDTIER[id]=clamp(o.tier|0,1,4);
+      mod.ids[key]=id;mod.blocks.push(id);ModSys.added.blocks.push(id);return id;},
+    addItem(key,o={}){need();key=String(key).replace(/[^\w]/g,'_');
+      const id=modAllocId(mod.key+':'+key,'i'),seed=modHash(mod.key+key);
+      const it={name:String(o.name||key),stack:o.stack??(o.tool||o.armor?1:64),mod:mod.key};
+      if(o.food!=null)it.food=Array.isArray(o.food)?o.food:[+o.food,+o.food*0.6];
+      if(o.tool){const tier=clamp(o.tool.tier||3,1,6);it.tool={type:o.tool.type||'pick',tier,speed:o.tool.speed??(tier>4?10:TIER_SPEED[tier-1])};
+        it.dmg=o.damage??(TOOL_DMG[it.tool.type]?TOOL_DMG[it.tool.type][Math.min(tier,4)-1]:2);it.dur=o.durability??250;}
+      else if(o.damage!=null)it.dmg=o.damage;
+      if(o.armor){const slot=typeof o.armor.slot==='string'?PIECES[o.armor.slot]:o.armor.slot|0;it.armor={slot:clamp(slot,0,3),def:o.armor.defense??3,mat:1};it.dur=o.durability??300;it.stack=1;}
+      if(o.durability!=null&&it.dur==null)it.dur=o.durability;
+      if(typeof o.onUse==='function')it.onUse=o.onUse;
+      if(o.creative===false)it.hidden=true;
+      ITEM[id]=it;if(o.fuel)FUEL[id]=+o.fuel;
+      const like=o.texture&&typeof o.texture==='object'&&o.texture.like?o.texture.like:o.tool?{pick:'pickaxe'}[o.tool.type]||o.tool.type:o.armor?['helmet','chestplate','leggings','boots'][it.armor.slot]:null;
+      let spec=o.texture??{color:o.color||'#6cf',style:o.style||'gem'};if(like&&typeof spec==='object'&&!spec.like)spec={...spec,like};
+      pendingTex.push(modTexture(spec,true,seed).then(c=>{FLATCANVAS[id]=c;}));
+      mod.ids[key]=id;mod.items.push(id);ModSys.added.items.push(id);return id;},
+    addRecipe(o){need();const out=idOf(o.out),n=o.count||1;if(out==null)throw new Error('addRecipe: unknown result');
+      if(o.shape){const key={};for(const k in o.key||{})key[k]=idOf(o.key[k]);shaped(out,n,o.shape.map(String),key);}
+      else shapeless(out,n,(o.ingredients||[]).map(idOf));},
+    addOre(block,o={}){need();const id=idOf(block),rp=o.replace==null?['stone']:[].concat(o.replace);
+      MOD_ORES.push({mod,id,count:o.veins??o.count??6,size:o.size??6,minY:o.minY??4,maxY:o.maxY??48,dim:o.dimension||'overworld',
+        replace:rp.map(v=>typeof v==='string'?B[v.toUpperCase()]:v).filter(v=>v!=null)});},
+    addSmelting(input,output){SMELT[idOf(input)]=idOf(output);},
+    addFuel(id,seconds){FUEL[idOf(id)]=+seconds;},
+    addShader(name,code){FX.addMod(mod,String(name),String(code));},
+    on(ev,fn){if(typeof fn!=='function')return;(ModSys.handlers[ev]=ModSys.handlers[ev]||[]).push({mod,fn});},
+    command(name,fn,help){name=String(name).toLowerCase().replace(/^\//,'');if(typeof fn==='function')ModSys.commands.set(name,{mod,fn,help:help||''});},
+    say(text,color){chatLine(String(text),color||'#9ef');},
+    toast(text){toast(String(text));},
+    getBlock:(x,y,z)=>getBlock(Math.floor(x),Math.floor(y),Math.floor(z)),
+    setBlock(x,y,z,id){setBlock(Math.floor(x),Math.floor(y),Math.floor(z),idOf(id)|0);},
+    give(id,count=1){const v=idOf(id);if(v==null||!(isItem(v)?ITEM[v]:DEF[v]))return count;return addItem(v,count|0);},
+    heal(n=20){hp=clamp(hp+n,0,20);statsDirty=true;},
+    get time(){return dayTime;},set time(t){dayTime=((+t%1)+1)%1;},
+    spawnMob:(type,x,y,z,opts)=>MOBS[type]?spawnMob(type,x,y,z,opts):null,
+    get mobTypes(){return Object.keys(MOBS);},
+    get mobs(){return mobs;},
+    explode:(x,y,z,power=3)=>explode(x,y,z,power),
+    lookingAt:()=>target?{x:target.x,y:target.y,z:target.z,id:target.id}:null,
+    player:{get x(){return player.pos.x;},get y(){return player.pos.y;},get z(){return player.pos.z;},
+      get health(){return hp;},set health(v){hp=clamp(+v,0,20);statsDirty=true;},get food(){return food;},set food(v){food=clamp(+v,0,20);statsDirty=true;},
+      get mode(){return mode;},get name(){return MP.name||mpName();},get item(){return heldItem();},
+      teleport(x,y,z){player.pos.set(+x,+y,+z);player.vel.set(0,0,0);}},
+    random:Math.random,
+  };
+  return bc;
+}
+function modEmit(ev,data){
+  const hs=ModSys.handlers[ev];if(!hs||!hs.length)return true;let ok=true;
+  for(const h of hs){if(!h.mod.on)continue;try{if(h.fn(data)===false)ok=false;}catch(e){modError(h.mod,e);}}
+  return ok;
+}
+function modError(mod,e){
+  const msg=(e&&e.message)||String(e);if(mod.error===msg)return;mod.error=msg;
+  console.warn('[mod '+mod.name+']',e);try{chatLine('Mod "'+mod.name+'" had an error: '+msg,'#f88');}catch(x){}
+}
+function modTick(dt){const hs=ModSys.handlers.tick;if(hs&&hs.length)modEmit('tick',dt);}
+function runModCommand(text){
+  const parts=text.slice(1).trim().split(/\s+/),name=(parts.shift()||'').toLowerCase();
+  if(name==='help'||name==='mods'){chatLine('Mod commands: '+([...ModSys.commands.keys()].map(k=>'/'+k).join(' ')||'(none)'),'#9ef');return true;}
+  const c=ModSys.commands.get(name);if(!c)return false;
+  try{c.fn(parts,text);}catch(e){modError(c.mod,e);}return true;
+}
+// ---- loading ----
+function localMods(){return MLS.get(MOD_LOCAL,[]);}
+async function loadMods(){
+  await null; // let the rest of the game finish starting first
+  let folder={mods:[],shaders:[]};
+  if(/^https?:/.test(location.protocol)){try{const r=await fetch('api/mods',{cache:'no-store'});if(r.ok){const j=await r.json();if(j&&Array.isArray(j.mods))folder=j;}}catch(e){}}
+  ModSys.folder=folder;const off=new Set(MLS.get(MOD_OFF,[]));
+  const list=[];
+  for(const f of folder.mods)list.push({key:'f-'+f.file.replace(/[^\w.-]/g,'_'),file:f.file,code:f.code,src:'folder',on:!off.has(f.file)});
+  for(const m of localMods())list.push({key:m.key,code:m.code,src:'local',on:m.on!==false});
+  ModSys.loading=true;
+  for(const m of list){Object.assign(m,modMeta(m.code,m.file),{ids:{},blocks:[],items:[],error:null});ModSys.mods.push(m);
+    if(!m.on)continue;
+    try{new Function('bc','game',String(m.code))(makeModApi(m),window.game);}catch(e){m.error=(e&&e.message)||String(e);console.warn('[mod '+m.name+']',e);}}
+  ModSys.loading=false;
+  await Promise.all(pendingTex);
+  finishMods();
+  FX.loadFolder(folder.shaders);
+}
+// after all mods ran: missing-block stand-ins, new mipmaps, icons and the creative inventory
+function finishMods(){
+  const fresh=ModSys.added.blocks.length||ModSys.added.items.length;
+  // a block from a mod that isn't installed any more shows as a pink "Missing Block" instead of crashing the game
+  const ids=MLS.get(MOD_IDS,{b:{}}).b;let missT=null;
+  for(const k in ids){const id=ids[k];if(id>=229&&id<=255&&!DEF[id]){
+    if(missT==null){missT=modTile(c=>{for(let j=0;j<4;j++)for(let i=0;i<4;i++){c.fillStyle=(i+j)&1?'#000':'#f0f';c.fillRect(i*8,j*8,8,8);}},1);}
+    def(id,'Missing Block ('+k.split(':')[0]+')',all(missT),{hidden:true});HARD[id]=0.5;}}
+  // the same for items from mods that are gone (they could still be in a chest or your inventory)
+  const iids=MLS.get(MOD_IDS,{i:{}}).i||{};let missItems=0;
+  for(const k in iids){const id=iids[k];if(id>=1000&&!ITEM[id]){ITEM[id]={name:'Missing Item ('+k.split(':')[0]+')',stack:64,hidden:true};
+    const c=texCanvas(),x=c.getContext('2d');for(let j=0;j<4;j++)for(let i=0;i<4;i++){x.fillStyle=(i+j)&1?'#000':'#f0f';x.fillRect(4+i*6,4+j*6,6,6);}
+    FLATCANVAS[id]=c;ICON[id]=c.toDataURL();missItems++;}}
+  if(!fresh&&missT==null){if(missItems)invChanged();return;}
+  Promise.all(pendingTex).then(()=>{
+    ATLAS_MIPS=buildAtlasMips();atlasTex.mipmaps=ATLAS_MIPS;atlasTex.needsUpdate=true;
+    atlas16.getContext('2d').clearRect(0,0,atlas16.width,atlas16.height);atlas16.getContext('2d').putImageData(ATLAS_MIPS[1],0,0);
+    for(const id of ModSys.added.blocks){ICON[id]=blockIcon(id);if(isFlat(id)){const c=texCanvas(),t=DEF[id].tex[0];c.getContext('2d').drawImage(atlas,(t%COLS)*TS,Math.floor(t/COLS)*TS,TS,TS,0,0,TS,TS);FLATCANVAS[id]=c;}}
+    for(const id of ModSys.added.items)if(FLATCANVAS[id])ICON[id]=FLATCANVAS[id].toDataURL();
+    for(const id of [...ModSys.added.blocks,...ModSys.added.items]){
+      const hidden=isItem(id)?ITEM[id].hidden:DEF[id].hidden;if(hidden||ALL_ITEMS.includes(id))continue;ALL_ITEMS.push(id);
+      const d=document.createElement('div');d.className='slot';d.dataset.id=id;d.title=itemInfo(id).name+' (mod)';d.innerHTML=`<img src="${ICON[id]}">`;
+      d.onclick=()=>{inv[selected]={id,count:itemInfo(id).stack,dmg:0};invChanged();showName();sfx('click');};creativeGrid.appendChild(d);}
+    for(const c of chunks.values())c.dirty=true;invChanged();
+  });
+}
+// drops for mod blocks (a block can say what it drops; everything else keeps the normal rules)
+const vanillaDropsFor=dropsFor;
+dropsFor=function(id){const d=DEF[id];if(d&&d.modDrops!==undefined){if(!canHarvest(id))return [];
+  try{return DROP_LIST(typeof d.modDrops==='function'?d.modDrops():d.modDrops);}catch(e){return [];}}return vanillaDropsFor(id);};
+
+// =====================================================================
+//  Shaders: post-processing passes drawn after the world. The scene is rendered into a texture
+//  (with its depth), then each switched-on shader runs over the whole screen, one after another.
+// =====================================================================
+const FX_BUILTIN=[
+['vibrant',`// @name Vibrant Colors
+// @description Richer colours and a bit more contrast.
+// @param saturation 1.35 0 2
+// @param contrast 1.12 0.5 1.6
+vec4 effect(vec4 color, vec2 uv) {
+  vec3 c = mix(vec3(luma(color.rgb)), color.rgb, saturation);
+  c = (c - 0.5) * contrast + 0.5;
+  return vec4(clamp(c, 0.0, 1.0), 1.0);
+}`],
+['cinematic',`// @name Cinematic
+// @description Warm movie colours, a dark vignette, film grain and black bars.
+// @param warmth 0.6 0 1
+// @param grain 0.05 0 0.2
+// @param bars 1 0 1
+vec4 effect(vec4 color, vec2 uv) {
+  vec3 c = mix(color.rgb, color.rgb * vec3(1.08, 1.0, 0.86), warmth);
+  float d = distance(uv, vec2(0.5));
+  c *= 1.0 - smoothstep(0.35, 0.85, d) * 0.6;
+  float n = fract(sin(dot(uv * resolution + time * 61.0, vec2(12.9898, 78.233))) * 43758.5453);
+  c += (n - 0.5) * grain;
+  float b = 0.1 * bars;
+  if (uv.y < b || uv.y > 1.0 - b) c = vec3(0.0);
+  return vec4(c, 1.0);
+}`],
+['glow',`// @name Soft Glow
+// @description Bright things (sky, torches, lava, glowstone) glow softly.
+// @param strength 0.7 0 2
+// @param threshold 0.65 0 1
+vec4 effect(vec4 color, vec2 uv) {
+  vec3 glow = vec3(0.0); float total = 0.0;
+  for (int x = -3; x <= 3; x++) for (int y = -3; y <= 3; y++) {
+    vec2 o = vec2(float(x), float(y)) * 3.0 / resolution;
+    float w = 1.0 / (1.0 + float(x * x + y * y));
+    glow += max(pixel(uv + o).rgb - threshold, 0.0) * w; total += w;
+  }
+  return vec4(color.rgb + glow / total * strength * 4.0, 1.0);
+}`],
+['toon',`// @name Toon
+// @description Cartoon look: flat colour bands and black outlines.
+// @param bands 5 2 10
+// @param outline 1 0 1
+vec4 effect(vec4 color, vec2 uv) {
+  vec3 c = floor(color.rgb * bands + 0.5) / bands;
+  vec2 p = 1.0 / resolution; float d = depth(uv);
+  float e = abs(depth(uv + vec2(p.x, 0.0)) - d) + abs(depth(uv - vec2(p.x, 0.0)) - d)
+          + abs(depth(uv + vec2(0.0, p.y)) - d) + abs(depth(uv - vec2(0.0, p.y)) - d);
+  float edge = smoothstep(0.05, 0.2, e / max(d, 1.0) * 6.0) * outline;
+  return vec4(mix(c, vec3(0.04), edge), 1.0);
+}`],
+['retro',`// @name Retro Console
+// @description Chunky pixels, few colours and scanlines, like an old game console.
+// @param pixels 4 1 10
+// @param colors 6 2 16
+vec4 effect(vec4 color, vec2 uv) {
+  vec2 cell = pixels / resolution;
+  vec3 c = pixel((floor(uv / cell) + 0.5) * cell).rgb;
+  c = floor(c * colors + 0.5) / colors;
+  c *= 0.9 + 0.1 * sin(uv.y * resolution.y * 3.14159 / pixels);
+  return vec4(c, 1.0);
+}`],
+['dreamy',`// @name Dreamy Distance
+// @description Far-away things get soft and hazy, close things stay sharp.
+// @param blur 1 0 2
+// @param start 24 4 80
+vec4 effect(vec4 color, vec2 uv) {
+  float k = clamp((depth(uv) - start) / (start * 2.0), 0.0, 1.0) * blur;
+  vec3 sum = vec3(0.0);
+  for (int i = 0; i < 12; i++) {
+    float a = float(i) * 2.39996, r = sqrt(float(i) / 12.0) * 6.0 * k;
+    sum += pixel(uv + vec2(cos(a), sin(a)) * r / resolution).rgb;
+  }
+  vec3 c = sum / 12.0;
+  return vec4(mix(c, vec3(0.8, 0.88, 1.0) * daylight + 0.08, k * 0.15), 1.0);
+}`],
+['night',`// @name Night Vision
+// @description See in the dark, in green.
+// @param brightness 3 1 6
+vec4 effect(vec4 color, vec2 uv) {
+  float n = fract(sin(dot(uv * resolution + time, vec2(12.9898, 78.233))) * 43758.5453);
+  vec3 c = vec3(0.2, 1.0, 0.35) * (luma(color.rgb) * brightness + (n - 0.5) * 0.08);
+  c *= 1.0 - smoothstep(0.4, 0.78, distance(uv, vec2(0.5)));
+  return vec4(c, 1.0);
+}`],
+];
+const FX_NEW=`// @name My Shader
+// @description What it looks like.
+// @param amount 0.5 0 1
+// effect() runs for every pixel. color = the picture, uv = position (0,0 bottom left .. 1,1 top right).
+// You can use: pixel(uv) for any other pixel, depth(uv) = distance in blocks, luma(rgb) = brightness,
+// resolution, time (seconds), daylight (0 night .. 1 day), underwater (0 or 1).
+vec4 effect(vec4 color, vec2 uv) {
+  vec3 sepia = vec3(luma(color.rgb)) * vec3(1.12, 1.0, 0.78);
+  return vec4(mix(color.rgb, sepia, amount), 1.0);
+}`;
+const FX_HEAD=`uniform sampler2D tex; uniform sampler2D depthTex; uniform vec2 resolution; uniform float time; uniform float daylight;
+uniform float underwater; uniform float cnear; uniform float cfar; varying vec2 vUv;
+vec4 pixel(vec2 uv){ return texture2D(tex, uv); }
+float depth(vec2 uv){ float z = texture2D(depthTex, uv).x * 2.0 - 1.0; return 2.0 * cnear * cfar / (cfar + cnear - z * (cfar - cnear)); }
+float luma(vec3 c){ return dot(c, vec3(0.299, 0.587, 0.114)); }
+`;
+const FX={list:[],rt:null,ping:[null,null],quad:null,qscene:null,qcam:null,glcheck:null,state:MLS.get(SHADER_KEY,{custom:[],on:{},params:{},order:[]}),
+  save(){MLS.set(SHADER_KEY,this.state);},
+  entry(key,code,src,mod){const m=modMeta(code);const e={key,code,src,mod:mod||null,...m,mat:null,error:null};return e;},
+  init(){
+    for(const [k,c] of FX_BUILTIN)this.list.push(this.entry('b:'+k,c,'builtin'));
+    for(const c of this.state.custom)this.list.push(this.entry(c.key,c.code,'custom'));
+    this.sort();
+  },
+  sort(){const o=this.state.order;this.list.sort((a,b)=>{const ia=o.indexOf(a.key),ib=o.indexOf(b.key);return (ia<0?999:ia)-(ib<0?999:ib);});},
+  loadFolder(files){for(const f of files||[]){const k='f:'+f.file;if(!this.list.some(e=>e.key===k))this.list.push(this.entry(k,f.code,'folder'));}this.sort();},
+  addMod(mod,name,code){const k='m:'+mod.key+':'+name;if(!this.list.some(e=>e.key===k))this.list.push(this.entry(k,'// @name '+name+'\n'+code,'mod',mod));},
+  enabled(){return this.list.filter(e=>this.state.on[e.key]&&!e.error);},
+  on(){return this.enabled().length>0;},
+  param(e,p){const v=(this.state.params[e.key]||{})[p.n];return v==null?p.d:v;},
+  // compile check in a tiny separate WebGL context, so a broken shader shows an error instead of a black screen
+  check(code){
+    try{if(!this.glcheck){const c=document.createElement('canvas');this.glcheck=c.getContext('webgl');}const gl=this.glcheck;if(!gl)return null;
+      const m=modMeta(code),src='precision highp float;\n'+FX_HEAD+m.params.map(p=>'uniform float '+p.n+';\n').join('')+code+'\nvoid main(){ gl_FragColor = effect(texture2D(tex, vUv), vUv); }';
+      const s=gl.createShader(gl.FRAGMENT_SHADER);gl.shaderSource(s,src);gl.compileShader(s);
+      if(gl.getShaderParameter(s,gl.COMPILE_STATUS)){gl.deleteShader(s);return null;}
+      const log=gl.getShaderInfoLog(s)||'error';gl.deleteShader(s);
+      const off=src.split('\n').length-code.split('\n').length-1; // line numbers in the player's own code
+      return log.replace(/ /g,'').replace(/ERROR:\s*\d+:(\d+):/g,(a,l)=>'Line '+Math.max(1,l-off)+':').trim();
+    }catch(e){return null;}
+  },
+  material(e){
+    if(e.mat)return e.mat;const err=this.check(e.code);if(err){e.error=err;return null;}
+    const uni={tex:{value:null},depthTex:{value:null},resolution:{value:new THREE.Vector2()},time:{value:0},daylight:{value:1},underwater:{value:0},cnear:{value:0.05},cfar:{value:1200}};
+    for(const p of e.params)uni[p.n]={value:this.param(e,p)};
+    e.mat=new THREE.ShaderMaterial({uniforms:uni,depthTest:false,depthWrite:false,
+      vertexShader:'varying vec2 vUv; void main(){ vUv = uv; gl_Position = vec4(position.xy, 0.0, 1.0); }',
+      fragmentShader:FX_HEAD+e.params.map(p=>'uniform float '+p.n+';\n').join('')+e.code+'\nvoid main(){ gl_FragColor = effect(texture2D(tex, vUv), vUv); }'});
+    return e.mat;
+  },
+  reset(e){if(e.mat){e.mat.dispose();e.mat=null;}e.error=null;Object.assign(e,modMeta(e.code));},
+  targets(w,h){
+    if(this.rt&&this.rt.width===w&&this.rt.height===h)return;
+    for(const t of [this.rt,...this.ping])if(t){if(t.depthTexture)t.depthTexture.dispose();t.dispose();}
+    const opt={minFilter:THREE.LinearFilter,magFilter:THREE.LinearFilter,format:THREE.RGBAFormat};
+    this.rt=new THREE.WebGLRenderTarget(w,h,opt);this.rt.depthTexture=new THREE.DepthTexture(w,h);this.rt.depthTexture.type=THREE.UnsignedIntType;
+    this.ping=[new THREE.WebGLRenderTarget(w,h,opt),new THREE.WebGLRenderTarget(w,h,opt)];
+  },
+  render(){
+    const sz=renderer.getDrawingBufferSize(new THREE.Vector2());this.targets(Math.max(1,sz.x),Math.max(1,sz.y));
+    if(!this.qscene){this.qscene=new THREE.Scene();this.qcam=new THREE.OrthographicCamera(-1,1,1,-1,0,1);
+      this.quad=new THREE.Mesh(new THREE.PlaneGeometry(2,2),null);this.quad.frustumCulled=false;this.qscene.add(this.quad);}
+    renderer.setRenderTarget(this.rt);renderer.render(scene,camera);
+    const list=this.enabled().map(e=>[e,this.material(e)]).filter(p=>p[1]);
+    let src=this.rt.texture;
+    list.forEach(([e,mat],i)=>{const last=i===list.length-1,dst=last?null:this.ping[i&1],u=mat.uniforms;
+      u.tex.value=src;u.depthTex.value=this.rt.depthTexture;u.resolution.value.set(sz.x,sz.y);u.time.value=performance.now()/1000;
+      u.daylight.value=daylight;u.underwater.value=lastEyeWater?1:0;u.cnear.value=camera.near;u.cfar.value=camera.far;
+      for(const p of e.params)u[p.n].value=this.param(e,p);
+      this.quad.material=mat;renderer.setRenderTarget(dst);renderer.render(this.qscene,this.qcam);if(dst)src=dst.texture;});
+    if(!list.length){renderer.setRenderTarget(null);renderer.render(scene,camera);}
+    renderer.setRenderTarget(null);
+  },
+};
+FX.init();
+function renderWorld(){if(FX.on())FX.render();else renderer.render(scene,camera);}
+
+// =====================================================================
+//  Mods & Shaders screen
+// =====================================================================
+const MOD_TEMPLATE=`// @name My Mod
+// @author Me
+// @version 1.0
+// @description What my mod adds.
+
+// A new block: a glowing blue rock that drops itself
+const glowRock = bc.addBlock('glow_rock', {
+  name: 'Glow Rock',
+  texture: { color: '#58a6ff', style: 'stone' },
+  light: 12,          // 0-15, like a torch is 14
+  hardness: 1.5,      // how long it takes to break
+  tool: 'pick'
+});
+
+// A new item and a recipe that makes it
+const blueGem = bc.addItem('blue_gem', { name: 'Blue Gem', texture: { color: '#58a6ff', style: 'gem' } });
+bc.addRecipe({ shape: ['GG', 'GG'], key: { G: blueGem }, out: glowRock, count: 1 });
+bc.addSmelting(glowRock, blueGem);
+
+// A chat command: type /hello in the chat (T)
+bc.command('hello', () => bc.say('Hello from my mod, ' + bc.player.name + '!'));
+
+// React to things that happen
+bc.on('blockBreak', e => { if (e.id === glowRock) bc.toast('Sparkly!'); });
+`;
+const modScreen=document.getElementById('modScreen');
+let modTab='mods',modEdit=null;
+function modEsc(s){return String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));}
+function openMods(tab){audioInit();modTab=tab||modTab;modScreen.style.display='flex';renderMods();}
+function closeMods(){modScreen.style.display='none';document.getElementById('modEditor').style.display='none';}
+function renderMods(){
+  document.querySelectorAll('#modTabs button').forEach(b=>b.classList.toggle('on',b.dataset.tab===modTab));
+  document.getElementById('modsPane').style.display=modTab==='mods'?'block':'none';
+  document.getElementById('shadersPane').style.display=modTab==='shaders'?'block':'none';
+  document.getElementById('modRestart').style.display=ModSys.changed?'flex':'none';
+  // mods
+  const ml=document.getElementById('modList');ml.innerHTML='';
+  if(!ModSys.mods.length)ml.innerHTML='<div class="modEmpty">No mods yet. Add a mod file, make your own, or put .js files in the <b>mods</b> folder next to BlockCraft.exe.</div>';
+  for(const m of ModSys.mods){
+    const d=document.createElement('div');d.className='modRow'+(m.on?'':' off');
+    const what=[m.blocks.length?m.blocks.length+' block'+(m.blocks.length>1?'s':''):'',m.items.length?m.items.length+' item'+(m.items.length>1?'s':''):''].filter(Boolean).join(', ');
+    d.innerHTML=`<label class="tog"><input type="checkbox" ${m.on?'checked':''}><span></span></label>
+      <div class="modInfo"><b>${modEsc(m.name)}</b>${m.version?' <i>'+modEsc(m.version)+'</i>':''}${m.author?' <span class="by">by '+modEsc(m.author)+'</span>':''}
+      <div class="desc">${modEsc(m.desc||'')}</div><div class="src">${m.src==='folder'?'mods folder: '+modEsc(m.file):'added in the game'}${what?' &middot; '+what:''}</div>
+      ${m.error?'<div class="err">Error: '+modEsc(m.error)+'</div>':''}</div>
+      <div class="modBtns">${m.src==='local'?'<button class="btn sm ed">Edit</button><button class="btn sm rm">Remove</button>':''}</div>`;
+    d.querySelector('input').onchange=e=>{m.on=e.target.checked;modPersist(m);ModSys.changed=true;renderMods();};
+    const ed=d.querySelector('.ed');if(ed)ed.onclick=()=>openModEditor('mod',m);
+    const rm=d.querySelector('.rm');if(rm)rm.onclick=()=>{if(rm.dataset.sure){MLS.set(MOD_LOCAL,localMods().filter(x=>x.key!==m.key));ModSys.mods.splice(ModSys.mods.indexOf(m),1);ModSys.changed=true;renderMods();}
+      else{rm.dataset.sure=1;rm.textContent='Sure?';}};
+    ml.appendChild(d);}
+  // shaders
+  const sl=document.getElementById('shaderList');sl.innerHTML='';
+  FX.list.forEach((e,i)=>{
+    const on=!!FX.state.on[e.key],d=document.createElement('div');d.className='modRow'+(on?'':' off');
+    d.innerHTML=`<label class="tog"><input type="checkbox" ${on?'checked':''}><span></span></label>
+      <div class="modInfo"><b>${modEsc(e.name)}</b> <span class="by">${e.src==='builtin'?'built in':e.src==='folder'?'shaders folder':e.src==='mod'?'from a mod':'yours'}</span>
+      <div class="desc">${modEsc(e.desc||'')}</div>${e.error?'<div class="err">'+modEsc(e.error)+'</div>':''}
+      <div class="params"></div></div>
+      <div class="modBtns"><button class="btn sm up" title="Move up (shaders run from top to bottom)">&#9650;</button>
+      <button class="btn sm ed">${e.src==='custom'?'Edit':'Copy'}</button>${e.src==='custom'?'<button class="btn sm rm">Remove</button>':''}</div>`;
+    d.querySelector('input').onchange=ev=>{FX.state.on[e.key]=ev.target.checked;if(ev.target.checked){FX.reset(e);FX.material(e);}FX.save();renderMods();};
+    const pv=d.querySelector('.params');
+    if(on)for(const p of e.params){const row=document.createElement('label');const v=FX.param(e,p);
+      row.innerHTML=`<span>${modEsc(p.n)}</span><input type="range" min="${p.min}" max="${p.max}" step="${(p.max-p.min)/100}" value="${v}"><em>${(+v).toFixed(2)}</em>`;
+      row.querySelector('input').oninput=ev=>{(FX.state.params[e.key]=FX.state.params[e.key]||{})[p.n]=+ev.target.value;row.querySelector('em').textContent=(+ev.target.value).toFixed(2);FX.save();};
+      pv.appendChild(row);}
+    d.querySelector('.up').onclick=()=>{if(!i)return;FX.state.order=FX.list.map(x=>x.key);const k=FX.state.order.splice(i,1)[0];FX.state.order.splice(i-1,0,k);FX.save();FX.sort();renderMods();};
+    d.querySelector('.ed').onclick=()=>e.src==='custom'?openModEditor('shader',e):openModEditor('shader',null,e.code.replace(/(@name\s+)(.*)/,'$1$2 (copy)'));
+    const rm=d.querySelector('.rm');if(rm)rm.onclick=()=>{if(rm.dataset.sure){FX.state.custom=FX.state.custom.filter(c=>c.key!==e.key);delete FX.state.on[e.key];FX.save();FX.reset(e);FX.list.splice(FX.list.indexOf(e),1);renderMods();}
+      else{rm.dataset.sure=1;rm.textContent='Sure?';}};
+    sl.appendChild(d);});
+}
+function modPersist(m){
+  if(m.src==='folder'){const off=new Set(MLS.get(MOD_OFF,[]));m.on?off.delete(m.file):off.add(m.file);MLS.set(MOD_OFF,[...off]);}
+  else MLS.set(MOD_LOCAL,localMods().map(x=>x.key===m.key?{...x,on:m.on,code:m.code}:x));
+}
+function openModEditor(kind,item,code){
+  modEdit={kind,item};const box=document.getElementById('modEditor');box.style.display='flex';
+  document.getElementById('modEdTitle').textContent=kind==='mod'?(item?'Edit Mod':'Make a Mod'):(item?'Edit Shader':'Make a Shader');
+  document.getElementById('modEdCode').value=item?item.code:code||(kind==='mod'?MOD_TEMPLATE:FX_NEW);
+  document.getElementById('modEdTry').style.display=kind==='shader'?'':'none';
+  document.getElementById('modEdHint').textContent=kind==='mod'?'Mods are JavaScript. Saving a mod means restarting the game to load it. See mods\\README-MODS.txt for everything a mod can do.'
+    :'Shaders are GLSL. Press Try It to see it in the world right away.';
+  document.getElementById('modEdErr').textContent='';
+}
+function saveModEditor(tryOnly){
+  const code=document.getElementById('modEdCode').value,err=document.getElementById('modEdErr');
+  if(modEdit.kind==='shader'){
+    const e2=FX.check(code);if(e2){err.textContent=e2;return;}err.textContent=tryOnly?'Looks good! Close this window to see it in the world.':'';
+    let e=modEdit.item;
+    if(!e){e=FX.entry('c:'+Date.now().toString(36),code,'custom');FX.list.push(e);FX.state.custom.push({key:e.key,code});modEdit.item=e;}
+    else{e.code=code;const c=FX.state.custom.find(c=>c.key===e.key);if(c)c.code=code;}
+    FX.reset(e);FX.state.on[e.key]=true;FX.save();FX.material(e);
+    if(!tryOnly){document.getElementById('modEditor').style.display='none';}
+    renderMods();return;}
+  try{new Function('bc','game',code);}catch(e){err.textContent='This code has a mistake: '+e.message;return;}
+  const list=localMods();
+  if(modEdit.item){const m=modEdit.item;m.code=code;Object.assign(m,modMeta(code));modPersist(m);}
+  else{const key='l-'+Date.now().toString(36);list.push({key,code,on:true});MLS.set(MOD_LOCAL,list);
+    ModSys.mods.push({key,code,src:'local',on:true,...modMeta(code),ids:{},blocks:[],items:[],error:null});}
+  ModSys.changed=true;document.getElementById('modEditor').style.display='none';renderMods();
+}
+async function addFiles(files){
+  for(const f of files){const text=await f.text();
+    if(/\.glsl$|\.frag$|\.txt$/i.test(f.name)||(/vec4\s+effect\s*\(/.test(text)&&!/bc\./.test(text))){
+      const key='c:'+Date.now().toString(36)+Math.floor(Math.random()*999),code=/@name/.test(text)?text:'// @name '+f.name.replace(/\.\w+$/,'')+'\n'+text;
+      const e=FX.entry(key,code,'custom');FX.list.push(e);FX.state.custom.push({key,code});FX.save();modTab='shaders';}
+    else{const key='l-'+Date.now().toString(36)+Math.floor(Math.random()*999),code=/@name/.test(text)?text:'// @name '+f.name.replace(/\.js$/i,'')+'\n'+text;
+      const list=localMods();list.push({key,code,on:true});if(!MLS.set(MOD_LOCAL,list)){toast('That mod is too big to keep in the browser');continue;}
+      ModSys.mods.push({key,code,src:'local',on:true,...modMeta(code),ids:{},blocks:[],items:[],error:null});ModSys.changed=true;modTab='mods';}}
+  renderMods();
+}
+document.querySelectorAll('#modTabs button').forEach(b=>b.onclick=()=>{modTab=b.dataset.tab;renderMods();});
+document.getElementById('btnModsClose').onclick=closeMods;
+document.getElementById('btnModNew').onclick=()=>openModEditor('mod',null);
+document.getElementById('btnShaderNew').onclick=()=>openModEditor('shader',null);
+document.getElementById('btnModFile').onclick=()=>document.getElementById('modFile').click();
+document.getElementById('btnShaderFile').onclick=()=>document.getElementById('modFile').click();
+document.getElementById('modFile').onchange=e=>{addFiles([...e.target.files]);e.target.value='';};
+document.getElementById('modEdSave').onclick=()=>saveModEditor(false);
+document.getElementById('modEdTry').onclick=()=>saveModEditor(true);
+document.getElementById('modEdCancel').onclick=()=>{document.getElementById('modEditor').style.display='none';};
+document.getElementById('modEdCode').addEventListener('keydown',e=>{e.stopPropagation();
+  if(e.key==='Tab'){e.preventDefault();const t=e.target,s=t.selectionStart;t.value=t.value.slice(0,s)+'  '+t.value.slice(t.selectionEnd);t.selectionStart=t.selectionEnd=s+2;}});
+document.getElementById('btnModRestart').onclick=async()=>{try{if(!titleMode)await save();}catch(e){}location.reload();};
+document.getElementById('btnModsT').onclick=()=>openMods();
+document.getElementById('btnModsP').onclick=()=>openMods();
+MODS_UP=true;
+ModSys.ready=loadMods().catch(e=>console.warn('mods',e));
+
 window.game={player,chunks,getBlock,setBlock,B,IT,DEF,camera,inv,mobs,drops,arrows,get target(){return target;},addItem,spawnMob,save,createWorld,openWorld,setMode,explode,Store,armor,chests,
   setTime:t=>dayTime=t,get hp(){return hp;},get food(){return food;}};
 </script>

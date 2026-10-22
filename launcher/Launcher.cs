@@ -33,7 +33,7 @@ namespace BlockCraft
 {
     static class Program
     {
-        public const string LauncherVersion = "2.6";
+        public const string LauncherVersion = "2.7";
 
         [STAThread]
         static int Main(string[] args)
@@ -393,6 +393,7 @@ namespace BlockCraft
             Root = Versions.RootDir;
             Saves = Path.Combine(Root, "saves");
             Directory.CreateDirectory(Saves);
+            try { Directory.CreateDirectory(Path.Combine(Root, "mods")); Directory.CreateDirectory(Path.Combine(Root, "shaders")); } catch { }
             for (int p = firstPort; p < firstPort + 30; p++)
             {
                 var l = new HttpListener();
@@ -501,6 +502,31 @@ namespace BlockCraft
                     }
                     sb.Append(']');
                     SendText(ctx, 200, "application/json", sb.ToString());
+                }
+                else if (path == "/api/mods")
+                {
+                    // mods (.js) and shaders (.glsl) that players dropped into the mods and shaders folders next to the game
+                    var list = new Dictionary<string, object>();
+                    foreach (var kind in new[] { new[] { "mods", "*.js" }, new[] { "shaders", "*.glsl" } })
+                    {
+                        var files = new List<object>();
+                        string dir = Path.Combine(Root, kind[0]);
+                        try { Directory.CreateDirectory(dir); } catch { }
+                        if (Directory.Exists(dir))
+                            foreach (var f in Directory.GetFiles(dir, kind[1]))
+                            {
+                                var info = new FileInfo(f);
+                                if (info.Length > 2 * 1024 * 1024) continue;   // ignore anything huge
+                                var e = new Dictionary<string, object>();
+                                e["file"] = Path.GetFileName(f);
+                                e["code"] = File.ReadAllText(f, Utf8);
+                                files.Add(e);
+                            }
+                        list[kind[0]] = files;
+                    }
+                    var js = new System.Web.Script.Serialization.JavaScriptSerializer();
+                    js.MaxJsonLength = int.MaxValue;
+                    SendText(ctx, 200, "application/json", js.Serialize(list));
                 }
                 else if (path == "/api/skin")
                 {

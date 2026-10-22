@@ -23,6 +23,21 @@ HOW TO PLAY (WINDOWS)
   You can also just open index.html in Chrome or Edge. Then worlds are saved in the
   browser, or click "Choose Save Folder..." and pick this game folder to save files here.
 
+MODS & SHADERS (version 7.6)
+  Title screen (or pause menu) > Mods & Shaders.
+  - Mods add blocks, ores, items, tools, armor, recipes, smelting and chat commands. Add a .js file,
+    make your own in the game ("Make a Mod" opens a working example), or put .js files in the "mods"
+    folder next to BlockCraft.exe. Mods load when the game starts (there is a Restart Now button).
+  - Shaders change how the game looks. 7 are built in (Vibrant, Cinematic, Soft Glow, Toon, Retro,
+    Dreamy Distance, Night Vision) with sliders; switch on as many as you like. Make your own in the
+    game or put .glsl files in the "shaders" folder.
+  - Examples: mods\examples (Ruby Tools, Fun Commands, Lucky Blocks) and shaders\examples (Old Photo,
+    Wobbly Water). Copy one into the mods / shaders folder to use it.
+  - Everything a mod or shader can do is explained in mods\README-MODS.txt.
+  - Only use mods from people you trust: a mod is a small program. Shaders are always safe.
+  - The mods and shaders folders need launcher 2.7 (BlockCraft.exe from this version). Adding files
+    on the Mods & Shaders screen works everywhere, also in Chrome and on Chromebooks.
+
 OLD VERSIONS
   Pick any version in the box above PLAY in the launcher (1.1 is the very first one).
   Old versions keep their worlds in saves\old-versions\<version>, so they can never mess up
@@ -53,6 +68,8 @@ MULTIPLAYER (PLAY WITH FRIENDS)
   - The host's game runs the world and saves it, including each friend's inventory,
     so friends get their stuff back when they join again.
   - Mobs live around the host. Only the host can sleep through the night.
+  - The Nether and the End work too. A friend who is in another dimension than the host has their
+    own mobs there; when they come back near the host they share the host's mobs again.
   - Everyone needs the same version of BlockCraft.
   - It uses the free PeerJS service to connect. Some school or work networks block it.
 
@@ -75,6 +92,8 @@ BIG SERVER (ALWAYS ONLINE, UP TO 100 PLAYERS)
   - Cloudflare's free plan has a daily limit. It is plenty for a group of friends; if lots of
     people play all day it may stop until the next day (their $5/month plan removes this).
   - Chat on the big server is open to everyone who joins. Only share the game with people you know.
+  - The Nether and the End need the server from version 7.7: run "Deploy Big Server.bat" once after
+    updating. Until then the game says the server needs an update when you step into a portal.
   Run it on your own PC instead: double-click "Run Server On This PC.bat" (needs Node.js).
   Players on your Wi-Fi join with the address it shows (like ws://192.168.1.5:8080/ws).
   The world is saved in server\server-data.json.
@@ -85,7 +104,9 @@ THE NETHER
   then use flint and steel inside it. Stand in the purple portal to go to the Nether.
   A portal home is built for you on the other side. 1 block in the Nether = 8 in the Overworld.
   Watch out for ghasts (they shoot fireballs) and don't hit zombified piglins unless you want
-  the whole group after you. Beds explode in the Nether! (The Nether is single player only.)
+  the whole group after you. Beds explode in the Nether!
+  Works in multiplayer too (version 7.7): with friends and on the big server, everyone can go through
+  portals, and you see the players who are in the same dimension as you.
 MOBS
   Slimes split when killed. Endermen get angry if you look right at them. Right-click a wolf
   with a bone to tame it - it follows you and fights monsters. Throw ender pearls to teleport.
@@ -98,7 +119,8 @@ THE END
   a 3x3 hole (3 on each side, no corners) and put an Eye of Ender in every frame - the End Portal
   opens. Jump in to fight the Ender Dragon! Break the End Crystals on the obsidian towers first,
   they heal the dragon. Beat it and an exit portal with the Dragon Egg appears.
-  (The End is single player only.)
+  In multiplayer the fight is shared: a crystal someone breaks stays broken and the dragon only has
+  to be beaten once for everyone.
 
 FARM TYCOON (version 7.3) - Minigames > Farm Tycoon
   You start with a small field, a hoe, seeds and $20. Hoe grass into farmland and right-click it with

@@ -8,6 +8,12 @@ export const SERVER_PROTO = 2; // 2 = accounts with passwords (1 = old games, wh
 const NEAR = 96;            // players/mobs farther away than this aren't sent to you
 const WHEAT = 46, WHEAT_YOUNG = 48, CHEST = 35;
 const NAME_RE = /^[A-Za-z0-9_ \-]{1,16}$/;
+// dimensions: 0 overworld, 1 Nether, 2 End. Keys of the Nether / End start with "n|" / "e|"
+// (overworld keys have no prefix, so worlds from before dimensions still load).
+const DIM_PRE = ['', 'n|', 'e|'];
+const dimOf = v => (v === 1 || v === 2) ? v : 0;
+const dimKey = (d, k) => DIM_PRE[d] + k;
+function unDimKey(k) { const m = /^([ne])\|(.*)$/.exec(k); return m ? [m[1] === 'n' ? 1 : 2, m[2]] : [0, k]; }
 export const ADMINS = ['darkwing']; // accounts (lower-case names) that can use the admin panel
 const MAX_CLOUD_WORLDS = 30, MAX_CLOUD_BYTES = 30 * 1024 * 1024, CLOUD_PART = 120000; // cloud saves: worlds per account, size of one (gzipped) world, bytes per stored part
 
@@ -37,6 +43,7 @@ export class World {
     for (const [k, v] of await this.store.list('h:')) this.chests.set(k.slice(2), v);
     this.crops = new Map();
     for (const [k, v] of await this.store.list('r:')) this.crops.set(k.slice(2), v);
+    this.endState = (await this.store.get('endstate')) || { dragonDead: false, crystals: [] };
     // accounts, keyed by the lower-case name so "Sam" and "sam" are the same account:
     // { name, hash, salt, tokens: [computers that are logged in], save, first }
     this.players = new Map();
@@ -72,7 +79,8 @@ export class World {
 
   out(c, msg) { try { c.send(JSON.stringify(msg)); } catch (e) { } }
   broadcast(msg, except) { const s = JSON.stringify(msg); for (const o of this.clients.values()) if (o !== except && o.name) try { o.send(s); } catch (e) { } }
-  near(a, b) { return a.st && b.st && Math.abs(a.st[0] - b.st[0]) < NEAR && Math.abs(a.st[2] - b.st[2]) < NEAR; }
+  // near = in the same dimension and less than NEAR blocks apart (st[10] = the player's dimension)
+  near(a, b) { return a.st && b.st && dimOf(a.st[10]) === dimOf(b.st[10]) && Math.abs(a.st[0] - b.st[0]) < NEAR && Math.abs(a.st[2] - b.st[2]) < NEAR; }
 
   mark(prefix, key) { this.dirty.add(prefix + key); }
   async flush(force) {
@@ -87,12 +95,13 @@ export class World {
       else if (p === 'h:') v = this.chests.get(key);
       else if (p === 'r:') v = this.crops.get(key);
       else if (p === 'p:') v = this.players.get(key);   // an old mixed-case key comes back undefined and is deleted
+      else if (k === 'endstate') { await this.store.put('endstate', this.endState); continue; }
       if (v === undefined) await this.store.delete(k); else await this.store.put(k, v);
     }
   }
 
-  setBlock(x, y, z, id, meta) {
-    const cx = x >> 4, cz = z >> 4, key = cx + ',' + cz, k = x + ',' + y + ',' + z;
+  setBlock(x, y, z, id, meta, d = 0) {
+    const cx = x >> 4, cz = z >> 4, key = dimKey(d, cx + ',' + cz), k = dimKey(d, x + ',' + y + ',' + z);
     let m = this.chunks.get(key); if (!m) { m = new Map(); this.chunks.set(key, m); }
     const old = m.get(((y * 16 + (z & 15)) * 16) + (x & 15));
     m.set(((y * 16 + (z & 15)) * 16) + (x & 15), id); this.mark('c:', key);
@@ -109,7 +118,11 @@ export class World {
     for (const [k, t] of this.crops) if (now >= t) ripe.push(k);
     if (!ripe.length) return;
     const l = [];
-    for (const k of ripe) { this.crops.delete(k); this.mark('r:', k); const [x, y, z] = k.split(',').map(Number); this.setBlock(x, y, z, WHEAT, 0); l.push([x, y, z, WHEAT, 0]); }
+    for (const k of ripe) {
+      this.crops.delete(k); this.mark('r:', k);
+      const [d, kk] = unDimKey(k), [x, y, z] = kk.split(',').map(Number);
+      this.setBlock(x, y, z, WHEAT, 0, d); l.push(d ? [x, y, z, WHEAT, 0, d] : [x, y, z, WHEAT, 0]);
+    }
     this.broadcast({ t: 'b', l });
   }
 
@@ -142,17 +155,28 @@ export class World {
           if (!Array.isArray(e)) continue;
           const [x, y, z, id, meta] = e;
           if (![x, y, z, id].every(Number.isInteger) || y < 0 || y > 127 || id < 0 || id > 255 || (id >= 100 && id < 200)) continue;
-          const mt = typeof meta === 'string' && meta.length < 8 ? meta : 0;
-          this.setBlock(x, y, z, id, mt); l.push([x, y, z, id, mt]);
+          const mt = typeof meta === 'string' && meta.length < 8 ? meta : 0, dm = dimOf(e[5]);
+          this.setBlock(x, y, z, id, mt, dm); l.push(dm ? [x, y, z, id, mt, dm] : [x, y, z, id, mt]);
         }
         if (l.length) this.broadcast({ t: 'b', l }, c);
         break;
       }
-      case 'chest':
-        if (typeof d.k !== 'string' || !Array.isArray(d.c)) return;
-        this.chests.set(d.k, d.c.slice(0, 27)); this.mark('h:', d.k);
-        this.broadcast({ t: 'chest', k: d.k, c: d.c.slice(0, 27) }, c);
+      case 'chest': {
+        if (typeof d.k !== 'string' || d.k.length > 40 || !Array.isArray(d.c)) return;
+        const dm = dimOf(d.dm), k = dimKey(dm, d.k);
+        this.chests.set(k, d.c.slice(0, 27)); this.mark('h:', k);
+        this.broadcast({ t: 'chest', k: d.k, c: d.c.slice(0, 27), dm }, c);
         break;
+      }
+      case 'endst': { // the Ender Dragon fight: crystals broken and the dragon beaten stay that way for everyone
+        const o = d.s; if (!o || typeof o !== 'object') return;
+        const es = this.endState;
+        if (o.dragonDead) es.dragonDead = true;
+        if (Array.isArray(o.crystals)) o.crystals.slice(0, 20).forEach((v, i) => { if (!v) es.crystals[i] = 0; else if (es.crystals[i] === undefined) es.crystals[i] = 1; });
+        this.dirty.add('endstate');
+        this.broadcast({ t: 'endst', s: es }, c);
+        break;
+      }
       case 'me': {
         const p = this.players.get(c.key); if (p && d.p && typeof d.p === 'object') { p.save = d.p; this.mark('p:', c.key); }
         break;
@@ -374,12 +398,13 @@ export class World {
     c.name = p.name; c.key = key;
     const name_ = p.name;
     // the world can be big, so block changes go in parts after the welcome
-    const all = [...this.chunks].map(([k, m]) => { const [cx, cz] = k.split(',').map(Number); return [cx, cz, [...m].flat()]; });
+    const all = [...this.chunks].map(([k, m]) => { const [d, kk] = unDimKey(k), [cx, cz] = kk.split(',').map(Number); return d ? [cx, cz, [...m].flat(), d] : [cx, cz, [...m].flat()]; });
     const parts = []; let cur = [], size = 0;
     for (const ch of all) { cur.push(ch); size += ch[2].length * 4 + 20; if (size > 300000) { parts.push(cur); cur = []; size = 0; } }
     if (cur.length) parts.push(cur);
     this.out(c, { t: 'welcome', id: c.id, server: this.info.name, name: name_, account: !!p.hash, you: p.save, parts: parts.length, online: this.online(),
-      world: { seed: this.info.seed, name: this.info.name, mode: this.info.mode, mods: [], meta: [...this.meta], chests: [...this.chests], time: this.time(), spawn: null, clock: 0 } });
+      world: { seed: this.info.seed, name: this.info.name, mode: this.info.mode, mods: [], meta: [...this.meta], chests: [...this.chests], time: this.time(), spawn: null, clock: 0,
+        splitDims: true, endState: this.endState } });
     for (const part of parts) this.out(c, { t: 'mods', mods: part });
     this.broadcast({ t: 'chat', text: name_ + ' joined the game', color: '#ffff55' }, c);
   }
