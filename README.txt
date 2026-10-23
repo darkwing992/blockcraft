@@ -92,8 +92,9 @@ BIG SERVER (ALWAYS ONLINE, UP TO 100 PLAYERS)
   - Cloudflare's free plan has a daily limit. It is plenty for a group of friends; if lots of
     people play all day it may stop until the next day (their $5/month plan removes this).
   - Chat on the big server is open to everyone who joins. Only share the game with people you know.
-  - The Nether and the End need the server from version 7.7: run "Deploy Big Server.bat" once after
-    updating. Until then the game says the server needs an update when you step into a portal.
+  - The Nether and the End need the server from version 7.7, and the realms need 7.8: run
+    "Deploy Big Server.bat" once after updating. Until then the game says the server needs an update
+    when you step into a portal.
   Run it on your own PC instead: double-click "Run Server On This PC.bat" (needs Node.js).
   Players on your Wi-Fi join with the address it shows (like ws://192.168.1.5:8080/ws).
   The world is saved in server\server-data.json.
@@ -121,6 +122,35 @@ THE END
   they heal the dragon. Beat it and an exit portal with the Dragon Egg appears.
   In multiplayer the fight is shared: a crystal someone breaks stays broken and the dragon only has
   to be beaten once for everyone.
+
+THE REALMS (version 7.8) - five more dimensions, each with a boss
+  Build a frame like a Nether portal (4 wide and 5 tall, the middle 2x3 empty) out of one of these
+  blocks, then use flint and steel inside it. Realm portals only work in the Overworld.
+    Glowstone ............ the Skylands   - floating islands, golden trees, clouds. Boss: the Storm Titan
+    Packed Ice ........... the Frostlands - snow, frozen lakes, ice spikes.       Boss: the Frost Giant
+    Mossy Cobblestone .... the Wildwood   - giant trees, glowing mushrooms.       Boss: the Spider Queen
+    Block of Gold ........ Sunscorch      - red and yellow dunes, ruins.          Boss: the Pharaoh
+    Block of Coal ........ the Abyss      - dark caves full of purple crystals.   Boss: the Abyss Watcher
+  Packed ice = 4 ice (mine ice with a pickaxe to keep it). Mossy cobblestone = cobblestone + leaves.
+  You arrive on a platform next to the portal home. A road leads to the boss arena: follow the beam of
+  light and the arrow at the top of the screen. Bosses have a health bar and get angrier at half health.
+    Storm Titan:   lightning (get out of the glowing circle!), wind blasts that push you, and slams.
+    Frost Giant:   stomps the ground (jump to dodge it - it slows you), punches, throws ice boulders.
+    Spider Queen:  poison bite, big leaps, webs that slow you down, and baby spiders.
+    Pharaoh:       golden curses (they make you hungry), teleports next to you, raises mummies.
+    Abyss Watcher: a laser eye beam (it aims a red line at you first - hide behind a pillar!),
+                   shadow bolts, shades, and a dark pulse.
+  Rewards: a boss weapon (Thunder Hammer - calls lightning, Frost Blade - slows mobs, Venom Fang -
+  poisons, Sun Scepter - heals you and sets mobs on fire, Void Blade - the strongest sword), lots of the
+  realm's gems, diamonds and a trophy block where it fought. Want a rematch? Right-click the trophy
+  with 3 of the realm's gems.
+  New in the realms: Skyshard, Frost Crystal, Jade, Sun Gem and Void Shard ores (9 gems = a gem block,
+  most of them glow), clouds (no fall damage when you land on them), packed ice, permafrost, moss, glowshrooms,
+  sunstone, gold bricks, hieroglyph sandstone, abyss stone and crystals, new woods and bricks, sky
+  berries (food from golden leaves). Mobs: zephyrs (blow you away), pufflings, yetis, penguins,
+  treants, frogs, mummies, scorpions and shades. Beds only work in the Overworld; if you die in a
+  realm you wake up back home.
+  Multiplayer: everyone can go, the boss fight is shared, and a beaten boss stays beaten for everyone.
 
 FARM TYCOON (version 7.3) - Minigames > Farm Tycoon
   You start with a small field, a hoe, seeds and $20. Hoe grass into farmland and right-click it with

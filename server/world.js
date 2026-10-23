@@ -8,12 +8,14 @@ export const SERVER_PROTO = 2; // 2 = accounts with passwords (1 = old games, wh
 const NEAR = 96;            // players/mobs farther away than this aren't sent to you
 const WHEAT = 46, WHEAT_YOUNG = 48, CHEST = 35;
 const NAME_RE = /^[A-Za-z0-9_ \-]{1,16}$/;
-// dimensions: 0 overworld, 1 Nether, 2 End. Keys of the Nether / End start with "n|" / "e|"
-// (overworld keys have no prefix, so worlds from before dimensions still load).
-const DIM_PRE = ['', 'n|', 'e|'];
-const dimOf = v => (v === 1 || v === 2) ? v : 0;
+// dimensions: 0 overworld, 1 Nether, 2 End, 3-7 the realms (Skylands, Frostlands, Wildwood, Sunscorch, Abyss).
+// Their keys start with "n|", "e|", "s|", "f|", "w|", "u|", "a|" (overworld keys have no prefix, so old worlds still load).
+const DIM_LETTERS = 'nesfwua';
+const DIM_PRE = ['', ...[...DIM_LETTERS].map(c => c + '|')];
+const dimOf = v => (Number.isInteger(v) && v >= 1 && v < DIM_PRE.length) ? v : 0;
 const dimKey = (d, k) => DIM_PRE[d] + k;
-function unDimKey(k) { const m = /^([ne])\|(.*)$/.exec(k); return m ? [m[1] === 'n' ? 1 : 2, m[2]] : [0, k]; }
+function unDimKey(k) { const m = /^([nesfwua])\|(.*)$/.exec(k); return m ? [DIM_LETTERS.indexOf(m[1]) + 1, m[2]] : [0, k]; }
+const REALM_KEYS = ['sky', 'frost', 'wild', 'sun', 'abyss'];
 export const ADMINS = ['darkwing']; // accounts (lower-case names) that can use the admin panel
 const MAX_CLOUD_WORLDS = 30, MAX_CLOUD_BYTES = 30 * 1024 * 1024, CLOUD_PART = 120000; // cloud saves: worlds per account, size of one (gzipped) world, bytes per stored part
 
@@ -44,6 +46,7 @@ export class World {
     this.crops = new Map();
     for (const [k, v] of await this.store.list('r:')) this.crops.set(k.slice(2), v);
     this.endState = (await this.store.get('endstate')) || { dragonDead: false, crystals: [] };
+    this.realmState = (await this.store.get('realmstate')) || {};   // realm bosses that were beaten
     // accounts, keyed by the lower-case name so "Sam" and "sam" are the same account:
     // { name, hash, salt, tokens: [computers that are logged in], save, first }
     this.players = new Map();
@@ -96,6 +99,7 @@ export class World {
       else if (p === 'r:') v = this.crops.get(key);
       else if (p === 'p:') v = this.players.get(key);   // an old mixed-case key comes back undefined and is deleted
       else if (k === 'endstate') { await this.store.put('endstate', this.endState); continue; }
+      else if (k === 'realmstate') { await this.store.put('realmstate', this.realmState); continue; }
       if (v === undefined) await this.store.delete(k); else await this.store.put(k, v);
     }
   }
@@ -154,7 +158,7 @@ export class World {
         for (const e of d.l.slice(0, 2000)) {
           if (!Array.isArray(e)) continue;
           const [x, y, z, id, meta] = e;
-          if (![x, y, z, id].every(Number.isInteger) || y < 0 || y > 127 || id < 0 || id > 255 || (id >= 100 && id < 200)) continue;
+          if (![x, y, z, id].every(Number.isInteger) || y < 0 || y > 127 || id < 0 || id > 999 || (id >= 100 && id < 200)) continue;
           const mt = typeof meta === 'string' && meta.length < 8 ? meta : 0, dm = dimOf(e[5]);
           this.setBlock(x, y, z, id, mt, dm); l.push(dm ? [x, y, z, id, mt, dm] : [x, y, z, id, mt]);
         }
@@ -175,6 +179,13 @@ export class World {
         if (Array.isArray(o.crystals)) o.crystals.slice(0, 20).forEach((v, i) => { if (!v) es.crystals[i] = 0; else if (es.crystals[i] === undefined) es.crystals[i] = 1; });
         this.dirty.add('endstate');
         this.broadcast({ t: 'endst', s: es }, c);
+        break;
+      }
+      case 'realmst': { // the realm bosses: once one is beaten it stays beaten for everyone
+        const o = d.s; if (!o || typeof o !== 'object') return;
+        for (const k of REALM_KEYS) if (o[k]) this.realmState[k] = 1;
+        this.dirty.add('realmstate');
+        this.broadcast({ t: 'realmst', s: this.realmState }, c);
         break;
       }
       case 'me': {
@@ -404,7 +415,7 @@ export class World {
     if (cur.length) parts.push(cur);
     this.out(c, { t: 'welcome', id: c.id, server: this.info.name, name: name_, account: !!p.hash, you: p.save, parts: parts.length, online: this.online(),
       world: { seed: this.info.seed, name: this.info.name, mode: this.info.mode, mods: [], meta: [...this.meta], chests: [...this.chests], time: this.time(), spawn: null, clock: 0,
-        splitDims: true, endState: this.endState } });
+        splitDims: true, endState: this.endState, rOK: true, realmState: this.realmState } });
     for (const part of parts) this.out(c, { t: 'mods', mods: part });
     this.broadcast({ t: 'chat', text: name_ + ' joined the game', color: '#ffff55' }, c);
   }

@@ -91,7 +91,7 @@ WORLD GENERATION
   bc.on('generate', e => { ... })      runs for every new 16x16 piece of land (a chunk):
      e.get(x, y, z) / e.set(x, y, z, id)   x and z are 0-15 inside the chunk, y is 0-127
      e.random()                            random numbers that are the same for the same world seed
-     e.dimension ('overworld', 'nether', 'end'), e.x0 / e.z0 = world position of the chunk corner
+     e.dimension ('overworld', 'nether', 'end', 'sky', 'frost', 'wild', 'sun' or 'abyss'), e.x0 / e.z0 = world position of the chunk corner
   Only land that has never been visited gets new ores or blocks.
 
 EVENTS: bc.on(name, function)
